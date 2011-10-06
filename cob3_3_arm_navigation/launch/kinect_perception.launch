@@ -6,20 +6,20 @@
         output="screen">
         <remap from="cloud_in" to="/cam3d/depth_registered/points" />
         <remap from="cloud_out" to="/cam3d/depth_registered/points_filtered2" />
-        <param name="sensor_frame" type="string" value="/head_cam3d_link" />
+        <param name="sensor_frame" type="string" value="head_cam3d_link" />
         <param name="subsample_value" type="double" value=".02"/>
         <rosparam command="load" file="$(find cob3_3_arm_navigation)/config/self_filter.yaml" />
       </node>
 
       <!-- separate self filter Kinect points for creating object models with higher resolution-->
-    <node pkg="robot_self_filter" type="self_filter" respawn="true" name="object_modeling_kinect_self_filter" 
+    <!--<node pkg="robot_self_filter" type="self_filter" respawn="true" name="object_modeling_kinect_self_filter" 
       output="screen">
       <remap from="cloud_in" to="/cam3d/depth_registered/points" />
       <remap from="cloud_out" to="/cam3d/depth_registered/object_modeling_points_filtered" />
-      <param name="sensor_frame" type="string" value="/head_cam3d_link" />
+      <param name="sensor_frame" type="string" value="head_cam3d_link" />
       <param name="subsample_value" type="double" value=".005"/>
       <rosparam command="load" file="$(find cob3_3_arm_navigation)/config/self_filter.yaml" />
-    </node>
+    </node>-->
 
     <node pkg="collider" type="collider_node" name="collider_node" respawn="true" output="screen">
      <param name="fixed_frame" type="string" value="base_link" />
