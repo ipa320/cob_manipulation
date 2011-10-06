@@ -1,0 +1,4 @@
+<launch>
+    <param name="robot_description" textfile="$(find cob_description)/ros/robots/cob3_3.urdf" />
+    <rosparam command="load" ns="robot_description_planning" file="$(find cob3_3_arm_navigation)/config/cob3_3_planning_description.yaml" />
+</launch>
