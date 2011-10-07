@@ -149,7 +149,7 @@ tray_cartesian:
     - SBLkConfig1
     - LBKPIECEkConfig1
   kinematics_solver: arm_kinematics_constraint_aware/KDLArmKinematicsPlugin
-  tip_name: torso_tray_link
+  tip_name: torso_tray_link2
   root_name: base_footprint
   projection_evaluator: joint_state
   longest_valid_segment_fraction: 0.001

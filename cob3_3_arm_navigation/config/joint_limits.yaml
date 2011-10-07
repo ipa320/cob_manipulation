@@ -104,6 +104,62 @@ joint_limits:
     has_acceleration_limits: true
     max_acceleration: 1
     angle_wraparound: false
+  bl_caster_rotation_joint:
+    has_position_limits: false
+    has_velocity_limits: true
+    max_velocity: 100
+    has_acceleration_limits: true
+    max_acceleration: 1
+    angle_wraparound: true
+  bl_caster_r_wheel_joint:
+    has_position_limits: false
+    has_velocity_limits: true
+    max_velocity: 100
+    has_acceleration_limits: true
+    max_acceleration: 1
+    angle_wraparound: true
+  br_caster_rotation_joint:
+    has_position_limits: false
+    has_velocity_limits: true
+    max_velocity: 100
+    has_acceleration_limits: true
+    max_acceleration: 1
+    angle_wraparound: true
+  br_caster_r_wheel_joint:
+    has_position_limits: false
+    has_velocity_limits: true
+    max_velocity: 100
+    has_acceleration_limits: true
+    max_acceleration: 1
+    angle_wraparound: true
+  fl_caster_rotation_joint:
+    has_position_limits: false
+    has_velocity_limits: true
+    max_velocity: 100
+    has_acceleration_limits: true
+    max_acceleration: 1
+    angle_wraparound: true
+  fl_caster_r_wheel_joint:
+    has_position_limits: false
+    has_velocity_limits: true
+    max_velocity: 100
+    has_acceleration_limits: true
+    max_acceleration: 1
+    angle_wraparound: true
+  fr_caster_rotation_joint:
+    has_position_limits: false
+    has_velocity_limits: true
+    max_velocity: 100
+    has_acceleration_limits: true
+    max_acceleration: 1
+    angle_wraparound: true
+  fr_caster_r_wheel_joint:
+    has_position_limits: false
+    has_velocity_limits: true
+    max_velocity: 100
+    has_acceleration_limits: true
+    max_acceleration: 1
+    angle_wraparound: true
   torso_lower_neck_tilt_joint:
     has_position_limits: true
     has_velocity_limits: true
