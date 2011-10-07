@@ -1,0 +1,18 @@
+<package>
+  <description brief="cob_gripper_grasp_controller_sdh">
+
+     cob_gripper_grasp_controller_sdh
+     Implementation of the GraspHandPostureExecution Action for the Schunk SDH hand to use the object_manipulator package.
+
+  </description>
+  <author>Alexander Bubeck</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cob_gripper_grasp_controller_sdh</url>
+  <depend package="rospy"/>
+  <depend package="cob_sdh"/>
+  <depend package="object_manipulation_msgs"/>
+
+</package>
+
+
