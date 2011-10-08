@@ -11,6 +11,7 @@
   <url>http://ros.org/wiki/cob_gripper_grasp_controller_sdh</url>
   <depend package="rospy"/>
   <depend package="cob_sdh"/>
+  <depend package="cob_script_server"/>
   <depend package="object_manipulation_msgs"/>
 
 </package>
