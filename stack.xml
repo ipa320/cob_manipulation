@@ -1,7 +1,11 @@
 <stack>
-  <description brief="cob_manipulation">cob_manipulation</description>
-  <author>Maintained by </author>
-  <license>BSD</license>  
+  <description brief="Care-O-bot stack with manipulation packages">
+
+     The cob_manipulation stack includes packages that provide manipulation capabiliteis for Care-O-bot.
+
+  </description>
+  <author>Maintained by Alexander Bubeck</author>
+  <license>BSD,LGPL</license>  
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_manipulation</url>
   <depend stack="arm_navigation" /> <!-- move_arm, trajectory_filter_server, planning_environment, robot_self_filter, constraint_aware_spline_smoother, arm_kinematics_constraint_aware, ompl_ros_interface -->
