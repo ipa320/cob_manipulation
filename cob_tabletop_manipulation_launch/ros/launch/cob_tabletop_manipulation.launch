@@ -27,8 +27,8 @@
 		value="/objects_database_node/database_grasp_planning" />
 	<param name="/object_manipulator/default_robust_planner" 
 		value="/plan_robust_grasp" />
-
 	<!-- tabletop segmentation and object recognition -->
+	<machine name="pc2" address="cob3-3-pc2" default="true"/>
 	<include file="$(find tabletop_object_detector)/launch/tabletop_complete.launch">
 		<arg unless="$(arg stereo)" name="tabletop_segmentation_points_input" value="cam3d/depth_registered/points"/>
 		<arg if="$(arg stereo)" name="tabletop_segmentation_points_input" value="/sensor_fusion/points"/>

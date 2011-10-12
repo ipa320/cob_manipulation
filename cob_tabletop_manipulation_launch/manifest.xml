@@ -4,8 +4,8 @@
      cob_tabletop_manipulation_apps
 
   </description>
-  <author></author>
-  <license>BSD</license>
+  <author>Alexander Bubeck</author>
+  <license>LGPL</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_tabletop_manipulation_apps</url>
   <depend package="cob3_3_arm_navigation"/>
@@ -15,5 +15,3 @@
   <depend package="tabletop_collision_map_processing"/>
 
 </package>
-
-
