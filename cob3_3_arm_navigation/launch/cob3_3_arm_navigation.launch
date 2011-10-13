@@ -26,7 +26,7 @@
 	</group>
 
 	<group>
-	    <machine name="extern" address="fmw-z600-1" default="true"/>
+	    <machine name="pc2" address="cob3-3-pc2" default="true"/>
 		<include file="$(find cob3_3_arm_navigation)/launch/kinect_perception.launch" />
 	</group>
 
