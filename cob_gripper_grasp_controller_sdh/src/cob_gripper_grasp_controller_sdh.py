@@ -8,7 +8,7 @@ import rospy
 
 from simple_script_server import *
 from object_manipulation_msgs.msg import GraspHandPostureExecutionAction
-from object_manipulation_msgs.srv import GraspStatus
+from object_manipulation_msgs.srv import *
 
 fake_pr2_gripper_open = [1.57,-1.57,0.0,-0.50,0.7,-0.50,0.7]
 fake_pr2_gripper_closed = [1.57,-1.57,0.0,-0.20,0.7,-0.20,0.7]
@@ -28,22 +28,22 @@ class cob_gripper_grasp_controller_sdh:
 			if(len(server_goal.grasp.grasp_posture.position) == 0):
 				ros.log_err("Empty grasp given")
 			else:
-				print "moving sdh to grasp ", server_goal.grasp.grasp_posture.position
-				#self.sss.move("sdh", server_goal.grasp.grasp_posture.position)
-				self.sss.move("sdh", [fake_pr2_gripper_closed])
-				print "fake_pr2"
+				self.sss.move("sdh", [list(server_goal.grasp.grasp_posture.position)])
+				rospy.loginfo("Moving to grasp pose " + str(server_goal.grasp.grasp_posture.position))
+				#self.sss.move("sdh", [fake_pr2_gripper_closed])
 				#self.sss.move("sdh", [[0,0,0,0,0,0,0,0]])
 		if server_goal.goal == 1: #PRE_GRASP
 			if(len(server_goal.grasp.pre_grasp_posture.position) == 0):
 				ros.log_err("Empty pregrasp given")
 			else:
-				print "moving sdh to pregrasp ", server_goal.grasp.pre_grasp_posture.position
-				#self.sss.move("sdh", server_goal.grasp.pre_grasp_posture.position)
-				self.sss.move("sdh", [fake_pr2_gripper_open])
+				rospy.loginfo("Moving to pregrasp pose " + str(server_goal.grasp.pre_grasp_posture.position))
+				self.sss.move("sdh", [list(server_goal.grasp.pre_grasp_posture.position)])
+				#self.sss.move("sdh", [fake_pr2_gripper_open])
 				print "fake_pr2"
 		if server_goal.goal == 3: #RELEASE
 			print "received release command"
 			self.sss.move("sdh", "cylopen")
+		self.action_server.set_succeeded()
 
 	def query_cb(self, req):
 		res = GraspStatusResponse()

@@ -1,6 +1,6 @@
 cloud_sources:
-  - name: /cam3d/depth_registered/points_filtered2
+  - name: /cam3d/depth/points_filtered2
     frame_subsample: 1
     point_subsample: 1
     sensor_frame: head_cam3d_link
-camera_info_topic: /cam3d/depth_registered/camera_info
+camera_info_topic: /cam3d/depth/camera_info

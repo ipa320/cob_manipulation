@@ -15,7 +15,7 @@
 	<param name="/household_objects_database/database_port" value="5432"/>
 	<param name="/household_objects_database/database_user" value="ipa"/>
 	<param name="/household_objects_database/database_pass" value="ipa"/>
-	<param name="/household_objects_database/database_name" value="household_objects-0.2"/>
+	<param name="/household_objects_database/database_name" value="household_objects-0.5"/>
 	<node pkg="household_objects_database" name="objects_database_node" type="objects_database_node" respawn="true" output="screen"/>
 
 	<!-- manipulation prerequisites all includede in the cob3_3_arm_navigation pkg -->
@@ -30,7 +30,7 @@
 
 	<!-- tabletop segmentation and object recognition -->
 	<include file="$(find tabletop_object_detector)/launch/tabletop_complete.launch">
-		<arg unless="$(arg stereo)" name="tabletop_segmentation_points_input" value="cam3d/depth_registered/points"/>
+		<arg unless="$(arg stereo)" name="tabletop_segmentation_points_input" value="cam3d/depth/points"/>
 		<arg if="$(arg stereo)" name="tabletop_segmentation_points_input" value="/sensor_fusion/points"/>
 	</include>
 
