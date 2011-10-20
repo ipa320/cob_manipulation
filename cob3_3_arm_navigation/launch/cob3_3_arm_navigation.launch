@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<launch>
+	<group>
+		<machine name="pc3" address="cob3-3-pc3" default="true"/>
+		<include file="$(find cob3_3_arm_navigation)/launch/cob3_3_planning_environment.launch" />
+		<include file="$(find cob3_3_arm_navigation)/launch/environment_server.launch">
+		    <arg name="use_monitor" value="true" />
+		    <arg name="use_collision_map" value="true" />
+		</include>
+		<include file="$(find cob3_3_arm_navigation)/launch/constraint_aware_kinematics.launch" />
+		<include file="$(find cob3_3_arm_navigation)/launch/ompl_planning.launch" />
+		<include file="$(find cob3_3_arm_navigation)/launch/trajectory_filter_server.launch" />
+		<include file="$(find cob3_3_arm_navigation)/launch/move_groups.launch" />
+	</group>
+
+	<group>
+		<machine name="pc3" address="cob3-3-pc3" default="true"/>
+		<include file="$(find cob3_3_arm_navigation)/launch/kinect_perception.launch" />
+	</group>
+</launch>

@@ -1,0 +1,7 @@
+<launch>
+    <include file="$(find cob3_3_arm_navigation)/launch/move_arm.launch" />
+    <include file="$(find cob3_3_arm_navigation)/launch/move_hand.launch" />
+    <include file="$(find cob3_3_arm_navigation)/launch/move_platform.launch" />
+    <include file="$(find cob3_3_arm_navigation)/launch/move_torso.launch" />
+    <include file="$(find cob3_3_arm_navigation)/launch/move_tray.launch" />
+</launch>
