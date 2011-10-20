@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 <launch>
 	<group>
-	    <machine name="pc3" address="cob3-3-pc3" default="true"/>
 	    <include file="$(find cob3_3_arm_navigation)/launch/cob3_3_planning_environment.launch" />
 	    <include file="$(find cob3_3_arm_navigation)/launch/environment_server.launch">
 		<arg name="use_monitor" value="true" />
@@ -26,9 +25,7 @@
 	</group>
 
 	<group>
-	    <machine name="pc2" address="cob3-3-pc2" default="true"/>
 		<include file="$(find cob3_3_arm_navigation)/launch/kinect_perception.launch" />
 	</group>
 
-	<machine name="pc3" address="cob3-3-pc3" default="true"/>
 </launch>
