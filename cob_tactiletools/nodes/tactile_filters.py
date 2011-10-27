@@ -1,8 +1,8 @@
 #!/usr/bin/python
 import roslib; roslib.load_manifest('cob_tactiletools')
 import rospy
-from cob_sdh.msg import TactileMatrix, TactileSensor
-from cob_srvs.srv import *
+from schunk_sdh.msg import TactileMatrix, TactileSensor
+from schunk_srvs.srv import *
 from std_msgs.msg import Bool, Float32MultiArray
 
 
