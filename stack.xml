@@ -11,7 +11,6 @@
   <depend stack="arm_navigation" /> <!-- move_arm, trajectory_filter_server, planning_environment, robot_self_filter, constraint_aware_spline_smoother, arm_kinematics_constraint_aware, kinematics_msgs, ompl_ros_interface -->
   <depend stack="arm_navigation_experimental" /> <!-- collider -->
   <depend stack="cob_common" /> <!-- cob_srvs, brics_actuator -->
-  <depend stack="cob_driver" /> <!-- cob_sdh -->
   <depend stack="common" /> <!-- actionlib -->
   <depend stack="common_msgs" /> <!-- nav_msgs, actionlib_msgs, trajectory_msgs, geometry_msgs, visualization_msgs -->
   <depend stack="geometry" /> <!-- tf, tf_conversions -->
@@ -22,5 +21,6 @@
   <depend stack="robot_model" /> <!-- kdl_parser -->
   <depend stack="ros" />
   <depend stack="ros_comm" /> <!-- std_msgs, rospy, roscpp -->
+  <depend stack="schunk_modular_robotics" /> <!-- schunk_sdh -->
 
 </stack>
