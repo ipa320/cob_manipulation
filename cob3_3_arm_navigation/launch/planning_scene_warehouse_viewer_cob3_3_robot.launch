@@ -34,7 +34,7 @@
   <!-- Degree of freedom representing inverse kinematics redundancy on the right arm -->
   <param name="right_redundancy" value="none" />
   <!-- Link on the left arm to perform inverse kinematics for -->
-  <param name="left_ik_link" value="arm_7_link" />
+  <param name="left_ik_link" value="sdh_palm_link" />
   <!-- Link on the right arm to perform inverse kinematics for -->
   <param name="right_ik_link" value="head_cover_link" />
   <!-- Called to plan trajectories given motion plan requests -->
