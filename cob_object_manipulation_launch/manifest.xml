@@ -4,11 +4,9 @@
      cob_object_manipulation_launch
 
   </description>
-  <author></author>
-  <license>BSD</license>
+  <author>Alexander Bubeck</author>
+  <license>LGPL</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_object_manipulation_launch</url>
 
 </package>
-
-

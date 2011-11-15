@@ -5,7 +5,7 @@
 
   </description>
   <author>Alexander Bubeck</author>
-  <license>BSD</license>
+  <license>LGPL</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob3_3_arm_navigation</url>
   <depend package="planning_environment"/>
@@ -18,5 +18,3 @@
   <depend package="robot_self_filter"/>
 
 </package>
-
-
