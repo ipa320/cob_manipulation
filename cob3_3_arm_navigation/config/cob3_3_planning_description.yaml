@@ -6,7 +6,7 @@ multi_dof_joints:
 groups:
   - name: arm
     base_link: base_footprint
-    tip_link: arm_7_link
+    tip_link: sdh_palm_link
   - name: hand
     joints:
       - sdh_palm_joint
@@ -35,13 +35,12 @@ groups:
       - fr_caster_rotation_joint
       - fr_caster_r_wheel_joint
       - base_footprint_joint
-      - base_link2_joint
   - name: torso
     base_link: base_footprint
     tip_link: head_cover_link
   - name: tray
     base_link: base_footprint
-    tip_link: torso_tray_link2
+    tip_link: torso_tray_link
 default_collision_operations:
   - object1: base_footprint
     object2: base_link
@@ -175,45 +174,6 @@ default_collision_operations:
   - object1: base_link
     object2: torso_tray_link
     operation: disable  # Adjacent in collision
-  - object1: torso_tray_link
-    object2: torso_tray_link2
-    operation: disable  # Adjacent in collision
-  - object1: base_footprint
-    object2: base_link2
-    operation: disable  # Adjacent in collision
-  - object1: base_laser_front_link
-    object2: base_link2
-    operation: disable  # Always in collision
-  - object1: base_laser_rear_link
-    object2: base_link2
-    operation: disable  # Always in collision
-  - object1: base_link
-    object2: base_link2
-    operation: disable  # Always in collision
-  - object1: base_link2
-    object2: bl_caster_r_wheel_link
-    operation: disable  # Always in collision
-  - object1: base_link2
-    object2: bl_caster_rotation_link
-    operation: disable  # Always in collision
-  - object1: base_link2
-    object2: br_caster_r_wheel_link
-    operation: disable  # Always in collision
-  - object1: base_link2
-    object2: br_caster_rotation_link
-    operation: disable  # Always in collision
-  - object1: base_link2
-    object2: fl_caster_r_wheel_link
-    operation: disable  # Always in collision
-  - object1: base_link2
-    object2: fl_caster_rotation_link
-    operation: disable  # Always in collision
-  - object1: base_link2
-    object2: fr_caster_r_wheel_link
-    operation: disable  # Always in collision
-  - object1: base_link2
-    object2: fr_caster_rotation_link
-    operation: disable  # Always in collision
   - object1: head_axis_link
     object2: head_color_camera_l_frame
     operation: disable  # Always in collision
@@ -269,9 +229,6 @@ default_collision_operations:
     object2: base_laser_top_link
     operation: disable  # Never in collision
   - object1: arm_0_link
-    object2: base_link2
-    operation: disable  # Never in collision
-  - object1: arm_0_link
     object2: bl_caster_r_wheel_link
     operation: disable  # Never in collision
   - object1: arm_0_link
@@ -324,9 +281,6 @@ default_collision_operations:
     operation: disable  # Never in collision
   - object1: arm_0_link
     object2: torso_tray_link
-    operation: disable  # Never in collision
-  - object1: arm_0_link
-    object2: torso_tray_link2
     operation: disable  # Never in collision
   - object1: arm_1_link
     object2: arm_3_link
@@ -359,9 +313,6 @@ default_collision_operations:
     object2: base_link
     operation: disable  # Never in collision
   - object1: arm_1_link
-    object2: base_link2
-    operation: disable  # Never in collision
-  - object1: arm_1_link
     object2: bl_caster_r_wheel_link
     operation: disable  # Never in collision
   - object1: arm_1_link
@@ -405,9 +356,6 @@ default_collision_operations:
     operation: disable  # Never in collision
   - object1: arm_1_link
     object2: torso_tray_link
-    operation: disable  # Never in collision
-  - object1: arm_1_link
-    object2: torso_tray_link2
     operation: disable  # Never in collision
   - object1: arm_2_link
     object2: arm_4_link
@@ -437,9 +385,6 @@ default_collision_operations:
     object2: base_link
     operation: disable  # Never in collision
   - object1: arm_2_link
-    object2: base_link2
-    operation: disable  # Never in collision
-  - object1: arm_2_link
     object2: bl_caster_r_wheel_link
     operation: disable  # Never in collision
   - object1: arm_2_link
@@ -498,9 +443,6 @@ default_collision_operations:
     operation: disable  # Never in collision
   - object1: arm_2_link
     object2: torso_tray_link
-    operation: disable  # Never in collision
-  - object1: arm_2_link
-    object2: torso_tray_link2
     operation: disable  # Never in collision
   - object1: arm_3_link
     object2: arm_5_link
@@ -524,9 +466,6 @@ default_collision_operations:
     object2: base_laser_top_link
     operation: disable  # Never in collision
   - object1: arm_3_link
-    object2: base_link2
-    operation: disable  # Never in collision
-  - object1: arm_3_link
     object2: bl_caster_r_wheel_link
     operation: disable  # Never in collision
   - object1: arm_3_link
@@ -602,9 +541,6 @@ default_collision_operations:
     object2: base_laser_top_link
     operation: disable  # Never in collision
   - object1: arm_4_link
-    object2: base_link2
-    operation: disable  # Never in collision
-  - object1: arm_4_link
     object2: bl_caster_r_wheel_link
     operation: disable  # Never in collision
   - object1: arm_4_link
@@ -950,9 +886,6 @@ default_collision_operations:
     object2: torso_tray_link
     operation: disable  # Never in collision
   - object1: base_footprint
-    object2: torso_tray_link2
-    operation: disable  # Never in collision
-  - object1: base_footprint
     object2: torso_upper_neck_tilt_link
     operation: disable  # Never in collision
   - object1: base_laser_front_link
@@ -1049,9 +982,6 @@ default_collision_operations:
     object2: torso_tray_link
     operation: disable  # Never in collision
   - object1: base_laser_front_link
-    object2: torso_tray_link2
-    operation: disable  # Never in collision
-  - object1: base_laser_front_link
     object2: torso_upper_neck_tilt_link
     operation: disable  # Never in collision
   - object1: base_laser_rear_link
@@ -1145,13 +1075,7 @@ default_collision_operations:
     object2: torso_tray_link
     operation: disable  # Never in collision
   - object1: base_laser_rear_link
-    object2: torso_tray_link2
-    operation: disable  # Never in collision
-  - object1: base_laser_rear_link
     object2: torso_upper_neck_tilt_link
-    operation: disable  # Never in collision
-  - object1: base_laser_top_link
-    object2: base_link2
     operation: disable  # Never in collision
   - object1: base_laser_top_link
     object2: bl_caster_r_wheel_link
@@ -1241,9 +1165,6 @@ default_collision_operations:
     object2: torso_tray_link
     operation: disable  # Never in collision
   - object1: base_laser_top_link
-    object2: torso_tray_link2
-    operation: disable  # Never in collision
-  - object1: base_laser_top_link
     object2: torso_upper_neck_tilt_link
     operation: disable  # Never in collision
   - object1: base_link
@@ -1261,33 +1182,6 @@ default_collision_operations:
   - object1: base_link
     object2: torso_pan_link
     operation: disable  # Never in collision
-  - object1: base_link2
-    object2: head_axis_link
-    operation: disable  # Never in collision
-  - object1: base_link2
-    object2: head_cam3d_frame
-    operation: disable  # Never in collision
-  - object1: base_link2
-    object2: head_color_camera_l_frame
-    operation: disable  # Never in collision
-  - object1: base_link2
-    object2: head_color_camera_l_link
-    operation: disable  # Never in collision
-  - object1: base_link2
-    object2: head_color_camera_r_frame
-    operation: disable  # Never in collision
-  - object1: base_link2
-    object2: head_color_camera_r_link
-    operation: disable  # Never in collision
-  - object1: base_link2
-    object2: torso_lower_neck_tilt_link
-    operation: disable  # Never in collision
-  - object1: base_link2
-    object2: torso_pan_link
-    operation: disable  # Never in collision
-  - object1: base_link2
-    object2: torso_tray_link
-    operation: disable  # Never in collision
   - object1: bl_caster_r_wheel_link
     object2: br_caster_r_wheel_link
     operation: disable  # Never in collision
@@ -1368,9 +1262,6 @@ default_collision_operations:
     operation: disable  # Never in collision
   - object1: bl_caster_r_wheel_link
     object2: torso_tray_link
-    operation: disable  # Never in collision
-  - object1: bl_caster_r_wheel_link
-    object2: torso_tray_link2
     operation: disable  # Never in collision
   - object1: bl_caster_r_wheel_link
     object2: torso_upper_neck_tilt_link
@@ -1457,9 +1348,6 @@ default_collision_operations:
     object2: torso_tray_link
     operation: disable  # Never in collision
   - object1: bl_caster_rotation_link
-    object2: torso_tray_link2
-    operation: disable  # Never in collision
-  - object1: bl_caster_rotation_link
     object2: torso_upper_neck_tilt_link
     operation: disable  # Never in collision
   - object1: br_caster_r_wheel_link
@@ -1509,9 +1397,6 @@ default_collision_operations:
     operation: disable  # Never in collision
   - object1: br_caster_r_wheel_link
     object2: torso_tray_link
-    operation: disable  # Never in collision
-  - object1: br_caster_r_wheel_link
-    object2: torso_tray_link2
     operation: disable  # Never in collision
   - object1: br_caster_r_wheel_link
     object2: torso_upper_neck_tilt_link
@@ -1592,9 +1477,6 @@ default_collision_operations:
     object2: torso_tray_link
     operation: disable  # Never in collision
   - object1: br_caster_rotation_link
-    object2: torso_tray_link2
-    operation: disable  # Never in collision
-  - object1: br_caster_rotation_link
     object2: torso_upper_neck_tilt_link
     operation: disable  # Never in collision
   - object1: fl_caster_r_wheel_link
@@ -1665,9 +1547,6 @@ default_collision_operations:
     operation: disable  # Never in collision
   - object1: fl_caster_r_wheel_link
     object2: torso_tray_link
-    operation: disable  # Never in collision
-  - object1: fl_caster_r_wheel_link
-    object2: torso_tray_link2
     operation: disable  # Never in collision
   - object1: fl_caster_r_wheel_link
     object2: torso_upper_neck_tilt_link
@@ -1742,9 +1621,6 @@ default_collision_operations:
     object2: torso_tray_link
     operation: disable  # Never in collision
   - object1: fl_caster_rotation_link
-    object2: torso_tray_link2
-    operation: disable  # Never in collision
-  - object1: fl_caster_rotation_link
     object2: torso_upper_neck_tilt_link
     operation: disable  # Never in collision
   - object1: fr_caster_r_wheel_link
@@ -1791,9 +1667,6 @@ default_collision_operations:
     operation: disable  # Never in collision
   - object1: fr_caster_r_wheel_link
     object2: torso_tray_link
-    operation: disable  # Never in collision
-  - object1: fr_caster_r_wheel_link
-    object2: torso_tray_link2
     operation: disable  # Never in collision
   - object1: fr_caster_r_wheel_link
     object2: torso_upper_neck_tilt_link
@@ -1860,9 +1733,6 @@ default_collision_operations:
     operation: disable  # Never in collision
   - object1: fr_caster_rotation_link
     object2: torso_tray_link
-    operation: disable  # Never in collision
-  - object1: fr_caster_rotation_link
-    object2: torso_tray_link2
     operation: disable  # Never in collision
   - object1: fr_caster_rotation_link
     object2: torso_upper_neck_tilt_link
@@ -2067,7 +1937,4 @@ default_collision_operations:
     operation: disable  # Never in collision
   - object1: torso_pan_link
     object2: torso_tray_link
-    operation: disable  # Never in collision
-  - object1: torso_pan_link
-    object2: torso_tray_link2
     operation: disable  # Never in collision

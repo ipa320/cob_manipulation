@@ -16,9 +16,5 @@
   <depend package="move_arm"/>
   <depend package="collider"/>
   <depend package="robot_self_filter"/>
-  <depend package="robot_state_publisher"/>
-  <depend package="rviz"/>
-  <depend package="move_arm_warehouse"/>
-  <depend package="mongodb"/>
 
 </package>

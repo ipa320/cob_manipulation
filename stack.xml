@@ -9,18 +9,18 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_manipulation</url>
   <depend stack="arm_navigation" /> <!-- move_arm, trajectory_filter_server, planning_environment, robot_self_filter, constraint_aware_spline_smoother, arm_kinematics_constraint_aware, kinematics_msgs, kinematics_base, arm_navigation_msgs, ompl_ros_interface -->
-  <depend stack="arm_navigation_experimental" /> <!-- collider, move_arm_warehouse -->
+  <depend stack="arm_navigation_experimental" /> <!-- collider -->
+  <depend stack="cob_command_tools" /> <!-- cob_script_server -->
   <depend stack="cob_common" /> <!-- cob_srvs, cob_description, brics_actuator -->
   <depend stack="common" /> <!-- actionlib -->
   <depend stack="common_msgs" /> <!-- nav_msgs, actionlib_msgs, trajectory_msgs, geometry_msgs, visualization_msgs -->
   <depend stack="geometry" /> <!-- tf, tf_conversions -->
-  <depend stack="object_manipulation" /> <!-- household_objects_database -->
+  <depend stack="object_manipulation" /> <!-- object_manipulation_msgs -->
   <depend stack="orocos_kinematics_dynamics" /> <!-- kdl -->
   <depend stack="pluginlib" /> <!-- pluginlib -->
   <depend stack="pr2_controllers" /> <!-- pr2_controllers_msgs -->
   <depend stack="pr2_kinematics" /> <!-- pr2_arm_kinematics -->
-  <depend stack="pr2_object_manipulation" /> <!-- tabletop_object_detector, tabletop_collision_map_processing -->
-  <depend stack="robot_model" /> <!-- robot_state_publisher, urdf, kdl_parser, collada_urdf -->
+  <depend stack="robot_model" /> <!-- collada_urdf, urdf, kdl_parser -->
   <depend stack="ros" />
   <depend stack="ros_comm" /> <!-- std_msgs, rospy, roscpp -->
   <depend stack="schunk_modular_robotics" /> <!-- schunk_sdh -->

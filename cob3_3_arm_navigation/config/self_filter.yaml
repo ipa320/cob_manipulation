@@ -18,3 +18,20 @@ self_see_links:
     padding: .2
   - name: arm_7_link
     padding: .2
+  - name: sdh_palm_link
+    padding: .08
+  - name: sdh_finger_11_link
+    padding: .08
+  - name: sdh_finger_12_link
+    padding: .08
+  - name: sdh_finger_13_link
+    padding: .08
+  - name: sdh_finger_21_link
+    padding: .08
+  - name: sdh_finger_22_link
+    padding: .08
+  - name: sdh_finger_23_link
+    padding: .08
+  - name: sdh_thumb_1_link
+    padding: .08
+  - name: sdh_thumb_2_link
