@@ -16,6 +16,4 @@
   <depend package="move_arm"/>
   <depend package="collider"/>
   <depend package="robot_self_filter"/>
-  <depend package="interpolated_ik_motion_planner"/>
-
 </package>

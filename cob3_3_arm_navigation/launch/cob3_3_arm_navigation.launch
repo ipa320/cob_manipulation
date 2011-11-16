@@ -19,7 +19,7 @@
 	    <arg name="group_name_2" value="torso"/>
 	  </include>
 
-	    <node name="interpolated_ik_node_cob3_3" pkg="interpolated_ik_motion_planner" type="interpolated_ik_motion_planner.py" args="c" respawn="false"/>
+	   
 
 
 	</group>
