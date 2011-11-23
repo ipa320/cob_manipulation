@@ -16,4 +16,5 @@
   <depend package="move_arm"/>
   <depend package="collider"/>
   <depend package="robot_self_filter"/>
+  <depend package="current_state_validator"/>
 </package>
