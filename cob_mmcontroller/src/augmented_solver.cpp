@@ -19,6 +19,7 @@ namespace KDL
         maxiter(_maxiter)
     {
 		base_is_actived_ = true;
+		base_to_arm_factor_ = 0.1;
     }
 
 	augmented_solver::~augmented_solver()
@@ -41,9 +42,9 @@ namespace KDL
         jac_base.setZero();
         if(base_is_actived_)
         {
-        	jac_base(0,0) = 1.0;
-        	jac_base(1,1) = 1.0;
-        	jac_base(5,2) = 1.0;
+        	jac_base(0,0) = base_to_arm_factor_;
+        	jac_base(1,1) = base_to_arm_factor_;
+        	jac_base(5,2) = base_to_arm_factor_;
         }
 
         //Put full jacobian matrix together
@@ -58,6 +59,7 @@ namespace KDL
         Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> W_v;
         W_v.resize(num_dof,num_dof);
         W_v.setZero();
+
         for(int i=0 ; i<num_dof ; i++)
         	W_v(i,i) = damping_factor;
 
@@ -71,7 +73,25 @@ namespace KDL
         	std::cout << "Weight matrix defined\n";
         //W_e.setIdentity(6,6);
 
-        //Definition of additional task for platform
+        //Definition of additional task
+
+        Eigen::Matrix<double, 7, 1> z_in;
+        z_in.setZero();
+        z_in(0,0) = 1.57;
+        z_in(1,0) = 1.57;
+        z_in(2,0) = 1.57;
+        z_in(3,0) = 1.57;
+        z_in(4,0) = 1.57;
+        z_in(5,0) = 1.57;
+        z_in(6,0) = 1.57;
+
+        Eigen::Matrix<double, 7 , 10> jac_c;
+        jac_c.setZero();
+        for(unsigned int i=0 ; i<7 ; i++)
+        	jac_c(i,i) = 1;
+
+        Eigen::Matrix<double, 7, 7> W_c;
+        W_c.setZero();
 
 
         //Inversion
@@ -79,7 +99,7 @@ namespace KDL
         Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> damped_inversion;
         damped_inversion.resize(num_dof,num_dof);
 
-        damped_inversion = (jac_full.transpose() * W_e * jac_full) + W_v;  /* +  jac_augmented.transpose() * W_c * jac_augmented / + W_v;*/
+        damped_inversion = (jac_full.transpose() * W_e * jac_full) +  (jac_c.transpose() * W_c * jac_c) + W_v;
         if(DEBUG)
         	std::cout << "Inversion done\n";
 
@@ -92,7 +112,7 @@ namespace KDL
         v_in_eigen(3,0) = v_in.rot.x();
         v_in_eigen(4,0) = v_in.rot.y();
         v_in_eigen(5,0) = v_in.rot.z();
-        q_dot_conf_control = damped_inversion.inverse() * jac_full.transpose() * W_e * v_in_eigen;
+        q_dot_conf_control = damped_inversion.inverse() * ((jac_full.transpose() * W_e * v_in_eigen) + (jac_c.transpose() * W_c * z_in));
 
         if(DEBUG)
         	std::cout << "Endergebnis: \n" << q_dot_conf_control << "\n";

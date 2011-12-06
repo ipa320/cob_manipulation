@@ -6,9 +6,12 @@ cob_config_controller::cob_config_controller()
 	//parsing urdf for KDL chain
 	KDL::Tree my_tree;
 	ros::NodeHandle node;
-	node.param("arm_base", arm_base_name_, std::string("arm_0_link"));
-	node.param("arm_end_effector", arm_ee_name_, std::string("arm_7_link"));
-	node.param("default_control_mode", kinematic_mode_, std::string("arm_base"));
+	double base_to_arm_ratio_ = 0.1;
+	node.param("/arm_controller/arm_mmcontroller_node/arm_base", arm_base_name_, std::string("arm_0_link"));
+	node.param("/arm_controller/arm_mmcontroller_node/arm_end_effector", arm_ee_name_, std::string("arm_7_link"));
+	node.param("/arm_controller/arm_mmcontroller_node/default_control_mode", kinematic_mode_, std::string("arm_base"));
+	node.param("/arm_controller/arm_mmcontroller_node/base_to_arm_ratio", base_to_arm_ratio_, 0.1);
+	ROS_INFO("Starting node with arm_end_effector: %s; default_control_mode: %s", arm_ee_name_.c_str(), kinematic_mode_.c_str());
 
 	std::string robot_desc_string;
 	node.param("/robot_description", robot_desc_string, string());
@@ -17,11 +20,17 @@ cob_config_controller::cob_config_controller()
 			  return;
 	}
 	my_tree.getChain("base_link",arm_ee_name_, arm_base_chain);
+	if(arm_base_chain.getNrOfJoints() == 0)
+	{
+		ROS_ERROR("Specified arm_end_effector doesn't seem to exist in urdf description");
+		exit(0);
+	}
 	my_tree.getChain(arm_base_name_,arm_ee_name_, arm_chain);
 
 	//Initializing configuration control solver
 	iksolver1v = new augmented_solver(arm_base_chain);//Inverse velocity solver
 	fksolver1 = new ChainFkSolverPos_recursive(arm_base_chain);
+	iksolver1v->setBaseToArmFactor(base_to_arm_ratio_);
 
 	//Initializing communication
 
@@ -180,7 +189,11 @@ void cob_config_controller::sendVel(JntArray q_t, JntArray q_dot, JntArray q_dot
 void cob_config_controller::sendCartPose()
 {
 	KDL::Frame F_current;
-	F_current = arm_pose_ * base_odom_;
+	//KDL::Frame F_test;
+	F_current = base_odom_ * arm_pose_;
+	//std::cout << "Test fwcalc: " << F_current.p.x() << ", " << F_current.p.y() << " | " << arm_pose_.p.x() + base_odom_.p.x() << ", " << arm_pose_.p.y() + base_odom_.p.y() << "\n";
+	//F_current.p.x(arm_pose_.p.x() + base_odom_.p.x());
+	//F_current.p.y(arm_pose_.p.y() + base_odom_.p.y());
 	geometry_msgs::PoseStamped pose;
 	tf::PoseKDLToMsg(F_current, pose.pose);
 	cart_position_pub_.publish(pose);
