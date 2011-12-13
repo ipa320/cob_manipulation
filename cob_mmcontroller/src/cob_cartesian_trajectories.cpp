@@ -232,14 +232,15 @@ void cob_cartesian_trajectories::getSollLinear(double dt, double &sollx, double 
 void cob_cartesian_trajectories::getSollCircular(double dt, double &sollx, double &solly, double &sollangle)
 {
 	double look_ahead = 0.0;
-	double max_ang = 3.14*0.505;
-	double radius = 0.31; //TODO: Radius einstellen
+	double max_ang = 3.14*0.405;
+	double radius = 0.40; //TODO: Radius einstellen
 
 	sollx = sin(max_ang*((dt+look_ahead)/targetDuration)) * radius ;
 	solly = radius-(cos(max_ang*((dt+look_ahead)/targetDuration)) * radius);
-	solly *= -1;
+	solly *= 1; //TODO: other direction?
 	std::cout << "Soll: " << sollx << ", " << solly << "\n";
-	sollangle = -max_ang*((dt+look_ahead)/targetDuration);	
+	sollangle = max_ang*((dt+look_ahead)/targetDuration);
+	sollangle *= 1; //TODO: other direction?	
 }
 
 KDL::Twist cob_cartesian_trajectories::getTwist(double dt, Frame F_current)
@@ -291,9 +292,9 @@ KDL::Twist cob_cartesian_trajectories::getTwist(double dt, Frame F_current)
 		lin.rot.z(-0.6);
 	}*/
 	if(dt < targetDuration/2)
-		lin.rot.z(-0.035*dt); //TODO: Rotationsgeschwindigkeit
+		lin.rot.z(0.030*dt); //TODO: Rotationsgeschwindigkeit
 	else
-		lin.rot.z(-0.035*(targetDuration-dt)); //TODO: Rotationsgeschwindigkeit	
+		lin.rot.z(0.030*(targetDuration-dt)); //TODO: Rotationsgeschwindigkeit	
 	//DEBUG
 	geometry_msgs::PoseArray poses;
 	poses.poses.resize(3);

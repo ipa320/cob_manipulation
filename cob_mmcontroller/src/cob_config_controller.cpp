@@ -6,7 +6,7 @@ cob_config_controller::cob_config_controller()
 	//parsing urdf for KDL chain
 	KDL::Tree my_tree;
 	ros::NodeHandle node;
-	double base_to_arm_ratio_ = 0.1;
+	double base_to_arm_ratio_ = 0.05;
 	node.param("/arm_controller/arm_mmcontroller_node/arm_base", arm_base_name_, std::string("arm_0_link"));
 	node.param("/arm_controller/arm_mmcontroller_node/arm_end_effector", arm_ee_name_, std::string("arm_7_link"));
 	node.param("/arm_controller/arm_mmcontroller_node/default_control_mode", kinematic_mode_, std::string("arm_base"));
@@ -99,7 +99,13 @@ void cob_config_controller::cartTwistCallback(const geometry_msgs::Twist::ConstP
 
 void cob_config_controller::baseTwistCallback(const nav_msgs::Odometry::ConstPtr& msg)
 {
-	tf::PoseMsgToKDL(msg->pose.pose, base_odom_);
+  geometry_msgs::PoseStamped ps_in, ps_out;
+  ps_in.header = msg->header;
+  ps_in.pose = msg->pose.pose;
+  tf_listener_.waitForTransform("base_link", "odom", ros::Time::now(), ros::Duration(1.0));
+  tf_listener_.transformPose("base_link", ps_in, ps_out);
+  ROS_DEBUG("Base FK in base_link (x,y): %f %f", ps_out.pose.position.x, ps_out.pose.position.y); 
+	tf::PoseMsgToKDL(ps_out.pose, base_odom_);
 }
 
 

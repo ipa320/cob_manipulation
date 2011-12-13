@@ -99,8 +99,9 @@ namespace KDL
         Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> damped_inversion;
         damped_inversion.resize(num_dof,num_dof);
 
-        damped_inversion = (jac_full.transpose() * W_e * jac_full) +  (jac_c.transpose() * W_c * jac_c) + W_v;
-        if(DEBUG)
+        //damped_inversion = (jac_full.transpose() * W_e * jac_full) +  (jac_c.transpose() * W_c * jac_c) + W_v;
+        damped_inversion = (jac_full.transpose() * W_e * jac_full) + W_v;
+	if(DEBUG)
         	std::cout << "Inversion done\n";
 
         Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> q_dot_conf_control;
@@ -112,7 +113,8 @@ namespace KDL
         v_in_eigen(3,0) = v_in.rot.x();
         v_in_eigen(4,0) = v_in.rot.y();
         v_in_eigen(5,0) = v_in.rot.z();
-        q_dot_conf_control = damped_inversion.inverse() * ((jac_full.transpose() * W_e * v_in_eigen) + (jac_c.transpose() * W_c * z_in));
+        //q_dot_conf_control = damped_inversion.inverse() * ((jac_full.transpose() * W_e * v_in_eigen) + (jac_c.transpose() * W_c * z_in));
+	q_dot_conf_control = damped_inversion.inverse() * jac_full.transpose() * W_e * v_in_eigen;
 
         if(DEBUG)
         	std::cout << "Endergebnis: \n" << q_dot_conf_control << "\n";

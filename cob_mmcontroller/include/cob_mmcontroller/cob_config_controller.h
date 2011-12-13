@@ -12,7 +12,8 @@
 #include <geometry_msgs/PoseArray.h>
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/Pose.h>
-
+#include <geometry_msgs/PoseStamped.h>
+#include <tf/transform_listener.h>
 
 #include <kdl/chainfksolverpos_recursive.hpp>
 #include <cob_mmcontroller/augmented_solver.h>
@@ -40,6 +41,8 @@ private:
 	ros::NodeHandle n;
 	int zeroCounter;
 	int zeroCounterTwist;
+
+	tf::TransformListener tf_listener_;
 
 	//configuration
 	std::string arm_base_name_;
