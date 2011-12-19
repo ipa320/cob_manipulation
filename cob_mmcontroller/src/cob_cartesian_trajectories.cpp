@@ -231,14 +231,16 @@ void cob_cartesian_trajectories::getSollLinear(double dt, double &sollx, double 
 }
 void cob_cartesian_trajectories::getSollCircular(double dt, double &sollx, double &solly, double &sollangle)
 {
-	double look_ahead = 0.02;
-	double max_ang = 3.14/2;
-	double radius = 0.3; //TODO: Radius einstellen
+	double look_ahead = 0.0;
+	double max_ang = 3.14*0.405;
+	double radius = 0.40; //TODO: Radius einstellen
 
 	sollx = sin(max_ang*((dt+look_ahead)/targetDuration)) * radius ;
 	solly = radius-(cos(max_ang*((dt+look_ahead)/targetDuration)) * radius);
-	solly *= -1;
-	sollangle = -max_ang*((dt+look_ahead)/targetDuration);	
+	solly *= 1; //TODO: other direction?
+	std::cout << "Soll: " << sollx << ", " << solly << "\n";
+	sollangle = max_ang*((dt+look_ahead)/targetDuration);
+	sollangle *= 1; //TODO: other direction?	
 }
 
 KDL::Twist cob_cartesian_trajectories::getTwist(double dt, Frame F_current)
@@ -267,14 +269,18 @@ KDL::Twist cob_cartesian_trajectories::getTwist(double dt, Frame F_current)
 	F_start.M.GetRPY(start_roll, start_pitch, start_yaw);
 	F_current.M.GetRPY(current_roll, current_pitch, current_yaw);
 
-	std::cout << "AngleDiff: " << (current_yaw-start_yaw) << " vs " << (soll_angle) << " error: " << (soll_angle-current_yaw-start_yaw) << "\n";
+	//std::cout << "AngleDiff: " << (current_yaw-start_yaw) << " vs " << (soll_angle) << " error: " << (soll_angle-current_yaw-start_yaw) << "\n";
 
 	F_diff.p.x(F_soll.p.x()-F_current.p.x());
 	F_diff.p.y(F_soll.p.y()-F_current.p.y());
 	F_diff.p.z(F_soll.p.z()-F_current.p.z());
+	std::cout << "Error (x,y): " << F_soll.p.x()-F_current.p.x() << ", " << F_soll.p.y()-F_current.p.y() << "\n";
+	std::cout << "Start (x,y): " << F_start.p.x() << ", " << F_start.p.y() << "\n";
+	std::cout << "Current (x,y): " << F_current.p.x() << ", " << F_current.p.y() << "\n";
 
-	lin.vel.x(0.5 * F_diff.p.x());
-	lin.vel.y(0.5 * F_diff.p.y());
+
+	lin.vel.x(0.6 * F_diff.p.x());
+	lin.vel.y(0.6 * F_diff.p.y());
 	lin.vel.z(0.0);
 	lin.rot.x(0.0);
 	lin.rot.y(0.0);
@@ -285,8 +291,10 @@ KDL::Twist cob_cartesian_trajectories::getTwist(double dt, Frame F_current)
 		std::cout << "MAXROT\n";
 		lin.rot.z(-0.6);
 	}*/
-	lin.rot.z(-0.4); //TODO: Rotationsgeschwindigkeit
-		
+	if(dt < targetDuration/2)
+		lin.rot.z(0.030*dt); //TODO: Rotationsgeschwindigkeit
+	else
+		lin.rot.z(0.030*(targetDuration-dt)); //TODO: Rotationsgeschwindigkeit	
 	//DEBUG
 	geometry_msgs::PoseArray poses;
 	poses.poses.resize(3);
@@ -294,7 +302,7 @@ KDL::Twist cob_cartesian_trajectories::getTwist(double dt, Frame F_current)
 	tf::PoseKDLToMsg(F_soll, poses.poses[1]);
 	tf::PoseKDLToMsg(F_diff, poses.poses[2]);
 	debug_cart_pub_.publish(poses);
-	std::cout << "Twist x: " << 0.1 * F_diff.p.x() << " y: " << 0.1 * F_diff.p.y() << "\n";
+	//std::cout << "Twist x: " << 0.1 * F_diff.p.x() << " y: " << 0.1 * F_diff.p.y() << "\n";
 	//
 
 	return lin;

@@ -43,6 +43,7 @@ namespace KDL
         virtual int CartToJnt(const JntArray& q_init, const FrameVel& v_in, JntArrayVel& q_out){return -1;};
 
         void setAugmentedJacobian(Eigen::Matrix<double,6,Eigen::Dynamic> _jac_augmented);
+	void setBaseToArmFactor(double base_to_arm_factor){ base_to_arm_factor_ = base_to_arm_factor; }
     private:
         const Chain chain;
         ChainJntToJacSolver jnt2jac;
@@ -55,6 +56,7 @@ namespace KDL
         double eps;
         int maxiter;
         bool base_is_actived_;
+	double base_to_arm_factor_;
     };
 }
 #endif
