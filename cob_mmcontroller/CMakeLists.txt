@@ -41,4 +41,5 @@ rosbuild_add_executable(cob_config_controller src/cob_config_controller.cpp src/
 #rosbuild_add_executable(cob_manipulability src/manipulability_publisher.cpp)
 rosbuild_add_executable(cob_spnav_filter src/cob_spnav_filter.cpp)
 rosbuild_add_executable(cob_cartesian_trajectories src/cob_cartesian_trajectories.cpp)
+rosbuild_add_executable(cob_cartesian_trajectories_PID src/cob_cartesian_trajectories_PID.cpp)
 #target_link_libraries(example ${PROJECT_NAME})

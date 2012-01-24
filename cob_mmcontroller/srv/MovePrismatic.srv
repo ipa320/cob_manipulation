@@ -1,0 +1,5 @@
+#TODO parameters
+std_msgs/Duration target_duration
+---
+std_msgs/Bool success
+std_msgs/String error_message
