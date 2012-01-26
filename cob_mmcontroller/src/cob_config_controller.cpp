@@ -102,10 +102,11 @@ void cob_config_controller::baseTwistCallback(const nav_msgs::Odometry::ConstPtr
   geometry_msgs::PoseStamped ps_in, ps_out;
   ps_in.header = msg->header;
   ps_in.pose = msg->pose.pose;
-  tf_listener_.waitForTransform("base_link", "odom", ros::Time::now(), ros::Duration(1.0));
-  tf_listener_.transformPose("base_link", ps_in, ps_out);
+  ps_out = ps_in;
+  //tf_listener_.waitForTransform("base_link", "odom", ros::Time::now(), ros::Duration(1.0));
+  //tf_listener_.transformPose("base_link", ps_in, ps_out);
   ROS_DEBUG("Base FK in base_link (x,y): %f %f", ps_out.pose.position.x, ps_out.pose.position.y); 
-	tf::PoseMsgToKDL(ps_out.pose, base_odom_);
+  tf::PoseMsgToKDL(msg->pose.pose, base_odom_);
 }
 
 
@@ -202,6 +203,7 @@ void cob_config_controller::sendCartPose()
 	//F_current.p.y(arm_pose_.p.y() + base_odom_.p.y());
 	geometry_msgs::PoseStamped pose;
 	tf::PoseKDLToMsg(F_current, pose.pose);
+	pose.header.stamp = ros::Time::now();
 	cart_position_pub_.publish(pose);
 }
 

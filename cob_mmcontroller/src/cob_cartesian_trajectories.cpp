@@ -204,7 +204,7 @@ void cob_cartesian_trajectories::cartStateCallback(const geometry_msgs::PoseStam
 		twist.angular.z =  ktwist.rot.z();
 
 
-		//twist.linear.z = -0.02;
+		twist.linear.z = -0.1;
 		cart_command_pub.publish(twist);
 		currentDuration+=dt.toSec();
 
@@ -279,11 +279,14 @@ KDL::Twist cob_cartesian_trajectories::getTwist(double dt, Frame F_current)
 	std::cout << "Current (x,y): " << F_current.p.x() << ", " << F_current.p.y() << "\n";
 
 
-	lin.vel.x(0.6 * F_diff.p.x());
-	lin.vel.y(0.6 * F_diff.p.y());
-	lin.vel.z(0.0);
+	//lin.vel.x(0.6 * F_diff.p.x());
+	//lin.vel.y(0.6 * F_diff.p.y());
+	lin.vel.x(0.0);
+	lin.vel.y(0.0);
+	lin.vel.z(0.005);
 	lin.rot.x(0.0);
 	lin.rot.y(0.0);
+	lin.rot.z(0.0);
 	/*if(fabs(soll_angle-current_yaw-start_yaw) < 0.6) 
 		lin.rot.z((soll_angle-current_yaw-start_yaw));
 	else
@@ -291,10 +294,10 @@ KDL::Twist cob_cartesian_trajectories::getTwist(double dt, Frame F_current)
 		std::cout << "MAXROT\n";
 		lin.rot.z(-0.6);
 	}*/
-	if(dt < targetDuration/2)
+	/*if(dt < targetDuration/2)
 		lin.rot.z(0.030*dt); //TODO: Rotationsgeschwindigkeit
 	else
-		lin.rot.z(0.030*(targetDuration-dt)); //TODO: Rotationsgeschwindigkeit	
+		lin.rot.z(0.030*(targetDuration-dt)); //TODO: Rotationsgeschwindigkeit	*/
 	//DEBUG
 	geometry_msgs::PoseArray poses;
 	poses.poses.resize(3);
