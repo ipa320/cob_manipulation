@@ -1,4 +1,4 @@
-#TODO parameters
+articulation_msgs/ParamMsg[] params
 std_msgs/Duration target_duration
 ---
 std_msgs/Bool success
