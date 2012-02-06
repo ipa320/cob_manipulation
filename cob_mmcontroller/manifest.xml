@@ -28,5 +28,5 @@
   <depend package="brics_actuator"/>
   <depend package="visualization_msgs"/>
   <depend package="articulation_msgs"/>
-  
+
 </package>
