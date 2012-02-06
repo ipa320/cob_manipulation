@@ -19,7 +19,7 @@
 #include <articulation_msgs/ModelMsg.h>
 #include <cob_mmcontroller/MoveModel.h>
 #include <cob_mmcontroller/MovePrismatic.h>
-#include <cob_mmcontroller/MovePrismaticSimple.h>
+//#include <cob_mmcontroller/MovePrismaticSimple.h>
 #include <cob_mmcontroller/MoveRotational.h>
 
 #include <kdl/chainfksolverpos_recursive.hpp>
@@ -57,7 +57,7 @@ private:
     void moveLinActionCB(const cob_mmcontroller::OpenFridgeGoalConstPtr& goal);
     //bool moveCircCB(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response);  //old
     //bool moveLinCB(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response);   //old
-    bool movePriSimpleCB(cob_mmcontroller::MovePrismaticSimple::Request& request, cob_mmcontroller::MovePrismaticSimple::Response& response);     //new
+    //bool movePriSimpleCB(cob_mmcontroller::MovePrismaticSimple::Request& request, cob_mmcontroller::MovePrismaticSimple::Response& response);     //new
     bool movePriCB(cob_mmcontroller::MovePrismatic::Request& request, cob_mmcontroller::MovePrismatic::Response& response);     //new
     bool moveRotCB(cob_mmcontroller::MoveRotational::Request& request, cob_mmcontroller::MoveRotational::Response& response);   //new
     bool moveModelCB(cob_mmcontroller::MoveModel::Request& request, cob_mmcontroller::MoveModel::Response& response);           //new
@@ -115,7 +115,7 @@ cob_cartesian_trajectories::cob_cartesian_trajectories() : as_(n, "moveCirc", bo
     debug_cart_pub_ = n.advertise<geometry_msgs::PoseArray>("/mm/debug",1);
     //serv_linear = n.advertiseService("/mm/move_lin", &cob_cartesian_trajectories::moveLinCB, this);
     //serv_circular = n.advertiseService("/mm/move_circ", &cob_cartesian_trajectories::moveCircCB, this);
-    serv_prismatic_simple = n.advertiseService("/mm/move_pri_simple", &cob_cartesian_trajectories::movePriSimpleCB, this);      // new service for simply input
+    //serv_prismatic_simple = n.advertiseService("/mm/move_pri_simple", &cob_cartesian_trajectories::movePriSimpleCB, this);      // new service for simple input
     serv_prismatic = n.advertiseService("/mm/move_pri", &cob_cartesian_trajectories::movePriCB, this);      // new service
     serv_rotational = n.advertiseService("/mm/move_rot", &cob_cartesian_trajectories::moveRotCB, this);     // new service
     serv_model = n.advertiseService("/mm/move_model", &cob_cartesian_trajectories::moveModelCB, this);       // new service to work with models
