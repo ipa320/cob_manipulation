@@ -290,10 +290,15 @@ KDL::Twist cob_cartesian_trajectories::getTwist(double dt, Frame F_current)
 		std::cout << "MAXROT\n";
 		lin.rot.z(-0.6);
 	}*/
-	if(dt < targetDuration/2)
-		lin.rot.z(-0.035*dt); //TODO: Rotationsgeschwindigkeit
+	if(mode == "circular")
+	{
+	  if(dt < targetDuration/2)
+		  lin.rot.z(-0.035*dt); //TODO: Rotationsgeschwindigkeit
+	  else
+		  lin.rot.z(-0.035*(targetDuration-dt)); //TODO: Rotationsgeschwindigkeit	
+	}
 	else
-		lin.rot.z(-0.035*(targetDuration-dt)); //TODO: Rotationsgeschwindigkeit	
+	  lin.rot.z(0.0);
 	//DEBUG
 	geometry_msgs::PoseArray poses;
 	poses.poses.resize(3);

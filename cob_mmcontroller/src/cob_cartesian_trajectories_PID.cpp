@@ -1,4 +1,6 @@
 #include "ros/ros.h"
+#include <urdf/model.h>
+
 #include "kinematics_msgs/GetPositionIK.h"
 #include <kdl_parser/kdl_parser.hpp>
 #include <geometry_msgs/Pose.h>
@@ -52,12 +54,11 @@ private:
     void getRotTarget(double dt, KDL::Frame &F_target);                                             //new
     double getParamValue(std::string param_name);                                                   //new
     KDL::Twist PIDController(const double dt, const KDL::Frame &F_target, const KDL::Frame &F_Current);              //new
+    //void pubTargetTrack(const KDL::Frame &F_target)                     //new
     void cartStateCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
     void moveCircActionCB(const cob_mmcontroller::OpenFridgeGoalConstPtr& goal);
     void moveLinActionCB(const cob_mmcontroller::OpenFridgeGoalConstPtr& goal);
-    //bool moveCircCB(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response);  //old
-    //bool moveLinCB(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response);   //old
-    bool movePriSimpleCB(cob_mmcontroller::MovePrismaticSimple::Request& request, cob_mmcontroller::MovePrismaticSimple::Response& response);     //new
+    //bool movePriSimpleCB(cob_mmcontroller::MovePrismaticSimple::Request& request, cob_mmcontroller::MovePrismaticSimple::Response& response);     //new
     bool movePriCB(cob_mmcontroller::MovePrismatic::Request& request, cob_mmcontroller::MovePrismatic::Response& response);     //new
     bool moveRotCB(cob_mmcontroller::MoveRotational::Request& request, cob_mmcontroller::MoveRotational::Response& response);   //new
     bool moveModelCB(cob_mmcontroller::MoveModel::Request& request, cob_mmcontroller::MoveModel::Response& response);           //new
@@ -67,8 +68,6 @@ private:
     ros::Publisher cart_command_pub;
     ros::Publisher debug_cart_pub_;
     ros::Publisher map_pub_;
-    //ros::ServiceServer serv_linear;       //old
-    //ros::ServiceServer serv_circular;     //old
     ros::ServiceServer serv_prismatic_simple;      //new
     ros::ServiceServer serv_prismatic;      //new
     ros::ServiceServer serv_rotational;     //new
@@ -113,13 +112,12 @@ cob_cartesian_trajectories::cob_cartesian_trajectories() : as_(n, "moveCirc", bo
     cart_state_sub_ = n.subscribe("/arm_controller/cart_state", 1, &cob_cartesian_trajectories::cartStateCallback, this);
     cart_command_pub = n.advertise<geometry_msgs::Twist>("/arm_controller/cart_command",1);
     debug_cart_pub_ = n.advertise<geometry_msgs::PoseArray>("/mm/debug",1);
-    //serv_linear = n.advertiseService("/mm/move_lin", &cob_cartesian_trajectories::moveLinCB, this);
-    //serv_circular = n.advertiseService("/mm/move_circ", &cob_cartesian_trajectories::moveCircCB, this);
-    serv_prismatic_simple = n.advertiseService("/mm/move_pri_simple", &cob_cartesian_trajectories::movePriSimpleCB, this);      // new service for simply input
+    //serv_prismatic_simple = n.advertiseService("/mm/move_pri_simple", &cob_cartesian_trajectories::movePriSimpleCB, this);      // new service for simply input
     serv_prismatic = n.advertiseService("/mm/move_pri", &cob_cartesian_trajectories::movePriCB, this);      // new service
     serv_rotational = n.advertiseService("/mm/move_rot", &cob_cartesian_trajectories::moveRotCB, this);     // new service
     serv_model = n.advertiseService("/mm/move_model", &cob_cartesian_trajectories::moveModelCB, this);       // new service to work with models
     map_pub_ = n.advertise<visualization_msgs::Marker>("/visualization_marker", 1);
+    //track_pub = n.advertise<articulation_msgs::TrackMsg>("/track", 1);                // publish generated trajectory for debugging
     bRun = false;
     as_.start();
     as2_.start();
@@ -183,18 +181,6 @@ void cob_cartesian_trajectories::moveLinActionCB(const cob_mmcontroller::OpenFri
 
 }
 
-/* old services
-bool cob_cartesian_trajectories::moveCircCB(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response)
-{
-    mode = "circular";
-    return start();
-}
-bool cob_cartesian_trajectories::moveLinCB(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response)
-{
-    mode = "linear";
-    return start();
-}
-*/   
 /*
 bool cob_cartesian_trajectories::movePriSimpleCB(cob_mmcontroller::MovePrismaticSimple::Request& request, cob_mmcontroller::MovePrismaticSimple::Response& response)    //TODO // simple prismatic callback
 {
@@ -262,7 +248,6 @@ bool cob_cartesian_trajectories::start() //TODO request->model.params // start
         bStarted = false;
         timer = ros::Time::now();
         tstart = ros::Time::now();
-        //targetDuration = 7.0;     //old
         currentDuration = 0;
         trajectory_points.clear();
         return true;
@@ -383,7 +368,9 @@ void cob_cartesian_trajectories::getPriTarget(double dt, KDL::Frame &F_target)
     
     F_target.p.x(F_start.p.x() + partial_length*pris_dir_x);
     F_target.p.y(F_start.p.y() + partial_length*pris_dir_y);
+    F_target.p.z(F_start.p.z());
     //F_target.p.z(F_start.p.z() + partial_length*pris_dir_z);
+    F_target.M = F_start.M; 
     
     std::cout << "F_X: " << F_target.p.x() << " F_Y: " << F_target.p.y() << " F_Z: " << F_target.p.z() << "\n";
 }
@@ -528,18 +515,7 @@ KDL::Twist cob_cartesian_trajectories::getTwist(double dt, Frame F_current)
     }
     
     getTargetPosition(dt, F_target);
-    
-    /*  //old
-    double soll_x, soll_y, soll_angle;
-    if(mode == "linear")
-        getSollLinear(dt, soll_x, soll_y, soll_angle);
-    else
-        getSollCircular(dt, soll_x, soll_y, soll_angle);
-    */
-    //F_soll.p.x(F_start.p.x() + soll_x);
-    //F_soll.p.y(F_start.p.y() + soll_y);
-    //F_soll.p.z(F_start.p.z());
-    
+   
     F_start.M.GetRPY(start_roll, start_pitch, start_yaw);
     F_current.M.GetRPY(current_roll, current_pitch, current_yaw);
 
@@ -553,34 +529,10 @@ KDL::Twist cob_cartesian_trajectories::getTwist(double dt, Frame F_current)
 
     F_target.M.GetRPY(target_roll, target_pitch, target_yaw);
     
+    //pubTargetTrack(F_target);
+    
     lin = PIDController(dt, F_target, F_current);
     
-    /*lin.vel.x(1.0 * F_diff.p.x());
-    lin.vel.y(1.0 * F_diff.p.y());
-    lin.vel.z(0.0);
-    lin.rot.x(target_roll-current_roll);
-    lin.rot.y(target_pitch-current_pitch);
-    lin.rot.z(target_yaw-current_yaw);
-    std::cout << "ROLL TARGET:   " << target_roll << "PITCH TARGET:   " << target_pitch << "YAW TARGET:  " << target_yaw << "\n";
-    std::cout << "ROLL CURRENT:  " << current_roll << "PITCH CURRENT:  " << current_pitch << "YAW CURRENT: " << current_yaw << "\n";
-    std::cout << "ROLL:          " << target_roll-current_roll << "PITCH:          " << target_pitch-current_pitch << "YAW:         " << target_yaw-current_yaw << "\n";
-    */
-    /*if(fabs(soll_angle-current_yaw-start_yaw) < 0.6) 
-        lin.rot.z((soll_angle-current_yaw-start_yaw));
-    else
-    {
-        std::cout << "MAXROT\n";
-        lin.rot.z(-0.6);
-    }*/
-    /*if(mode == "rotational")
-    {
-        if(dt < targetDuration/2)
-            lin.rot.z(-0.035*dt); //TODO: Rotationsgeschwindigkeit
-        else
-            lin.rot.z(-0.035*(targetDuration-dt)); //TODO: Rotationsgeschwindigkeit    
-    }
-    else
-	  lin.rot.z(0.0);*/
     //DEBUG
     F_diff.p.x(F_target.p.x()-F_current.p.x());
     F_diff.p.y(F_target.p.y()-F_current.p.y());
@@ -636,71 +588,22 @@ KDL::Twist cob_cartesian_trajectories::PIDController(const double dt, const KDL:
     
     cout << "Error_dot twist: " << "\n" << Error_dot << "\n";
     
+    // create twist
     twist.vel.x(p_gain_*Error.vel.x() + i_gain_*Error_sum.vel.x());
     twist.vel.y(p_gain_*Error.vel.y() + i_gain_*Error_sum.vel.y());
-    twist.vel.z(p_gain_*Error.vel.z() + i_gain_*Error_sum.vel.z());//(0.0);//p_gain_*Error.vel.z());
+    twist.vel.z(0.0);//p_gain_*Error.vel.z() + i_gain_*Error_sum.vel.z());//p_gain_*Error.vel.z());
     twist.rot.x(0.0);//p_gain_*Error.rot.x());//(p_gain_*Error.rot.x() + i_gain_*Error_sum.rot.x());
     twist.rot.y(0.0);//p_gain_*Error.rot.y());//(p_gain_*Error.rot.y() + i_gain_*Error_sum.rot.y());
     twist.rot.z(p_gain_*Error.rot.z() + i_gain_*Error_sum.rot.z());
     
     return twist;
 }
-
-
-/*
-KDL::Twist cob_cartesian_trajectories::getTrajectoryTwist(double dt, Frame F_current)
+/* publish generated trajectory
+void cob_cartesian:trajectories::pubTargetTrack(const KDL::Frame &F_target)
 {
-    if(!bStarted)
-    {
-        F_start = F_current;
-        bStarted = true;
-    }
-    KDL::Twist circ;
-    std::cout << "Time is " << dt << "\n";
-    F_current.p.x(F_current.p.x());
-    F_current.p.y(F_current.p.y());
-    F_current.p.z(F_current.p.z());
-    double max_ang = 0.4*3.14;
-    double soll_y = 0.6-(cos(max_ang*(dt/targetDuration)) * 0.6);
-    double soll_x = sin(max_ang*(dt/targetDuration)) * 0.6;
-    //double soll_y_t1 = -0.6+(cos(max_ang*((dt+0.02)/max_time)) * 0.6);
-    //double soll_x_t1 = sin(max_ang*((dt+0.02)/max_time)) * 0.6;
-    std::cout << "Soll x:" << soll_x << " y: " << soll_y << "\n";
-    std::cout << "Diff x:" << F_current.p.x()-F_start.p.x() << " y: " << F_current.p.y()-F_start.p.y() << "\n";
-
-    KDL::Frame F_soll = F_start;
-    KDL::Frame F_soll2 = F_start;
-    KDL::Frame F_diff = F_start;
-    F_soll.p.x(F_start.p.x() + soll_x);
-    F_soll.p.y(F_start.p.y() - soll_y);
-    //F_soll2.p.x(F_start.p.x() + soll_x_t1);
-    //F_soll2.p.y(F_start.p.y() - soll_y_t1);
-
-    F_diff.p.x(F_current.p.x()-F_soll.p.x());
-    F_diff.p.y(F_current.p.y()-F_soll.p.y());
-    F_diff.p.z(F_current.p.z()-F_start.p.z());
-
-    double twist_x = (F_current.p.x()-F_soll.p.x());
-    double twist_y = (F_current.p.y()-F_soll.p.y());
-
-
-    std::cout << "Twist x: " << twist_x << " y: " << twist_y << "\n";
-    circ.vel.z(0.0);
-    circ.vel.x(twist_x);
-    circ.vel.y(twist_y);
-
-    //DEBUG
-    geometry_msgs::PoseArray poses;
-    poses.poses.resize(3);
-    tf::PoseKDLToMsg(F_current, poses.poses[0]);
-    tf::PoseKDLToMsg(F_soll, poses.poses[1]);
-    tf::PoseKDLToMsg(F_diff, poses.poses[2]);
-    debug_cart_pub_.publish(poses);
-
-
-    return circ;
-}
-*/
+    articulation::TrackMsg target_track;
+    
+}*/
 
 int main(int argc, char **argv)
 {
