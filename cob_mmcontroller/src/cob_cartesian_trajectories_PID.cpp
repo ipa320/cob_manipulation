@@ -21,7 +21,7 @@
 #include <articulation_msgs/ModelMsg.h>
 #include <cob_mmcontroller/MoveModel.h>
 #include <cob_mmcontroller/MovePrismatic.h>
-#include <cob_mmcontroller/MovePrismaticSimple.h>
+//#include <cob_mmcontroller/MovePrismaticSimple.h>
 #include <cob_mmcontroller/MoveRotational.h>
 
 #include <kdl/chainfksolverpos_recursive.hpp>
@@ -58,6 +58,8 @@ private:
     void cartStateCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
     void moveCircActionCB(const cob_mmcontroller::OpenFridgeGoalConstPtr& goal);
     void moveLinActionCB(const cob_mmcontroller::OpenFridgeGoalConstPtr& goal);
+    //bool moveCircCB(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response);  //old
+    //bool moveLinCB(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response);   //old
     //bool movePriSimpleCB(cob_mmcontroller::MovePrismaticSimple::Request& request, cob_mmcontroller::MovePrismaticSimple::Response& response);     //new
     bool movePriCB(cob_mmcontroller::MovePrismatic::Request& request, cob_mmcontroller::MovePrismatic::Response& response);     //new
     bool moveRotCB(cob_mmcontroller::MoveRotational::Request& request, cob_mmcontroller::MoveRotational::Response& response);   //new
