@@ -106,9 +106,9 @@ private:
 cob_cartesian_trajectories::cob_cartesian_trajectories() : as_(n, "moveCirc", boost::bind(&cob_cartesian_trajectories::moveCircActionCB, this, _1), false), as2_(n, "moveLin", boost::bind(&cob_cartesian_trajectories::moveLinActionCB, this, _1), false)
 {
     ros::NodeHandle node;
-    node.param("arm_controller/arm_mmcontroller_node/p_gain", p_gain_, 1.0);
-    node.param("arm_controller/arm_mmcontroller_node/i_gain", i_gain_, 1.0);
-    node.param("arm_controller/arm_mmcontroller_node/d_gain", d_gain_, 1.0);
+    node.param("cob_cartesian_trajectories_PID/p_gain", p_gain_, 1.0);
+    node.param("cob_cartesian_trajectories_PID/i_gain", i_gain_, 0.002);
+    node.param("cob_cartesian_trajectories_PID/d_gain", d_gain_, 0.0);
     ROS_INFO("Starting PID controller with P: %e, I: %e, D: %e", p_gain_, i_gain_, d_gain_);
     
     cart_state_sub_ = n.subscribe("/arm_controller/cart_state", 1, &cob_cartesian_trajectories::cartStateCallback, this);
