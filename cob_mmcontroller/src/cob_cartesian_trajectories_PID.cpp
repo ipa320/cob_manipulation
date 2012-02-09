@@ -15,6 +15,7 @@
 #include <geometry_msgs/Pose.h>
 #include <visualization_msgs/Marker.h>
 #include <math.h>
+#include <map>
 
 #include <articulation_msgs/ParamMsg.h>
 #include <articulation_msgs/TrackMsg.h>
@@ -54,7 +55,7 @@ private:
     void getRotTarget(double dt, KDL::Frame &F_target);                                             //new
     double getParamValue(std::string param_name);                                                   //new
     KDL::Twist PIDController(const double dt, const KDL::Frame &F_target, const KDL::Frame &F_Current);              //new
-    //void pubTargetTrack(const KDL::Frame &F_target)                     //new
+    void pubTargetTrack(const int track_id, const ros::Duration pub_duration, const KDL::Frame &F_pub);                     //new
     void cartStateCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
     void moveCircActionCB(const cob_mmcontroller::OpenFridgeGoalConstPtr& goal);
     void moveLinActionCB(const cob_mmcontroller::OpenFridgeGoalConstPtr& goal);
@@ -70,6 +71,7 @@ private:
     ros::Publisher cart_command_pub;
     ros::Publisher debug_cart_pub_;
     ros::Publisher map_pub_;
+    ros::Publisher track_pub_;
     ros::ServiceServer serv_prismatic_simple;      //new
     ros::ServiceServer serv_prismatic;      //new
     ros::ServiceServer serv_rotational;     //new
@@ -100,6 +102,8 @@ private:
         
     geometry_msgs::PoseStamped current_hinge;
 
+    articulation_msgs::TrackMsg target_track;   // target trajectory to be published
+    map<int, ros::Time> track_map;     //store track_id and last time the track was published
 };
 
 
@@ -119,7 +123,7 @@ cob_cartesian_trajectories::cob_cartesian_trajectories() : as_(n, "moveCirc", bo
     serv_rotational = n.advertiseService("/mm/move_rot", &cob_cartesian_trajectories::moveRotCB, this);     // new service
     serv_model = n.advertiseService("/mm/move_model", &cob_cartesian_trajectories::moveModelCB, this);       // new service to work with models
     map_pub_ = n.advertise<visualization_msgs::Marker>("/visualization_marker", 1);
-    //track_pub = n.advertise<articulation_msgs::TrackMsg>("/track", 1);                // publish generated trajectory for debugging
+    track_pub_ = n.advertise<articulation_msgs::TrackMsg>("/track", 1);                // publish generated trajectory for debugging
     bRun = false;
     as_.start();
     as2_.start();
@@ -131,17 +135,17 @@ cob_cartesian_trajectories::cob_cartesian_trajectories() : as_(n, "moveCirc", bo
 void cob_cartesian_trajectories::sendMarkers()
 {
     visualization_msgs::Marker marker;
-    marker.header.frame_id = "/base_link";
+    marker.header.frame_id = "/map";
     marker.header.stamp = ros::Time::now();
     marker.ns = "trajectory_values";
     marker.id = 10;
     marker.type = visualization_msgs::Marker::POINTS;
     marker.action = visualization_msgs::Marker::ADD;
-    marker.scale.x = 0.04;
-    marker.scale.y = 0.2;
+    marker.scale.x = 0.01;
+    marker.scale.y = 0.1;
     marker.color.r = 1.0;
     marker.color.a = 1.0;
-    marker.lifetime = ros::Duration(10.0);
+    marker.lifetime = ros::Duration();
 
     for(unsigned int i=0; i<trajectory_points.size(); i++)
     {
@@ -375,6 +379,7 @@ void cob_cartesian_trajectories::getPriTarget(double dt, KDL::Frame &F_target)
     F_target.M = F_start.M; 
     
     std::cout << "F_X: " << F_target.p.x() << " F_Y: " << F_target.p.y() << " F_Z: " << F_target.p.z() << "\n";
+    pubTargetTrack(0, ros::Duration(1.0), F_target);
 }
 
 //rotational trajectory from rot_axis, rot_radius and angle
@@ -424,6 +429,7 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
 
     cout << "Start R-P-Y: " << start_roll << " " << start_pitch << " " << start_yaw << "\n";
     cout << "Target R-P-Y: " << target_roll << " " << target_pitch << " " << target_yaw << "\n";
+    pubTargetTrack(1, ros::Duration(1.0), F_target);
 }
 
 
@@ -531,7 +537,6 @@ KDL::Twist cob_cartesian_trajectories::getTwist(double dt, Frame F_current)
 
     F_target.M.GetRPY(target_roll, target_pitch, target_yaw);
     
-    //pubTargetTrack(F_target);
     
     lin = PIDController(dt, F_target, F_current);
     
@@ -600,12 +605,36 @@ KDL::Twist cob_cartesian_trajectories::PIDController(const double dt, const KDL:
     
     return twist;
 }
-/* publish generated trajectory
-void cob_cartesian:trajectories::pubTargetTrack(const KDL::Frame &F_target)
+// publish generated trajectory
+void cob_cartesian_trajectories::pubTargetTrack(const int track_id, const ros::Duration pub_duration, const KDL::Frame &F_pub)
 {
-    articulation::TrackMsg target_track;
-    
-}*/
+    map<int, ros::Time>::iterator it;
+    if (track_map.find(track_id) == track_map.end())
+    {
+        cout << "new track: " << track_id << "\n";
+        track_map[track_id] = (ros::Time::now() - pub_duration);
+    }
+    if ((ros::Time::now() - track_map[track_id]) >= pub_duration)
+    {
+        target_track.header.stamp = ros::Time::now();
+        target_track.header.frame_id = "/map";
+        target_track.id = track_id;
+        geometry_msgs::Pose pose; 
+        
+
+        pose.position.x = F_pub.p.x();
+        pose.position.y = F_pub.p.y();
+        pose.position.z = F_pub.p.z();
+
+        F_pub.M.GetQuaternion(pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w);
+
+        target_track.pose.push_back(pose);
+        
+        track_pub_.publish(target_track);
+        cout << "publish track " << track_map[track_id] - ros::Time::now() << "\n";
+        track_map[track_id] = ros::Time::now();
+    }
+}
 
 int main(int argc, char **argv)
 {
