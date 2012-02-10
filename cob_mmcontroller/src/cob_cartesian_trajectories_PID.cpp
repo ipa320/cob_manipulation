@@ -102,8 +102,8 @@ private:
         
     geometry_msgs::PoseStamped current_hinge;
 
-    articulation_msgs::TrackMsg target_track;   // target trajectory to be published
-    map<int, ros::Time> track_map;     //store track_id and last time the track was published
+    //articulation_msgs::ModelMsg target_model;   // model covering/carry track msg
+    map<int, articulation_msgs::TrackMsg> track_map;     //stores track_ids and tracks for publishing
 };
 
 
@@ -289,7 +289,7 @@ void cob_cartesian_trajectories::cartStateCallback(const geometry_msgs::PoseStam
         std::cout << "Radius because of Hinge: " << (myhinge.p - current.p) << "UnitZ of hinge: " << unitz.z() << "\n";
 
         // publishing current pose
-        //pubTargetTrack(2, ros::Duration(1.0), current);
+        pubTargetTrack(9, ros::Duration(1.0), current);
 
         geometry_msgs::Twist twist;
         KDL::Twist ktwist = getTwist(currentDuration, current);
@@ -613,17 +613,20 @@ KDL::Twist cob_cartesian_trajectories::PIDController(const double dt, const KDL:
 // publish generated trajectory
 void cob_cartesian_trajectories::pubTargetTrack(const int track_id, const ros::Duration pub_duration, const KDL::Frame &F_pub)
 {
-    map<int, ros::Time>::iterator it;
+    articulation_msgs::TrackMsg track;
     if (track_map.find(track_id) == track_map.end())
     {
         cout << "new track: " << track_id << "\n";
-        track_map[track_id] = (ros::Time::now() - pub_duration);
+        track.header.stamp = (ros::Time::now() - pub_duration);
+        track.header.frame_id = "/map";
+        track.id = track_id;
+        track_map[track_id] = track;
     }
-    if ((ros::Time::now() - track_map[track_id]) >= pub_duration)
+    if ((ros::Time::now() - track_map[track_id].header.stamp) >= pub_duration)
     {
-        target_track.header.stamp = ros::Time::now();
-        target_track.header.frame_id = "/map";
-        target_track.id = track_id;
+        track_map[track_id].header.stamp = ros::Time::now();
+        track_map[track_id].header.frame_id = "/map";
+        track_map[track_id].id = track_id;
         geometry_msgs::Pose pose; 
         
 
@@ -633,11 +636,11 @@ void cob_cartesian_trajectories::pubTargetTrack(const int track_id, const ros::D
 
         F_pub.M.GetQuaternion(pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w);
 
-        target_track.pose.push_back(pose);
+        track_map[track_id].pose.push_back(pose);
         
-        track_pub_.publish(target_track);
-        track_map[track_id] = ros::Time::now();
+        track_pub_.publish(track_map[track_id]);
     }
+
 }
 
 int main(int argc, char **argv)
