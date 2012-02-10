@@ -14,6 +14,7 @@
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/Pose.h>
 #include <visualization_msgs/Marker.h>
+#include <visualization_msgs/MarkerArray.h>
 #include <math.h>
 #include <map>
 
@@ -55,7 +56,8 @@ private:
     void getRotTarget(double dt, KDL::Frame &F_target);                                             //new
     double getParamValue(std::string param_name);                                                   //new
     KDL::Twist PIDController(const double dt, const KDL::Frame &F_target, const KDL::Frame &F_Current);              //new
-    void pubTargetTrack(const int track_id, const ros::Duration pub_duration, const KDL::Frame &F_pub);                     //new
+    void pubTrack(const int track_id, const ros::Duration pub_duration, const KDL::Frame &F_pub);                     //new
+    void pubTwistMarkers(const ros::Duration pub_duration, const KDL::Twist &Twist, const KDL::Frame &F_current);
     void cartStateCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
     void moveCircActionCB(const cob_mmcontroller::OpenFridgeGoalConstPtr& goal);
     void moveLinActionCB(const cob_mmcontroller::OpenFridgeGoalConstPtr& goal);
@@ -71,6 +73,7 @@ private:
     ros::Publisher cart_command_pub;
     ros::Publisher debug_cart_pub_;
     ros::Publisher map_pub_;
+    ros::Publisher twist_pub_;
     ros::Publisher track_pub_;
     ros::ServiceServer serv_prismatic_simple;      //new
     ros::ServiceServer serv_prismatic;      //new
@@ -104,6 +107,8 @@ private:
 
     //articulation_msgs::ModelMsg target_model;   // model covering/carry track msg
     map<int, articulation_msgs::TrackMsg> track_map;     //stores track_ids and tracks for publishing
+    ros::Time pub_timer;
+    int pub_counter;
 };
 
 
@@ -123,37 +128,19 @@ cob_cartesian_trajectories::cob_cartesian_trajectories() : as_(n, "moveCirc", bo
     serv_rotational = n.advertiseService("/mm/move_rot", &cob_cartesian_trajectories::moveRotCB, this);     // new service
     serv_model = n.advertiseService("/mm/move_model", &cob_cartesian_trajectories::moveModelCB, this);       // new service to work with models
     map_pub_ = n.advertise<visualization_msgs::Marker>("/visualization_marker", 1);
-    track_pub_ = n.advertise<articulation_msgs::TrackMsg>("/track", 1);                // publish generated trajectory for debugging
+    twist_pub_ = n.advertise<visualization_msgs::Marker>("/visualization_marker", 1);   // publish twist to be visualized inj rviz
+    track_pub_ = n.advertise<articulation_msgs::TrackMsg>("/track", 1);                 // publish generated trajectory for debugging
     bRun = false;
     as_.start();
     as2_.start();
     targetDuration = 0;
     currentDuration = 0;
     mode = "prismatic";     // prismatic, rotational, trajectory, model
+   
+    pub_timer = ros::Time::now();
+    pub_counter = 0;
 }
 
-void cob_cartesian_trajectories::sendMarkers()
-{
-    visualization_msgs::Marker marker;
-    marker.header.frame_id = "/map";
-    marker.header.stamp = ros::Time::now();
-    marker.ns = "trajectory_values";
-    marker.id = 10;
-    marker.type = visualization_msgs::Marker::POINTS;
-    marker.action = visualization_msgs::Marker::ADD;
-    marker.scale.x = 0.01;
-    marker.scale.y = 0.01;
-    marker.color.r = 1.0;
-    marker.color.a = 1.0;
-    marker.lifetime = ros::Duration();
-
-    for(unsigned int i=0; i<trajectory_points.size(); i++)
-    {
-        //ROS_INFO("line %f %f %f %f\n", iX1, iY1, iX2, iY2);
-        marker.points.push_back(trajectory_points[i]);
-    }
-    map_pub_.publish(marker);
-}
 
 void cob_cartesian_trajectories::moveCircActionCB(const cob_mmcontroller::OpenFridgeGoalConstPtr& goal)
 {
@@ -288,9 +275,6 @@ void cob_cartesian_trajectories::cartStateCallback(const geometry_msgs::PoseStam
         KDL::Vector unitz = myhinge.M.UnitZ();
         std::cout << "Radius because of Hinge: " << (myhinge.p - current.p) << "UnitZ of hinge: " << unitz.z() << "\n";
 
-        // publishing current pose
-        pubTargetTrack(9, ros::Duration(1.0), current);
-
         geometry_msgs::Twist twist;
         KDL::Twist ktwist = getTwist(currentDuration, current);
         twist.linear.x =  ktwist.vel.x();
@@ -383,7 +367,6 @@ void cob_cartesian_trajectories::getPriTarget(double dt, KDL::Frame &F_target)
     F_target.M = F_start.M; 
     
     std::cout << "F_X: " << F_target.p.x() << " F_Y: " << F_target.p.y() << " F_Z: " << F_target.p.z() << "\n";
-    pubTargetTrack(0, ros::Duration(1.0), F_target);
 }
 
 //rotational trajectory from rot_axis, rot_radius and angle
@@ -434,7 +417,6 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
     cout << "Start R-P-Y: " << start_roll << " " << start_pitch << " " << start_yaw << "\n";
     cout << "Target R-P-Y: " << target_roll << " " << target_pitch << " " << target_yaw << "\n";
     cout << "Current Duration: " << dt << "\n";
-    pubTargetTrack(1, ros::Duration(1.0), F_target);
 }
 
 
@@ -603,15 +585,19 @@ KDL::Twist cob_cartesian_trajectories::PIDController(const double dt, const KDL:
     // create twist
     twist.vel.x(p_gain_*Error.vel.x() + i_gain_*Error_sum.vel.x());
     twist.vel.y(p_gain_*Error.vel.y() + i_gain_*Error_sum.vel.y());
-    twist.vel.z(0.0);//p_gain_*Error.vel.z() + i_gain_*Error_sum.vel.z());//p_gain_*Error.vel.z());
+    twist.vel.z(p_gain_*Error.vel.z());//p_gain_*Error.vel.z());
     twist.rot.x(0.0);//p_gain_*Error.rot.x());//(p_gain_*Error.rot.x() + i_gain_*Error_sum.rot.x());
     twist.rot.y(0.0);//p_gain_*Error.rot.y());//(p_gain_*Error.rot.y() + i_gain_*Error_sum.rot.y());
     twist.rot.z(p_gain_*Error.rot.z() + i_gain_*Error_sum.rot.z());
+
+    pubTrack(1, ros::Duration(1.0), F_target);
+    pubTrack(9, ros::Duration(1.0), F_current);
+    pubTwistMarkers(ros::Duration(1.0), twist, F_current);
     
     return twist;
 }
 // publish generated trajectory
-void cob_cartesian_trajectories::pubTargetTrack(const int track_id, const ros::Duration pub_duration, const KDL::Frame &F_pub)
+void cob_cartesian_trajectories::pubTrack(const int track_id, const ros::Duration pub_duration, const KDL::Frame &F_pub)
 {
     articulation_msgs::TrackMsg track;
     if (track_map.find(track_id) == track_map.end())
@@ -641,6 +627,70 @@ void cob_cartesian_trajectories::pubTargetTrack(const int track_id, const ros::D
         track_pub_.publish(track_map[track_id]);
     }
 
+}
+
+void cob_cartesian_trajectories::pubTwistMarkers(const ros::Duration pub_duration, const KDL::Twist &Twist, const KDL::Frame &F_current)
+{
+    if ((ros::Time::now() - pub_timer) >= pub_duration)
+    {
+        double color_mixer;
+        double offset = 0.0;
+        visualization_msgs::Marker twist_marker;
+        twist_marker.header.frame_id = "/map";
+        twist_marker.header.stamp = ros::Time::now();
+        twist_marker.ns = "twist";
+        twist_marker.id = pub_counter;
+        twist_marker.type = visualization_msgs::Marker::ARROW;
+        twist_marker.action = visualization_msgs::Marker::ADD;
+        twist_marker.lifetime = ros::Duration();
+
+        twist_marker.scale.x = 0.01;
+        twist_marker.scale.y = 0.02;
+
+        color_mixer = 11.0*sqrt(Twist.vel.x()*Twist.vel.x() + Twist.vel.y()*Twist.vel.y() + Twist.vel.z()*Twist.vel.z());
+        if (color_mixer > 1.0) offset = color_mixer - 1.0;
+        color_mixer = color_mixer - offset;
+        twist_marker.color.a = 1.0;
+        twist_marker.color.g = 1.0 - color_mixer;
+        twist_marker.color.r = color_mixer;
+
+        geometry_msgs::Point p;
+        p.x = F_current.p.x();
+        p.y = F_current.p.y();
+        p.z = F_current.p.z();
+        twist_marker.points.push_back(p);
+        p.x = F_current.p.x() + Twist.vel.x();
+        p.y = F_current.p.y() + Twist.vel.y();
+        p.z = F_current.p.z() + Twist.vel.z();
+        twist_marker.points.push_back(p);
+        
+        twist_pub_.publish(twist_marker);
+        pub_timer = ros::Time::now();
+        pub_counter++;
+    }
+}
+
+void cob_cartesian_trajectories::sendMarkers()
+{
+    visualization_msgs::Marker marker;
+    marker.header.frame_id = "/map";
+    marker.header.stamp = ros::Time::now();
+    marker.ns = "trajectory_values";
+    marker.id = 10;
+    marker.type = visualization_msgs::Marker::POINTS;
+    marker.action = visualization_msgs::Marker::ADD;
+    marker.scale.x = 0.01;
+    marker.scale.y = 0.02;
+    marker.color.r = 1.0;
+    marker.color.a = 1.0;
+    marker.lifetime = ros::Duration();
+
+    for(unsigned int i=0; i<trajectory_points.size(); i++)
+    {
+        //ROS_INFO("line %f %f %f %f\n", iX1, iY1, iX2, iY2);
+        marker.points.push_back(trajectory_points[i]);
+    }
+    //map_pub_.publish(marker);
 }
 
 int main(int argc, char **argv)
