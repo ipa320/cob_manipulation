@@ -142,7 +142,7 @@ void cob_cartesian_trajectories::sendMarkers()
     marker.type = visualization_msgs::Marker::POINTS;
     marker.action = visualization_msgs::Marker::ADD;
     marker.scale.x = 0.01;
-    marker.scale.y = 0.1;
+    marker.scale.y = 0.01;
     marker.color.r = 1.0;
     marker.color.a = 1.0;
     marker.lifetime = ros::Duration();
@@ -287,6 +287,10 @@ void cob_cartesian_trajectories::cartStateCallback(const geometry_msgs::PoseStam
         tf::PoseMsgToKDL(current_hinge.pose, myhinge);
         KDL::Vector unitz = myhinge.M.UnitZ();
         std::cout << "Radius because of Hinge: " << (myhinge.p - current.p) << "UnitZ of hinge: " << unitz.z() << "\n";
+
+        // publishing current pose
+        //pubTargetTrack(2, ros::Duration(1.0), current);
+
         geometry_msgs::Twist twist;
         KDL::Twist ktwist = getTwist(currentDuration, current);
         twist.linear.x =  ktwist.vel.x();
@@ -429,6 +433,7 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
 
     cout << "Start R-P-Y: " << start_roll << " " << start_pitch << " " << start_yaw << "\n";
     cout << "Target R-P-Y: " << target_roll << " " << target_pitch << " " << target_yaw << "\n";
+    cout << "Current Duration: " << dt << "\n";
     pubTargetTrack(1, ros::Duration(1.0), F_target);
 }
 
@@ -631,7 +636,6 @@ void cob_cartesian_trajectories::pubTargetTrack(const int track_id, const ros::D
         target_track.pose.push_back(pose);
         
         track_pub_.publish(target_track);
-        cout << "publish track " << track_map[track_id] - ros::Time::now() << "\n";
         track_map[track_id] = ros::Time::now();
     }
 }
