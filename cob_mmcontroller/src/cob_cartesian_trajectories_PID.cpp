@@ -198,7 +198,7 @@ geometry_msgs::Twist cob_cartesian_trajectories::getTwist(double dt, Frame F_cur
     std::cout << "Start (x,y):   " << F_start.p.x() << ", " << F_start.p.y() << "\n";
     std::cout << "Current (x,y): " << F_current.p.x() << ", " << F_current.p.y() << "\n";
 
-    // calling PIDController to calculate 'stellgröße' and get back twist
+    // calling PIDController to calculate the actuating variable and get back twist
     ControllTwist = PIDController(dt, F_target, F_current);
     
     //DEBUG
@@ -457,11 +457,11 @@ geometry_msgs::Twist cob_cartesian_trajectories::PIDController(const double dt, 
     
     // create twist
     twist.linear.x = p_gain_*Error.vel.x() + i_gain_*Error_sum.vel.x();
-    twist.linear.y = (p_gain_*Error.vel.y() + i_gain_*Error_sum.vel.y());
-    twist.linear.z = (p_gain_*Error.vel.z());//p_gain_*Error.vel.z());
-    twist.angular.x = (0.0);//p_gain_*Error.rot.x());//(p_gain_*Error.rot.x() + i_gain_*Error_sum.rot.x());
-    twist.angular.y = (0.0);//p_gain_*Error.rot.y());//(p_gain_*Error.rot.y() + i_gain_*Error_sum.rot.y());
-    twist.angular.z = (p_gain_*Error.rot.z() + i_gain_*Error_sum.rot.z());
+    twist.linear.y = p_gain_*Error.vel.y() + i_gain_*Error_sum.vel.y();
+    twist.linear.z = p_gain_*Error.vel.z();//p_gain_*Error.vel.z());
+    twist.angular.x = 0.0;//p_gain_*Error.rot.x());//(p_gain_*Error.rot.x() + i_gain_*Error_sum.rot.x());
+    twist.angular.y = 0.0;//p_gain_*Error.rot.y());//(p_gain_*Error.rot.y() + i_gain_*Error_sum.rot.y());
+    twist.angular.z = p_gain_*Error.rot.z() + i_gain_*Error_sum.rot.z();
 
     pubTrack(1, ros::Duration(1.0), F_target);
     pubTrack(9, ros::Duration(1.0), F_current);
@@ -469,10 +469,16 @@ geometry_msgs::Twist cob_cartesian_trajectories::PIDController(const double dt, 
     
     return twist;
 }
+
+
+//---------------------------------------------
+//VISUALIZATION IN RVIZ
+//
 // publish generated trajectory
 void cob_cartesian_trajectories::pubTrack(const int track_id, const ros::Duration pub_duration, const KDL::Frame &F_pub)
 {
     articulation_msgs::TrackMsg track;
+    // set up a new TrackMsg
     if (track_map.find(track_id) == track_map.end())
     {
         cout << "new track: " << track_id << "\n";
@@ -481,6 +487,8 @@ void cob_cartesian_trajectories::pubTrack(const int track_id, const ros::Duratio
         track.id = track_id;
         track_map[track_id] = track;
     }
+
+    // store pose in corresponding TrackMsg
     if ((ros::Time::now() - track_map[track_id].header.stamp) >= pub_duration)
     {
         track_map[track_id].header.stamp = ros::Time::now();
@@ -502,6 +510,7 @@ void cob_cartesian_trajectories::pubTrack(const int track_id, const ros::Duratio
 
 }
 
+// publish twist
 void cob_cartesian_trajectories::pubTwistMarkers(const ros::Duration pub_duration, const geometry_msgs::Twist &Twist, const KDL::Frame &F_current)
 {
     if ((ros::Time::now() - pub_timer) >= pub_duration)
@@ -543,6 +552,7 @@ void cob_cartesian_trajectories::pubTwistMarkers(const ros::Duration pub_duratio
     }
 }
 
+//old function to publish trajectory markers
 void cob_cartesian_trajectories::sendMarkers()
 {
     visualization_msgs::Marker marker;
