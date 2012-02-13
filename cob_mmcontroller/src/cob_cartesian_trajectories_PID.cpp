@@ -9,6 +9,7 @@ cob_cartesian_trajectories::cob_cartesian_trajectories() : as_(n, "moveCirc", bo
     ROS_INFO("Starting PID controller with P: %e, I: %e, D: %e", p_gain_, i_gain_, d_gain_);
     
     cart_state_sub_ = n.subscribe("/arm_controller/cart_state", 1, &cob_cartesian_trajectories::cartStateCallback, this);
+    joint_state_sub_ = n.subscribe("/joint_states", 1, &cob_cartesian_trajectories::jointStateCallback, this);
     cart_command_pub = n.advertise<geometry_msgs::Twist>("/arm_controller/cart_command",1);
     debug_cart_pub_ = n.advertise<geometry_msgs::PoseArray>("/mm/debug",1);
     serv_prismatic = n.advertiseService("/mm/move_pri", &cob_cartesian_trajectories::movePriCB, this);      // new service
@@ -27,7 +28,127 @@ cob_cartesian_trajectories::cob_cartesian_trajectories() : as_(n, "moveCirc", bo
     pub_timer = ros::Time::now();
     pub_counter = 0;
     double const PI = 4.0*std::atan(1.0);
+
+    getJointLimits(UpperLimits, LowerLimits);   // get arm joint limits from topic /robot_description
 }
+
+
+// to avoid reaching the arm joint limits
+// get arm joint limits from topic /robot_description
+void cob_cartesian_trajectories::getJointLimits(std::vector<double> &UpperLimits, std::vector<double> &LowerLimits)
+{
+    ros::NodeHandle param_node;
+    const unsigned int DOF = 7;
+    std::vector<std::string> JointNames;
+    std::string param_name = "robot_description";
+    std::string full_param_name;
+    std::string xml_string;
+
+    for (unsigned int i = 1; i <= DOF; i++)
+    {
+        stringstream ss;
+        ss << i;
+        JointNames.push_back("arm_" + ss.str() + "_joint");
+    }
+
+    param_node.searchParam(param_name, full_param_name);
+    if (param_node.hasParam(full_param_name))
+    {
+        param_node.getParam(full_param_name.c_str(), xml_string);
+        //std::cout << "Parameter name: " << full_param_name << "\n";
+    }
+
+    else
+    {
+        ROS_ERROR("Parameter %s not set, shutting down node...", full_param_name.c_str());
+        param_node.shutdown();
+    }
+
+    if (xml_string.size() == 0)
+    {
+        ROS_ERROR("Unable to load robot model from parameter %s",full_param_name.c_str());
+        param_node.shutdown();
+    }
+    ROS_DEBUG("%s content\n%s", full_param_name.c_str(), xml_string.c_str());
+
+    /// Get urdf model out of robot_description
+    urdf::Model model;
+    if (!model.initString(xml_string))
+    {
+        ROS_ERROR("Failed to parse urdf file");
+        param_node.shutdown();
+    }
+    ROS_DEBUG("Successfully parsed urdf file");
+
+    /// Get lower limits out of urdf model
+    for (unsigned int i = 0; i < DOF; i++)
+    {
+        LowerLimits.push_back(model.getJoint(JointNames[i].c_str())->limits->lower);
+    }
+
+    // Get upper limits out of urdf model
+    for (unsigned int i = 0; i < DOF; i++)
+    {
+        UpperLimits.push_back(model.getJoint(JointNames[i].c_str())->limits->upper);
+    }
+    param_node.shutdown();
+}
+
+// get arm joint states 
+std::vector<double> cob_cartesian_trajectories::parseJointStates(std::vector<std::string> names, std::vector<double> positions)
+{
+    std::vector<double> q_temp(7);
+    bool parsed = false;
+    unsigned int count = 0;
+    for(unsigned int i = 0; i < names.size(); i++)
+    {
+            if(strncmp(names[i].c_str(), "arm_", 4) == 0)
+            {
+                q_temp[count] = positions[i];
+                count++;
+                parsed = true;
+            }
+    }
+
+    if(!parsed)
+        return q_last;
+
+    q_last = q_temp;
+    return q_temp;
+
+}
+
+// check if an arm joint limit is reached
+void cob_cartesian_trajectories::jointStateCallback(const sensor_msgs::JointState::ConstPtr& msg)
+{
+    std::vector<std::string> names = msg->name;
+    std::vector<double> positions = msg->position;
+    jointStates = parseJointStates(names,positions);
+
+    // stopping to run trajectory 
+    for (unsigned int i = 0; i < jointStates.size(); i++)
+    {
+        if (jointStates[i] <= (LowerLimits[i] + 0.04))
+        {
+            bRun = false;
+            geometry_msgs::Twist twist;
+            cart_command_pub.publish(twist);
+            //std::cout << "Stopping trajectory because arm joint " << i+1 << " reached almost lower joint limit!" << "\n";
+            ROS_INFO("Stopping trajectory because arm joint %d reached almost lower joint limit!", i+1);
+        }
+        else if (jointStates[i] >= (UpperLimits[i] - 0.04))
+        {
+            bRun = false;
+            geometry_msgs::Twist twist;
+            cart_command_pub.publish(twist);
+            //std::cout << "Stopping trajectory because arm joint " << i+1 << " reached almost upper joint limit!" << "\n";
+            ROS_INFO("Stopping trajectory because arm joint %d reached almost upper joint limit!", i+1);
+        }
+        //std::cout << "arm_" << i+1 << "_joint is " << jointStates[i] << " >> " << -1.0 *(fabs(LowerLimits[i])+jointStates[i]) << " to lower and " << UpperLimits[i]-jointStates[i] << " to upper limit" << "\n";
+    }
+
+}
+
 
 
 void cob_cartesian_trajectories::moveCircActionCB(const cob_mmcontroller::OpenFridgeGoalConstPtr& goal)

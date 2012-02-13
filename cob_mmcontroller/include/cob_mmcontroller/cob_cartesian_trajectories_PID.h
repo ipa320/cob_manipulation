@@ -46,27 +46,43 @@ private:
     ros::NodeHandle n;
     actionlib::SimpleActionServer<cob_mmcontroller::OpenFridgeAction> as_;
     actionlib::SimpleActionServer<cob_mmcontroller::OpenFridgeAction> as2_;
+    
+    void cartStateCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
     geometry_msgs::Twist getTwist(double dt, Frame F_current);
-    void getSollLinear(double dt, double &sollx, double &solly, double &sollangle);
-    void getSollCircular(double dt, double &sollx, double &solly, double &sollangle);
+
+    // trajectory generation
     void getTargetPosition(double dt, KDL::Frame &F_target);                                        //new
     void getPriTarget(double dt, KDL::Frame &F_target);                                             //new
     void getRotTarget(double dt, KDL::Frame &F_target);                                             //new
     double getParamValue(std::string param_name);                                                   //new
+    
+    // controller
     geometry_msgs::Twist PIDController(const double dt, const KDL::Frame &F_target, const KDL::Frame &F_Current);              //new
+
+    // joint limits
+    void getJointLimits(std::vector<double> &UpperLimits, std::vector<double> &LowerLimits);
+    void jointStateCallback(const sensor_msgs::JointState::ConstPtr& msg);
+    std::vector<double> parseJointStates(std::vector<std::string> names, std::vector<double> positions);
+    
+    // visualization functions
     void pubTrack(const int track_id, const ros::Duration pub_duration, const KDL::Frame &F_pub);                     //new
     void pubTwistMarkers(const ros::Duration pub_duration, const geometry_msgs::Twist &Twist, const KDL::Frame &F_current);
-    void cartStateCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
+    void sendMarkers();
+
+    // action callbacks
     void moveCircActionCB(const cob_mmcontroller::OpenFridgeGoalConstPtr& goal);
     void moveLinActionCB(const cob_mmcontroller::OpenFridgeGoalConstPtr& goal);
+    // service callbacks
     //bool moveCircCB(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response);  //old
     //bool moveLinCB(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response);   //old
     bool movePriCB(cob_mmcontroller::MovePrismatic::Request& request, cob_mmcontroller::MovePrismatic::Response& response);     //new
     bool moveRotCB(cob_mmcontroller::MoveRotational::Request& request, cob_mmcontroller::MoveRotational::Response& response);   //new
     bool moveModelCB(cob_mmcontroller::MoveModel::Request& request, cob_mmcontroller::MoveModel::Response& response);           //new
-    void sendMarkers();
+
     bool start();
+    
     ros::Subscriber cart_state_sub_;
+    ros::Subscriber joint_state_sub_;
     ros::Publisher cart_command_pub;
     ros::Publisher debug_cart_pub_;
     ros::Publisher map_pub_;
@@ -76,8 +92,9 @@ private:
     ros::ServiceServer serv_prismatic;      //new
     ros::ServiceServer serv_rotational;     //new
     ros::ServiceServer serv_model;          //new
-    std::vector<geometry_msgs::Point> trajectory_points;
 
+
+    // VARIABLES
     bool bRun;
     bool bStarted;
     double currentDuration;
@@ -102,9 +119,17 @@ private:
 
     geometry_msgs::PoseStamped current_hinge;
 
-    //articulation_msgs::ModelMsg target_model;   // model covering/carry track msg
+    // visualization
+    std::vector<geometry_msgs::Point> trajectory_points;
     map<int, articulation_msgs::TrackMsg> track_map;     //stores track_ids and tracks for publishing
     ros::Time pub_timer;
     int pub_counter;
+
+    // joint limits
+    std::vector<double> UpperLimits;
+    std::vector<double> LowerLimits;
+
+    std::vector<double> q_last;
+    std::vector<double> jointStates;
 };
 
