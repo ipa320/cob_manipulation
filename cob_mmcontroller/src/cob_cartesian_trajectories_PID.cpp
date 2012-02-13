@@ -144,17 +144,9 @@ void cob_cartesian_trajectories::cartStateCallback(const geometry_msgs::PoseStam
         KDL::Vector unitz = myhinge.M.UnitZ();
         std::cout << "Radius because of Hinge: " << (myhinge.p - current.p) << "UnitZ of hinge: " << unitz.z() << "\n";
 
-        geometry_msgs::Twist twist;
         // get twist to be published
-        twist = getTwist(currentDuration, current); // TODO: get back geometry_msgs::Twist from getTwist --> PIDController
-
-        /*twist.linear.x =  ktwist.vel.x();
-        twist.linear.y =  ktwist.vel.y();
-        twist.linear.z =  ktwist.vel.z();
-
-        twist.angular.x =  ktwist.rot.x();
-        twist.angular.y =  ktwist.rot.y();
-        twist.angular.z =  ktwist.rot.z();*/
+        geometry_msgs::Twist twist;
+        twist = getTwist(currentDuration, current); 
 
         // publish twist
         cart_command_pub.publish(twist);
@@ -225,31 +217,6 @@ geometry_msgs::Twist cob_cartesian_trajectories::getTwist(double dt, Frame F_cur
     return ControllTwist;
 }
 
-/*
-void cob_cartesian_trajectories::getSollLinear(double dt, double &sollx, double &solly, double &sollangle)
-{
-    double look_ahead = 0.1;
-    sollx = ((dt+look_ahead)/targetDuration) * -0.1;
-    solly = 0.0; //((dt+look_ahead)/targetDuration) * 0.6;
-    sollangle = 0.0;
-}
-*/
-
-/*
-void cob_cartesian_trajectories::getSollCircular(double dt, double &sollx, double &solly, double &sollangle)
-{
-    double look_ahead = 0.0;
-    double max_ang = 3.14*0.505;
-    double radius = 0.31; //TODO: Radius einstellen
-
-    sollx = sin(max_ang*((dt+look_ahead)/targetDuration)) * radius ;
-    solly = radius-(cos(max_ang*((dt+look_ahead)/targetDuration)) * radius);
-    solly *= -1;
-    std::cout << "Soll: " << sollx << ", " << solly << "\n";
-    sollangle = -max_ang*((dt+look_ahead)/targetDuration);    
-}
-*/
-
 void cob_cartesian_trajectories::getTargetPosition(double dt, KDL::Frame &F_target)    //TODO //
 {
     if (mode == "prismatic")
@@ -263,8 +230,6 @@ void cob_cartesian_trajectories::getTargetPosition(double dt, KDL::Frame &F_targ
     else
         ROS_ERROR("Invalid mode");
 }
-
-
 
 // linear trajectory 
 void cob_cartesian_trajectories::getPriTarget(double dt, KDL::Frame &F_target)
@@ -456,9 +421,6 @@ double cob_cartesian_trajectories::getParamValue(std::string param_name)
 
 geometry_msgs::Twist cob_cartesian_trajectories::PIDController(const double dt, const KDL::Frame &F_target, const KDL::Frame &F_current)
 {
-    //double p = 1.0;           //gain for proportional part
-    //double i = 1.0;           //gain for integrating part
-    //double d = 1.0;           //gain for differential part
     geometry_msgs::Twist twist;
     double current_roll = 0.0, current_pitch = 0.0, current_yaw = 0.0;
     double target_roll = 0.0, target_pitch = 0.0, target_yaw = 0.0;
