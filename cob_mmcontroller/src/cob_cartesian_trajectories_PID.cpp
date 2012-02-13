@@ -48,22 +48,21 @@ private:
     ros::NodeHandle n;
     actionlib::SimpleActionServer<cob_mmcontroller::OpenFridgeAction> as_;
     actionlib::SimpleActionServer<cob_mmcontroller::OpenFridgeAction> as2_;
-    KDL::Twist getTwist(double dt, Frame F_current);
+    geometry_msgs::Twist getTwist(double dt, Frame F_current);
     void getSollLinear(double dt, double &sollx, double &solly, double &sollangle);
     void getSollCircular(double dt, double &sollx, double &solly, double &sollangle);
     void getTargetPosition(double dt, KDL::Frame &F_target);                                        //new
     void getPriTarget(double dt, KDL::Frame &F_target);                                             //new
     void getRotTarget(double dt, KDL::Frame &F_target);                                             //new
     double getParamValue(std::string param_name);                                                   //new
-    KDL::Twist PIDController(const double dt, const KDL::Frame &F_target, const KDL::Frame &F_Current);              //new
+    geometry_msgs::Twist PIDController(const double dt, const KDL::Frame &F_target, const KDL::Frame &F_Current);              //new
     void pubTrack(const int track_id, const ros::Duration pub_duration, const KDL::Frame &F_pub);                     //new
-    void pubTwistMarkers(const ros::Duration pub_duration, const KDL::Twist &Twist, const KDL::Frame &F_current);
+    void pubTwistMarkers(const ros::Duration pub_duration, const geometry_msgs::Twist &Twist, const KDL::Frame &F_current);
     void cartStateCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
     void moveCircActionCB(const cob_mmcontroller::OpenFridgeGoalConstPtr& goal);
     void moveLinActionCB(const cob_mmcontroller::OpenFridgeGoalConstPtr& goal);
     //bool moveCircCB(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response);  //old
     //bool moveLinCB(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response);   //old
-    //bool movePriSimpleCB(cob_mmcontroller::MovePrismaticSimple::Request& request, cob_mmcontroller::MovePrismaticSimple::Response& response);     //new
     bool movePriCB(cob_mmcontroller::MovePrismatic::Request& request, cob_mmcontroller::MovePrismatic::Response& response);     //new
     bool moveRotCB(cob_mmcontroller::MoveRotational::Request& request, cob_mmcontroller::MoveRotational::Response& response);   //new
     bool moveModelCB(cob_mmcontroller::MoveModel::Request& request, cob_mmcontroller::MoveModel::Response& response);           //new
@@ -123,7 +122,6 @@ cob_cartesian_trajectories::cob_cartesian_trajectories() : as_(n, "moveCirc", bo
     cart_state_sub_ = n.subscribe("/arm_controller/cart_state", 1, &cob_cartesian_trajectories::cartStateCallback, this);
     cart_command_pub = n.advertise<geometry_msgs::Twist>("/arm_controller/cart_command",1);
     debug_cart_pub_ = n.advertise<geometry_msgs::PoseArray>("/mm/debug",1);
-    //serv_prismatic_simple = n.advertiseService("/mm/move_pri_simple", &cob_cartesian_trajectories::movePriSimpleCB, this);      // new service for simply input
     serv_prismatic = n.advertiseService("/mm/move_pri", &cob_cartesian_trajectories::movePriCB, this);      // new service
     serv_rotational = n.advertiseService("/mm/move_rot", &cob_cartesian_trajectories::moveRotCB, this);     // new service
     serv_model = n.advertiseService("/mm/move_model", &cob_cartesian_trajectories::moveModelCB, this);       // new service to work with models
@@ -139,6 +137,7 @@ cob_cartesian_trajectories::cob_cartesian_trajectories() : as_(n, "moveCirc", bo
    
     pub_timer = ros::Time::now();
     pub_counter = 0;
+    double const PI = 4.0*std::atan(1.0);
 }
 
 
@@ -173,25 +172,6 @@ void cob_cartesian_trajectories::moveLinActionCB(const cob_mmcontroller::OpenFri
     return;
 
 }
-
-/*
-bool cob_cartesian_trajectories::movePriSimpleCB(cob_mmcontroller::MovePrismaticSimple::Request& request, cob_mmcontroller::MovePrismaticSimple::Response& response)    //TODO // simple prismatic callback
-{
-    mode = "prismatic";
-    targetDuration = request.target_duration;
-    std::cout << "check1 " << "\n";
-    //params[0].name = "length";
-    std::cout << "check2 " << params[0].name << "\n";
-    params[0].value = request.length;
-    params[1].name = "prismatic_dir.x";
-    params[1].value = request.pris_dir_x;
-    params[2].name = "prismatic_dir.y";
-    params[2].value = request.pris_dir_y;
-    params[3].name = "prismatic_dir.z";
-    params[3].value = request.pris_dir_z;
-    std::cout << targetDuration << "\n";
-    return start();
-}*/
 
 bool cob_cartesian_trajectories::movePriCB(cob_mmcontroller::MovePrismatic::Request& request, cob_mmcontroller::MovePrismatic::Response& response)    //TODO // prismatic callback
 {
@@ -276,20 +256,24 @@ void cob_cartesian_trajectories::cartStateCallback(const geometry_msgs::PoseStam
         std::cout << "Radius because of Hinge: " << (myhinge.p - current.p) << "UnitZ of hinge: " << unitz.z() << "\n";
 
         geometry_msgs::Twist twist;
-        KDL::Twist ktwist = getTwist(currentDuration, current);
-        twist.linear.x =  ktwist.vel.x();
+        // get twist to be published
+        twist = getTwist(currentDuration, current); // TODO: get back geometry_msgs::Twist from getTwist --> PIDController
+
+        /*twist.linear.x =  ktwist.vel.x();
         twist.linear.y =  ktwist.vel.y();
         twist.linear.z =  ktwist.vel.z();
 
         twist.angular.x =  ktwist.rot.x();
         twist.angular.y =  ktwist.rot.y();
-        twist.angular.z =  ktwist.rot.z();
+        twist.angular.z =  ktwist.rot.z();*/
 
-
-        //twist.linear.z = -0.02;
+        // publish twist
         cart_command_pub.publish(twist);
+
+        // add needed time
         currentDuration+=dt.toSec();
 
+        // add position to be visualized in rviz
         geometry_msgs::Point p;
         p.x = msg->pose.position.x;
         p.y = msg->pose.position.y;
@@ -302,6 +286,54 @@ void cob_cartesian_trajectories::cartStateCallback(const geometry_msgs::PoseStam
         geometry_msgs::Twist twist;
         cart_command_pub.publish(twist);
     }
+}
+
+geometry_msgs::Twist cob_cartesian_trajectories::getTwist(double dt, Frame F_current)
+{
+    KDL::Frame F_target;
+    KDL::Frame F_diff;
+    geometry_msgs::Twist ControllTwist;
+    double start_roll, start_pitch, start_yaw = 0.0;
+    double current_roll, current_pitch, current_yaw = 0.0;
+    double target_roll, target_pitch, target_yaw = 0.0;
+
+    if(!bStarted)
+    {
+        F_start = F_current;
+        bStarted = true;
+    }
+    
+    getTargetPosition(dt, F_target);
+   
+    F_start.M.GetRPY(start_roll, start_pitch, start_yaw);
+    F_current.M.GetRPY(current_roll, current_pitch, current_yaw);
+    F_target.M.GetRPY(target_roll, target_pitch, target_yaw);
+
+    //std::cout << "AngleDiff: " << (current_yaw-start_yaw) << " vs " << (soll_angle) << " error: " << (soll_angle-current_yaw-start_yaw) << "\n";
+
+    
+    std::cout << "Target (x,y):  " << F_target.p.x() << ", " << F_target.p.y() << "\n";
+    std::cout << "Error (x,y):   " << F_target.p.x()-F_current.p.x() << ", " << F_target.p.y()-F_current.p.y() << "\n";
+    std::cout << "Start (x,y):   " << F_start.p.x() << ", " << F_start.p.y() << "\n";
+    std::cout << "Current (x,y): " << F_current.p.x() << ", " << F_current.p.y() << "\n";
+
+    // calling PIDController to calculate 'stellgröße' and get back twist
+    ControllTwist = PIDController(dt, F_target, F_current);
+    
+    //DEBUG
+    F_diff.p.x(F_target.p.x()-F_current.p.x());
+    F_diff.p.y(F_target.p.y()-F_current.p.y());
+    F_diff.p.z(F_target.p.z()-F_current.p.z());
+    geometry_msgs::PoseArray poses;
+    poses.poses.resize(3);
+    tf::PoseKDLToMsg(F_current, poses.poses[0]);
+    tf::PoseKDLToMsg(F_target, poses.poses[1]);
+    tf::PoseKDLToMsg(F_diff, poses.poses[2]);
+    debug_cart_pub_.publish(poses);
+    //std::cout << "Twist x: " << 0.1 * F_diff.p.x() << " y: " << 0.1 * F_diff.p.y() << "\n";
+    //
+
+    return ControllTwist;
 }
 
 /*
@@ -345,6 +377,7 @@ void cob_cartesian_trajectories::getTargetPosition(double dt, KDL::Frame &F_targ
 
 
 
+// linear trajectory 
 void cob_cartesian_trajectories::getPriTarget(double dt, KDL::Frame &F_target)
 {
     double length;
@@ -380,36 +413,43 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
     double radius;
     KDL::Rotation temp_rot;
     
-    double start_roll, start_pitch, start_yaw = 0.0;
-    double target_roll, target_pitch, target_yaw = 0.0;
+    double start_roll, start_pitch, start_yaw = 0.0;        //debug
+    double target_roll, target_pitch, target_yaw = 0.0;     //debug
 
+    // parameter from parameter server
     angle = getParamValue("angle");
     rot_center_x = getParamValue("rot_center.x");
     rot_center_y = getParamValue("rot_center.y");
     rot_center_z = getParamValue("rot_center.z");
     
+    // calculating target angle with respect to the time
     partial_angle = angle * (dt/targetDuration);
     
-    cout << "Partial Angle: " << partial_angle << "\n";
-    
+    // calculating radius
     radius = sqrt(rot_center_x*rot_center_x + rot_center_y*rot_center_y); // + rot_center_z*rot_center_z);
     
-    
+    // calulating target position with respect to the time and the start position
     F_target.p.x(F_start.p.x() + radius*sin(partial_angle));
     F_target.p.y(F_start.p.y() + radius*(1-cos(partial_angle)));
-    F_target.p.z(F_start.p.z());
+    F_target.p.z(F_start.p.z()); // keep initial height
     //F_target.p.z(F_start.p.z + radius*sin(partial_angle));
     
-    std::cout << "F_X: " << F_target.p.x() << " F_Y: " << F_target.p.y() << " F_Z: " << F_target.p.z() << "\n";
     
-
+    // calculating the target rotation (at the moment only around the z-axis)
     temp_rot = Rotation::Identity();    // TODO Rotation::Rot(vector,angle);
-    temp_rot.DoRotZ(partial_angle);        // rotation axis of articulation
-    temp_rot = temp_rot*F_start.M;
-    
-    cout << "temp_rot: " << "\n" << temp_rot << "\n";
+    temp_rot.DoRotZ(partial_angle);     // rotation axis of the articulation
+    temp_rot = temp_rot*F_start.M;      // rotation is composed of two rotations. 
+                                        // first about the z-axis of the base_link frame and 
+                                        // than the rotation from base_link to start frame of the gripper
     
     F_target.M = temp_rot;
+
+    // ------------debugging output-----------------------
+    cout << "Partial Angle: " << partial_angle << "\n";
+
+    std::cout << "F_X: " << F_target.p.x() << " F_Y: " << F_target.p.y() << " F_Z: " << F_target.p.z() << "\n";
+    
+    cout << "F_target.M: " << "\n" << F_target.M << "\n";
     
     F_start.M.GetRPY(start_roll, start_pitch, start_yaw);
     F_target.M.GetRPY(target_roll, target_pitch, target_yaw);
@@ -419,30 +459,61 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
     cout << "Current Duration: " << dt << "\n";
 }
 
-
-/* //rotational trajectory from rot_axis, rot_radius and angle
+/*//rotational 6D-trajectory from rot_axis, rot_radius and angle
 void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
 {
     double angle;
     double partial_angle;
-    double radius;
+    double rot_radius;
+    double rot_center_x;
+    double rot_center_y;
+    double rot_center_z;
     double rot_axis_x;
     double rot_axis_y;
     double rot_axis_z;
     double rot_axis_w;
-    KDL::Rotation rot;
-    KDL::Vector rot_vec;
-    KDL::Rotation temp_rot;
+    KDL::Frame F_articulation;
+    KDL::Frame F_track;
+    //KDL::Rotation rot;
+    //KDL::Vector rot_vec;
+    //KDL::Rotation temp_rot;
     
-    double alpha, d1, d2, d3;
-    double norm;
+    //double alpha, d1, d2, d3;
+    //double norm;
     
     angle = getParamValue("angle");
-    radius = getParamValue("rot_radius");
+    rot_radius = getParamValue("rot_radius");
+    rot_center_x = getParamValue("rot_center.x");
+    rot_center_y = getParamValue("rot_center.y");
+    rot_center_z = getParamValue("rot_center.z");
     rot_axis_x = getParamValue("rot_axis.x");
     rot_axis_y = getParamValue("rot_axis.y");
     rot_axis_z = getParamValue("rot_axis.z");
     rot_axis_w = getParamValue("rot_axis.w");
+
+    // calculating partial_angle
+    partial_angle = angle * (dt/targetDuration);
+
+    // creating articulation frame TODO: check orientation
+    F_articulation.p.x(rot_center_x);
+    F_articulation.p.y(rot_center_y);
+    F_articulation.p.z(rot_center_z);
+    F_articulation.M.Quaternion(rot_axis_x, rot_axis_y, rot_axis_z, rot_axis_w);    //TODO: check if z-axis = articulation axis
+
+    // creating trajectory frame w.r.t. the articulation frame
+    // orientation is like sdh_tip_link frame
+    F_track.p.x(rot_radius*cos(partial_angle));
+    F_track.p.y(rot_radius*sin(partial_angle));
+
+    F_track.M.RPY(-PI/2.0, -(PI/2.0+partial_angle), 0.0);  //TODO: check orientation //depending also on handle orientation
+
+    // transformation of trajectory frame into base_link frame ??? map frame
+    F_target = F_track*F_articulation;       // FT_a*FA_bl
+
+
+
+
+    --------------old approach------------------
     //rot.Quaternion(rot_axis_x, rot_axis_y, rot_axis_z, rot_axis_w);
     //rot_vec = rot.GetRot();
     
@@ -494,61 +565,12 @@ double cob_cartesian_trajectories::getParamValue(std::string param_name)
 }
 
 
-KDL::Twist cob_cartesian_trajectories::getTwist(double dt, Frame F_current)
-{
-    KDL::Frame F_target;    // = F_start; ???
-    KDL::Frame F_diff; // = F_start;
-    KDL::Twist lin;
-    double start_roll, start_pitch, start_yaw = 0.0;
-    double current_roll, current_pitch, current_yaw = 0.0;
-    double target_roll, target_pitch, target_yaw = 0.0;
-
-    if(!bStarted)
-    {
-        F_start = F_current;
-        bStarted = true;
-    }
-    
-    getTargetPosition(dt, F_target);
-   
-    F_start.M.GetRPY(start_roll, start_pitch, start_yaw);
-    F_current.M.GetRPY(current_roll, current_pitch, current_yaw);
-
-    //std::cout << "AngleDiff: " << (current_yaw-start_yaw) << " vs " << (soll_angle) << " error: " << (soll_angle-current_yaw-start_yaw) << "\n";
-
-    
-    std::cout << "Target (x,y):  " << F_target.p.x() << ", " << F_target.p.y() << "\n";
-    std::cout << "Error (x,y):   " << F_target.p.x()-F_current.p.x() << ", " << F_target.p.y()-F_current.p.y() << "\n";
-    std::cout << "Start (x,y):   " << F_start.p.x() << ", " << F_start.p.y() << "\n";
-    std::cout << "Current (x,y): " << F_current.p.x() << ", " << F_current.p.y() << "\n";
-
-    F_target.M.GetRPY(target_roll, target_pitch, target_yaw);
-    
-    
-    lin = PIDController(dt, F_target, F_current);
-    
-    //DEBUG
-    F_diff.p.x(F_target.p.x()-F_current.p.x());
-    F_diff.p.y(F_target.p.y()-F_current.p.y());
-    F_diff.p.z(F_target.p.z()-F_current.p.z());
-    geometry_msgs::PoseArray poses;
-    poses.poses.resize(3);
-    tf::PoseKDLToMsg(F_current, poses.poses[0]);
-    tf::PoseKDLToMsg(F_target, poses.poses[1]);
-    tf::PoseKDLToMsg(F_diff, poses.poses[2]);
-    debug_cart_pub_.publish(poses);
-    //std::cout << "Twist x: " << 0.1 * F_diff.p.x() << " y: " << 0.1 * F_diff.p.y() << "\n";
-    //
-
-    return lin;
-}
-
-KDL::Twist cob_cartesian_trajectories::PIDController(const double dt, const KDL::Frame &F_target, const KDL::Frame &F_current)
+geometry_msgs::Twist cob_cartesian_trajectories::PIDController(const double dt, const KDL::Frame &F_target, const KDL::Frame &F_current)
 {
     //double p = 1.0;           //gain for proportional part
     //double i = 1.0;           //gain for integrating part
     //double d = 1.0;           //gain for differential part
-    KDL::Twist twist;
+    geometry_msgs::Twist twist;
     double current_roll = 0.0, current_pitch = 0.0, current_yaw = 0.0;
     double target_roll = 0.0, target_pitch = 0.0, target_yaw = 0.0;
     
@@ -583,12 +605,12 @@ KDL::Twist cob_cartesian_trajectories::PIDController(const double dt, const KDL:
     cout << "Error_dot twist: " << "\n" << Error_dot << "\n";
     
     // create twist
-    twist.vel.x(p_gain_*Error.vel.x() + i_gain_*Error_sum.vel.x());
-    twist.vel.y(p_gain_*Error.vel.y() + i_gain_*Error_sum.vel.y());
-    twist.vel.z(p_gain_*Error.vel.z());//p_gain_*Error.vel.z());
-    twist.rot.x(0.0);//p_gain_*Error.rot.x());//(p_gain_*Error.rot.x() + i_gain_*Error_sum.rot.x());
-    twist.rot.y(0.0);//p_gain_*Error.rot.y());//(p_gain_*Error.rot.y() + i_gain_*Error_sum.rot.y());
-    twist.rot.z(p_gain_*Error.rot.z() + i_gain_*Error_sum.rot.z());
+    twist.linear.x = p_gain_*Error.vel.x() + i_gain_*Error_sum.vel.x();
+    twist.linear.y = (p_gain_*Error.vel.y() + i_gain_*Error_sum.vel.y());
+    twist.linear.z = (p_gain_*Error.vel.z());//p_gain_*Error.vel.z());
+    twist.angular.x = (0.0);//p_gain_*Error.rot.x());//(p_gain_*Error.rot.x() + i_gain_*Error_sum.rot.x());
+    twist.angular.y = (0.0);//p_gain_*Error.rot.y());//(p_gain_*Error.rot.y() + i_gain_*Error_sum.rot.y());
+    twist.angular.z = (p_gain_*Error.rot.z() + i_gain_*Error_sum.rot.z());
 
     pubTrack(1, ros::Duration(1.0), F_target);
     pubTrack(9, ros::Duration(1.0), F_current);
@@ -629,7 +651,7 @@ void cob_cartesian_trajectories::pubTrack(const int track_id, const ros::Duratio
 
 }
 
-void cob_cartesian_trajectories::pubTwistMarkers(const ros::Duration pub_duration, const KDL::Twist &Twist, const KDL::Frame &F_current)
+void cob_cartesian_trajectories::pubTwistMarkers(const ros::Duration pub_duration, const geometry_msgs::Twist &Twist, const KDL::Frame &F_current)
 {
     if ((ros::Time::now() - pub_timer) >= pub_duration)
     {
@@ -647,7 +669,7 @@ void cob_cartesian_trajectories::pubTwistMarkers(const ros::Duration pub_duratio
         twist_marker.scale.x = 0.01;
         twist_marker.scale.y = 0.02;
 
-        color_mixer = 11.0*sqrt(Twist.vel.x()*Twist.vel.x() + Twist.vel.y()*Twist.vel.y() + Twist.vel.z()*Twist.vel.z());
+        color_mixer = 11.0*sqrt(Twist.linear.x*Twist.linear.x + Twist.linear.y*Twist.linear.y + Twist.linear.z*Twist.linear.z);
         if (color_mixer > 1.0) offset = color_mixer - 1.0;
         color_mixer = color_mixer - offset;
         twist_marker.color.a = 1.0;
@@ -659,9 +681,9 @@ void cob_cartesian_trajectories::pubTwistMarkers(const ros::Duration pub_duratio
         p.y = F_current.p.y();
         p.z = F_current.p.z();
         twist_marker.points.push_back(p);
-        p.x = F_current.p.x() + Twist.vel.x();
-        p.y = F_current.p.y() + Twist.vel.y();
-        p.z = F_current.p.z() + Twist.vel.z();
+        p.x = F_current.p.x() + Twist.linear.x;
+        p.y = F_current.p.y() + Twist.linear.y;
+        p.z = F_current.p.z() + Twist.linear.z;
         twist_marker.points.push_back(p);
         
         twist_pub_.publish(twist_marker);
