@@ -48,16 +48,17 @@ private:
     actionlib::SimpleActionServer<cob_mmcontroller::OpenFridgeAction> as2_;
     
     void cartStateCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
+    void stopTrajectory();
     geometry_msgs::Twist getTwist(double dt, Frame F_current);
 
     // trajectory generation
-    void getTargetPosition(double dt, KDL::Frame &F_target);                                        //new
-    void getPriTarget(double dt, KDL::Frame &F_target);                                             //new
-    void getRotTarget(double dt, KDL::Frame &F_target);                                             //new
-    double getParamValue(std::string param_name);                                                   //new
+    void getTargetPosition(double dt, KDL::Frame &F_target);
+    void getPriTarget(double dt, KDL::Frame &F_target);
+    void getRotTarget(double dt, KDL::Frame &F_target);
+    double getParamValue(std::string param_name);
     
     // controller
-    geometry_msgs::Twist PIDController(const double dt, const KDL::Frame &F_target, const KDL::Frame &F_Current);              //new
+    geometry_msgs::Twist PIDController(const double dt, const KDL::Frame &F_target, const KDL::Frame &F_Current);
 
     // joint limits
     void getJointLimits(std::vector<double> &UpperLimits, std::vector<double> &LowerLimits);
@@ -65,7 +66,7 @@ private:
     std::vector<double> parseJointStates(std::vector<std::string> names, std::vector<double> positions);
     
     // visualization functions
-    void pubTrack(const int track_id, const ros::Duration pub_duration, const KDL::Frame &F_pub);                     //new
+    void pubTrack(const int track_id, const ros::Duration pub_duration, const KDL::Frame &F_pub);
     void pubTwistMarkers(const ros::Duration pub_duration, const geometry_msgs::Twist &Twist, const KDL::Frame &F_current);
     void sendMarkers();
 
@@ -73,11 +74,11 @@ private:
     void moveCircActionCB(const cob_mmcontroller::OpenFridgeGoalConstPtr& goal);
     void moveLinActionCB(const cob_mmcontroller::OpenFridgeGoalConstPtr& goal);
     // service callbacks
-    //bool moveCircCB(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response);  //old
-    //bool moveLinCB(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response);   //old
-    bool movePriCB(cob_mmcontroller::MovePrismatic::Request& request, cob_mmcontroller::MovePrismatic::Response& response);     //new
-    bool moveRotCB(cob_mmcontroller::MoveRotational::Request& request, cob_mmcontroller::MoveRotational::Response& response);   //new
-    bool moveModelCB(cob_mmcontroller::MoveModel::Request& request, cob_mmcontroller::MoveModel::Response& response);           //new
+    //bool moveCircCB(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response);
+    //bool moveLinCB(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response);
+    bool movePriCB(cob_mmcontroller::MovePrismatic::Request& request, cob_mmcontroller::MovePrismatic::Response& response);
+    bool moveRotCB(cob_mmcontroller::MoveRotational::Request& request, cob_mmcontroller::MoveRotational::Response& response);
+    bool moveModelCB(cob_mmcontroller::MoveModel::Request& request, cob_mmcontroller::MoveModel::Response& response);
 
     bool start();
     
@@ -88,10 +89,9 @@ private:
     ros::Publisher map_pub_;
     ros::Publisher twist_pub_;
     ros::Publisher track_pub_;
-    ros::ServiceServer serv_prismatic_simple;      //new
-    ros::ServiceServer serv_prismatic;      //new
-    ros::ServiceServer serv_rotational;     //new
-    ros::ServiceServer serv_model;          //new
+    ros::ServiceServer serv_prismatic;
+    ros::ServiceServer serv_rotational;
+    ros::ServiceServer serv_model;
 
 
     // VARIABLES

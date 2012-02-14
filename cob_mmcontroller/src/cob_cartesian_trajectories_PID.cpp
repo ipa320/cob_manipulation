@@ -121,30 +121,29 @@ std::vector<double> cob_cartesian_trajectories::parseJointStates(std::vector<std
 // check if an arm joint limit is reached
 void cob_cartesian_trajectories::jointStateCallback(const sensor_msgs::JointState::ConstPtr& msg)
 {
-    std::vector<std::string> names = msg->name;
-    std::vector<double> positions = msg->position;
-    jointStates = parseJointStates(names,positions);
-
-    // stopping to run trajectory 
-    for (unsigned int i = 0; i < jointStates.size(); i++)
+    if (bRun)
     {
-        if (jointStates[i] <= (LowerLimits[i] + 0.04))
+        std::vector<std::string> names = msg->name;
+        std::vector<double> positions = msg->position;
+        jointStates = parseJointStates(names,positions);
+
+        // stopping to run trajectory 
+        for (unsigned int i = 0; i < jointStates.size(); i++)
         {
-            bRun = false;
-            geometry_msgs::Twist twist;
-            cart_command_pub.publish(twist);
-            //std::cout << "Stopping trajectory because arm joint " << i+1 << " reached almost lower joint limit!" << "\n";
-            ROS_INFO("Stopping trajectory because arm joint %d reached almost lower joint limit!", i+1);
+            if (jointStates[i] <= (LowerLimits[i] + 0.04))
+            {
+                ROS_INFO("Stopping trajectory because arm joint %d reached almost lower joint limit!", i+1);
+                stopTrajectory();
+                //std::cout << "Stopping trajectory because arm joint " << i+1 << " reached almost lower joint limit!" << "\n";
+            }
+            else if (jointStates[i] >= (UpperLimits[i] - 0.04))
+            {
+                ROS_INFO("Stopping trajectory because arm joint %d reached almost upper joint limit!", i+1);
+                stopTrajectory();
+                //std::cout << "Stopping trajectory because arm joint " << i+1 << " reached almost upper joint limit!" << "\n";
+            }
+            //std::cout << "arm_" << i+1 << "_joint is " << jointStates[i] << " >> " << -1.0 *(fabs(LowerLimits[i])+jointStates[i]) << " to lower and " << UpperLimits[i]-jointStates[i] << " to upper limit" << "\n";
         }
-        else if (jointStates[i] >= (UpperLimits[i] - 0.04))
-        {
-            bRun = false;
-            geometry_msgs::Twist twist;
-            cart_command_pub.publish(twist);
-            //std::cout << "Stopping trajectory because arm joint " << i+1 << " reached almost upper joint limit!" << "\n";
-            ROS_INFO("Stopping trajectory because arm joint %d reached almost upper joint limit!", i+1);
-        }
-        //std::cout << "arm_" << i+1 << "_joint is " << jointStates[i] << " >> " << -1.0 *(fabs(LowerLimits[i])+jointStates[i]) << " to lower and " << UpperLimits[i]-jointStates[i] << " to upper limit" << "\n";
     }
 
 }
@@ -250,14 +249,9 @@ void cob_cartesian_trajectories::cartStateCallback(const geometry_msgs::PoseStam
             geometry_msgs::Twist twist;
             cart_command_pub.publish(twist);
             ROS_INFO("finished trajectory in %f", ros::Time::now().toSec() - tstart.toSec());
-            bRun = false;
-            bStarted = false;
-            sendMarkers();
-            Error = Twist::Zero();
-            Error_sum = Twist::Zero();
-            Error_dot = Twist::Zero();
+            stopTrajectory();
             return;
-        }        
+        }
         KDL::Frame current;
         KDL::Frame myhinge;
         tf::PoseMsgToKDL(msg->pose, current);
@@ -288,6 +282,18 @@ void cob_cartesian_trajectories::cartStateCallback(const geometry_msgs::PoseStam
         geometry_msgs::Twist twist;
         cart_command_pub.publish(twist);
     }
+}
+
+void cob_cartesian_trajectories::stopTrajectory()
+{
+    geometry_msgs::Twist twist;
+    cart_command_pub.publish(twist);
+    bRun = false;
+    bStarted = false;
+    sendMarkers();
+    Error = Twist::Zero();
+    Error_sum = Twist::Zero();
+    Error_dot = Twist::Zero();
 }
 
 geometry_msgs::Twist cob_cartesian_trajectories::getTwist(double dt, Frame F_current)
@@ -420,10 +426,14 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
     F_target.M = temp_rot;
 
     // ------------debugging output-----------------------
+    cout << "radius: " << radius << "\n";
     cout << "Partial Angle: " << partial_angle << "\n";
+    cout << "sin: " << sin(partial_angle) << "\n";
+    cout << "cos: " << 1-cos(partial_angle) << "\n";
 
     std::cout << "F_X: " << F_target.p.x() << " F_Y: " << F_target.p.y() << " F_Z: " << F_target.p.z() << "\n";
     
+    cout << "F_start.M: " << "\n" << F_start.M << "\n";
     cout << "F_target.M: " << "\n" << F_target.M << "\n";
     
     F_start.M.GetRPY(start_roll, start_pitch, start_yaw);
@@ -584,15 +594,14 @@ geometry_msgs::Twist cob_cartesian_trajectories::PIDController(const double dt, 
     twist.angular.y = 0.0;//p_gain_*Error.rot.y());//(p_gain_*Error.rot.y() + i_gain_*Error_sum.rot.y());
     twist.angular.z = p_gain_*Error.rot.z() + i_gain_*Error_sum.rot.z();
 
-    pubTrack(1, ros::Duration(1.0), F_target);
-    pubTrack(9, ros::Duration(1.0), F_current);
+    pubTrack(1, ros::Duration(0.5), F_target);
+    pubTrack(9, ros::Duration(0.5), F_current);
     pubTwistMarkers(ros::Duration(1.0), twist, F_current);
     
     return twist;
 }
 
 
-//---------------------------------------------
 //VISUALIZATION IN RVIZ
 //
 // publish generated trajectory
@@ -684,7 +693,7 @@ void cob_cartesian_trajectories::sendMarkers()
     marker.type = visualization_msgs::Marker::POINTS;
     marker.action = visualization_msgs::Marker::ADD;
     marker.scale.x = 0.01;
-    marker.scale.y = 0.02;
+    marker.scale.y = 0.01;
     marker.color.r = 1.0;
     marker.color.a = 1.0;
     marker.lifetime = ros::Duration();
