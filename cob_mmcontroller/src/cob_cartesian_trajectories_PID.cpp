@@ -684,6 +684,8 @@ void cob_cartesian_trajectories::pubTwistMarkers(const ros::Duration pub_duratio
     {
         double color_mixer;
         double offset = 0.0;
+
+        //setting up marker msg
         visualization_msgs::Marker twist_marker;
         twist_marker.header.frame_id = "/map";
         twist_marker.header.stamp = ros::Time::now();
@@ -696,6 +698,7 @@ void cob_cartesian_trajectories::pubTwistMarkers(const ros::Duration pub_duratio
         twist_marker.scale.x = 0.01;
         twist_marker.scale.y = 0.02;
 
+        //calculate the color of the marker depending on twist size
         color_mixer = 11.0*sqrt(Twist.linear.x*Twist.linear.x + Twist.linear.y*Twist.linear.y + Twist.linear.z*Twist.linear.z);
         if (color_mixer > 1.0) offset = color_mixer - 1.0;
         color_mixer = color_mixer - offset;
@@ -703,6 +706,7 @@ void cob_cartesian_trajectories::pubTwistMarkers(const ros::Duration pub_duratio
         twist_marker.color.g = 1.0 - color_mixer;
         twist_marker.color.r = color_mixer;
 
+        //add two markers for start and end point of the arrow
         geometry_msgs::Point p;
         p.x = F_current.p.x();
         p.y = F_current.p.y();
