@@ -56,7 +56,8 @@ private:
     void getPriTarget(double dt, KDL::Frame &F_target);
     void getRotTarget(double dt, KDL::Frame &F_target);
     double getParamValue(std::string param_name);
-    
+    double unwrapRPY(std::string axis,  double angle);    
+
     // controller
     geometry_msgs::Twist PIDController(const double dt, const KDL::Frame &F_target, const KDL::Frame &F_Current);
 
@@ -131,5 +132,7 @@ private:
 
     std::vector<double> q_last;
     std::vector<double> jointStates;
+
+    map<std::string, double> last_rpy_angles;       // stores the last angles for R-P-Y unwrapping function
 };
 

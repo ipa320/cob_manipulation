@@ -242,7 +242,7 @@ void cob_cartesian_trajectories::cartStateCallback(const geometry_msgs::PoseStam
     if(bRun)
     {
         ros::Duration dt = ros::Time::now() - timer;
-        cout << "dt: " << dt << "\n";
+        cout << "\n" << "===================================" << "\n\n" << "dt: " << dt << "\n";
         timer = ros::Time::now();
         if((targetDuration-currentDuration) <= 0)
         {
@@ -308,6 +308,8 @@ geometry_msgs::Twist cob_cartesian_trajectories::getTwist(double dt, Frame F_cur
     if(!bStarted)
     {
         F_start = F_current;
+        F_start.M.GetRPY(last_rpy_angles["target_roll"], last_rpy_angles["target_pitch"], last_rpy_angles["target_yaw"]);
+        F_start.M.GetRPY(last_rpy_angles["current_roll"], last_rpy_angles["current_pitch"], last_rpy_angles["current_yaw"]);
         bStarted = true;
     }
     
@@ -418,9 +420,12 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
     
     // calculating the target rotation (at the moment only around the z-axis)
     temp_rot = Rotation::Identity();    // TODO Rotation::Rot(vector,angle);
+    std::cout << "temp_rot" << "\n" << temp_rot << "\n";
     temp_rot.DoRotZ(partial_angle);     // rotation axis of the articulation
+    std::cout << "temp_rot" << "\n" << temp_rot << "\n";
     temp_rot = temp_rot*F_start.M;      // rotation is composed of two rotations. 
                                         // first about the z-axis of the base_link frame and 
+    std::cout << "temp_rot" << "\n" << temp_rot << "\n";
                                         // than the rotation from base_link to start frame of the gripper
     
     F_target.M = temp_rot;
@@ -438,10 +443,40 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
     
     F_start.M.GetRPY(start_roll, start_pitch, start_yaw);
     F_target.M.GetRPY(target_roll, target_pitch, target_yaw);
+    cout << "Target R-P-Y: " << target_roll << " " << target_pitch << " " << target_yaw << "\n";
 
     cout << "Start R-P-Y: " << start_roll << " " << start_pitch << " " << start_yaw << "\n";
     cout << "Target R-P-Y: " << target_roll << " " << target_pitch << " " << target_yaw << "\n";
     cout << "Current Duration: " << dt << "\n";
+}
+
+// to avoid the jump from positive to negative and the other way around 
+// when crossing pi or -pi for roll and yaw angles and pi/2 and -pi/2 for pitch
+double cob_cartesian_trajectories::unwrapRPY(std::string axis, double angle)
+{
+    double unwrapped_angle = 0.0;
+    double fractpart, intpart;
+    double discont = PI;    //point of discontinuity
+
+    // FORMULA: phi(n)_adjusted = MODULO( phi(n) - phi(n-1) + PI, 2*PI) + phi(n-1) - PI
+    
+    // the pitch angle is only defined from -PI/2 to PI/2
+    if (strncmp(&axis[strlen(axis.c_str())-6], "_pitch", 6) == 0)
+        discont = PI/2;
+    
+    fractpart = modf(((angle - last_rpy_angles[axis] + discont) / (2*discont)), &intpart);    // modulo for double and getting only the fractal part of the division
+    
+    if (fractpart >= 0.0) // to get always the positive modulo
+        unwrapped_angle = (fractpart)*(2*discont) - discont + last_rpy_angles[axis];
+    else
+        unwrapped_angle = (1+fractpart)*(2*discont) - discont + last_rpy_angles[axis];
+
+    std::cout << "modulo: " << intpart << " + " << (fractpart) << "\n";
+    
+    std::cout << axis << " angle: " << angle << "\n";
+    std::cout << "unwrapped " << axis << " angle: " << unwrapped_angle << "\n";
+    last_rpy_angles[axis] = unwrapped_angle;
+    return unwrapped_angle;
 }
 
 /*//rotational 6D-trajectory from rot_axis, rot_radius and angle
@@ -546,7 +581,7 @@ double cob_cartesian_trajectories::getParamValue(std::string param_name)
     }
     ROS_ERROR("Missing parameter");
     std::cout << "No value found for parameter " << param_name << "\n";
-    return 0.0; //?????
+    return 0.0;
 }
 
 
@@ -557,7 +592,9 @@ geometry_msgs::Twist cob_cartesian_trajectories::PIDController(const double dt, 
     double target_roll = 0.0, target_pitch = 0.0, target_yaw = 0.0;
     
     F_target.M.GetRPY(target_roll, target_pitch, target_yaw);
+    target_yaw = unwrapRPY("target_yaw", target_yaw);
     F_current.M.GetRPY(current_roll, current_pitch, current_yaw);
+    current_yaw = unwrapRPY("current_yaw", current_yaw);
         
     Error.vel.x(F_target.p.x() - F_current.p.x());
     Error.vel.y(F_target.p.y() - F_current.p.y());
