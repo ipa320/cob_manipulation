@@ -49,6 +49,7 @@ cob_config_controller::cob_config_controller()
 
 	ROS_INFO("Running cartesian velocity controller.");
 	zeroCounter = 0;
+    zeroCounter_base = 0;
 	zeroCounterTwist = 0;
 }
 
@@ -177,14 +178,35 @@ void cob_config_controller::sendVel(JntArray q_t, JntArray q_dot, JntArray q_dot
 	}
 
 	//send to base
-	geometry_msgs::Twist cmd;
+	bool nonzero_base = false;
+    geometry_msgs::Twist cmd;
 	if(q_dot_base(0) != 0.0 || q_dot_base(1) != 0.0 || q_dot_base(2) != 0.0)
 	{
 		cmd.linear.x = q_dot_base(0);
 		cmd.linear.y = q_dot_base(1);
 		cmd.angular.z = q_dot_base(2);
-		base_pub_.publish(cmd);
+		nonzero_base = true;
+        zeroCounter_base = 0;
 	}
+    else
+    {
+		cmd.linear.x = 0.0;
+		cmd.linear.y = 0.0;
+		cmd.angular.z = 0.0;
+    }
+    if(zeroCounter_base <= 4)
+    {
+        zeroCounter_base++;
+        if(!nonzero_base)
+            std::cout << "Sending additional zero twist to base\n";
+        nonzero_base = true;
+    }
+    if(!started)
+        nonzero = true;
+    if(nonzero_base)
+    {
+        base_pub_.publish(cmd);
+    }
 }
 void cob_config_controller::sendCartPose()
 {
