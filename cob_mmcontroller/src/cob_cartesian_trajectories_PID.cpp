@@ -1,6 +1,6 @@
 #include <cob_mmcontroller/cob_cartesian_trajectories_PID.h>
 
-cob_cartesian_trajectories::cob_cartesian_trajectories() : as_(n, "moveCirc", boost::bind(&cob_cartesian_trajectories::moveCircActionCB, this, _1), false), as2_(n, "moveLin", boost::bind(&cob_cartesian_trajectories::moveLinActionCB, this, _1), false)
+cob_cartesian_trajectories::cob_cartesian_trajectories() : as_(n, "moveCirc", boost::bind(&cob_cartesian_trajectories::moveCircActionCB, this, _1), false), as2_(n, "moveLin", boost::bind(&cob_cartesian_trajectories::moveLinActionCB, this, _1), false) //TODO , as_rot_(n, "moveRot", boost::bind(&cob_cartesian_trajectories::moveRotActionCB, this, _1), false)
 {
     ros::NodeHandle node;
     node.param("cob_cartesian_trajectories_PID/p_gain", p_gain_, 1.0);
@@ -21,6 +21,7 @@ cob_cartesian_trajectories::cob_cartesian_trajectories() : as_(n, "moveCirc", bo
     bRun = false;
     as_.start();
     as2_.start();
+    //TODO as_rot_.start();
     targetDuration = 0;
     currentDuration = 0;
     mode = "prismatic";     // prismatic, rotational, trajectory, model
@@ -181,6 +182,21 @@ void cob_cartesian_trajectories::moveLinActionCB(const cob_mmcontroller::OpenFri
     return;
 
 }
+//TODO action for rotational trajectory
+/*void cob_cartesian_trajectories::moveRotActionCB(const cob_mmcontroller::??ConstPtr& goal)
+{
+    mode = "rotational";
+    if(start())
+    {
+        while(bRun)
+        {
+            //wait until finished
+            sleep(1);
+        }
+        as_rot_.setSucceeded();
+    }
+    return;
+}*/
 
 bool cob_cartesian_trajectories::movePriCB(cob_mmcontroller::MovePrismatic::Request& request, cob_mmcontroller::MovePrismatic::Response& response)    //TODO // prismatic callback
 {

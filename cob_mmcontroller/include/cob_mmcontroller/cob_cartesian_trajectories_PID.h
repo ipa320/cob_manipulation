@@ -46,6 +46,7 @@ private:
     ros::NodeHandle n;
     actionlib::SimpleActionServer<cob_mmcontroller::OpenFridgeAction> as_;
     actionlib::SimpleActionServer<cob_mmcontroller::OpenFridgeAction> as2_;
+    //TODO actionlib::SimpleActionServer<cob_mmcontroller::??> as_rot_;
     
     void cartStateCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
     void stopTrajectory();
@@ -74,6 +75,8 @@ private:
     // action callbacks
     void moveCircActionCB(const cob_mmcontroller::OpenFridgeGoalConstPtr& goal);
     void moveLinActionCB(const cob_mmcontroller::OpenFridgeGoalConstPtr& goal);
+    //TODO void moveRotActionCB(const cob_mmcontroller::??ConstPtr& goal);
+    
     // service callbacks
     //bool moveCircCB(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response);
     //bool moveLinCB(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response);
