@@ -32,6 +32,7 @@
 #include <kdl/frames.hpp>
 
 #include <cob_mmcontroller/OpenFridgeAction.h>
+#include <cob_mmcontroller/ArticulationModelAction.h>
 #include <actionlib/server/simple_action_server.h>
 
 using namespace KDL;
@@ -46,7 +47,7 @@ private:
     ros::NodeHandle n;
     actionlib::SimpleActionServer<cob_mmcontroller::OpenFridgeAction> as_;
     actionlib::SimpleActionServer<cob_mmcontroller::OpenFridgeAction> as2_;
-    //TODO actionlib::SimpleActionServer<cob_mmcontroller::??> as_rot_;
+    actionlib::SimpleActionServer<cob_mmcontroller::ArticulationModelAction> as_model_;
     
     void cartStateCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
     void stopTrajectory();
@@ -75,7 +76,7 @@ private:
     // action callbacks
     void moveCircActionCB(const cob_mmcontroller::OpenFridgeGoalConstPtr& goal);
     void moveLinActionCB(const cob_mmcontroller::OpenFridgeGoalConstPtr& goal);
-    //TODO void moveRotActionCB(const cob_mmcontroller::??ConstPtr& goal);
+    void moveModelActionCB(const cob_mmcontroller::ArticulationModelGoalConstPtr& goal);
     
     // service callbacks
     //bool moveCircCB(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response);
@@ -117,7 +118,11 @@ private:
     KDL::Twist Error_dot;
     KDL::Twist Error_last;
 
-    string mode;                       // prismatic, rotational, trajectory, model
+    // action
+    bool success;                       // status of finished action
+    cob_mmcontroller::ArticulationModelFeedback feedback_;
+
+    string mode;                        // prismatic, rotational, trajectory, model
     std::vector<articulation_msgs::ParamMsg> params;    // articulation parameters
     std::vector<geometry_msgs::Pose> track;     // trajectory
 

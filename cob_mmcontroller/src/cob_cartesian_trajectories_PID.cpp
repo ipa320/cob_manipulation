@@ -1,6 +1,6 @@
 #include <cob_mmcontroller/cob_cartesian_trajectories_PID.h>
 
-cob_cartesian_trajectories::cob_cartesian_trajectories() : as_(n, "moveCirc", boost::bind(&cob_cartesian_trajectories::moveCircActionCB, this, _1), false), as2_(n, "moveLin", boost::bind(&cob_cartesian_trajectories::moveLinActionCB, this, _1), false) //TODO , as_rot_(n, "moveRot", boost::bind(&cob_cartesian_trajectories::moveRotActionCB, this, _1), false)
+cob_cartesian_trajectories::cob_cartesian_trajectories() : as_(n, "moveCirc", boost::bind(&cob_cartesian_trajectories::moveCircActionCB, this, _1), false), as2_(n, "moveLin", boost::bind(&cob_cartesian_trajectories::moveLinActionCB, this, _1), false), as_model_(n, "moveModel", boost::bind(&cob_cartesian_trajectories::moveModelActionCB, this, _1), false)
 {
     ros::NodeHandle node;
     node.param("cob_cartesian_trajectories_PID/p_gain", p_gain_, 1.0);
@@ -21,7 +21,7 @@ cob_cartesian_trajectories::cob_cartesian_trajectories() : as_(n, "moveCirc", bo
     bRun = false;
     as_.start();
     as2_.start();
-    //TODO as_rot_.start();
+    as_model_.start();
     targetDuration = 0;
     currentDuration = 0;
     mode = "prismatic";     // prismatic, rotational, trajectory, model
@@ -134,12 +134,14 @@ void cob_cartesian_trajectories::jointStateCallback(const sensor_msgs::JointStat
             if (jointStates[i] <= (LowerLimits[i] + 0.04))
             {
                 ROS_INFO("Stopping trajectory because arm joint %d reached almost lower joint limit!", i+1);
+                success = false;
                 stopTrajectory();
                 //std::cout << "Stopping trajectory because arm joint " << i+1 << " reached almost lower joint limit!" << "\n";
             }
             else if (jointStates[i] >= (UpperLimits[i] - 0.04))
             {
                 ROS_INFO("Stopping trajectory because arm joint %d reached almost upper joint limit!", i+1);
+                success = false;
                 stopTrajectory();
                 //std::cout << "Stopping trajectory because arm joint " << i+1 << " reached almost upper joint limit!" << "\n";
             }
@@ -182,21 +184,31 @@ void cob_cartesian_trajectories::moveLinActionCB(const cob_mmcontroller::OpenFri
     return;
 
 }
-//TODO action for rotational trajectory
-/*void cob_cartesian_trajectories::moveRotActionCB(const cob_mmcontroller::??ConstPtr& goal)
+// action for model 
+void cob_cartesian_trajectories::moveModelActionCB(const cob_mmcontroller::ArticulationModelGoalConstPtr& goal)
 {
-    mode = "rotational";
+    mode = goal->model.name;
+    targetDuration = goal->target_duration.data.toSec();
+    params = goal->model.params;
     if(start())
     {
         while(bRun)
         {
             //wait until finished
+        
+            //publish feedback
+            feedback_.time_left = targetDuration - currentDuration;
+            as_model_.publishFeedback(feedback_);
+
             sleep(1);
         }
-        as_rot_.setSucceeded();
+        if (success)
+            as_model_.setSucceeded();
+        else
+            as_model_.setAborted();
     }
     return;
-}*/
+}
 
 bool cob_cartesian_trajectories::movePriCB(cob_mmcontroller::MovePrismatic::Request& request, cob_mmcontroller::MovePrismatic::Response& response)    //TODO // prismatic callback
 {
@@ -248,6 +260,7 @@ bool cob_cartesian_trajectories::start() //TODO request->model.params // start
         tstart = ros::Time::now();
         currentDuration = 0;
         trajectory_points.clear();
+        success = false;
         return true;
     }    
 }
@@ -265,6 +278,7 @@ void cob_cartesian_trajectories::cartStateCallback(const geometry_msgs::PoseStam
             geometry_msgs::Twist twist;
             cart_command_pub.publish(twist);
             ROS_INFO("finished trajectory in %f", ros::Time::now().toSec() - tstart.toSec());
+            success = true;
             stopTrajectory();
             return;
         }
