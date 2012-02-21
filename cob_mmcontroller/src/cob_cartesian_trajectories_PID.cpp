@@ -1,6 +1,6 @@
 #include <cob_mmcontroller/cob_cartesian_trajectories_PID.h>
 
-cob_cartesian_trajectories::cob_cartesian_trajectories() : as_(n, "moveCirc", boost::bind(&cob_cartesian_trajectories::moveCircActionCB, this, _1), false), as2_(n, "moveLin", boost::bind(&cob_cartesian_trajectories::moveLinActionCB, this, _1), false)
+cob_cartesian_trajectories::cob_cartesian_trajectories() : as_(n, "moveCirc", boost::bind(&cob_cartesian_trajectories::moveCircActionCB, this, _1), false), as2_(n, "moveLin", boost::bind(&cob_cartesian_trajectories::moveLinActionCB, this, _1), false), as_model_(n, "moveModel", boost::bind(&cob_cartesian_trajectories::moveModelActionCB, this, _1), false)
 {
     ros::NodeHandle node;
     node.param("cob_cartesian_trajectories_PID/p_gain", p_gain_, 1.0);
@@ -21,6 +21,7 @@ cob_cartesian_trajectories::cob_cartesian_trajectories() : as_(n, "moveCirc", bo
     bRun = false;
     as_.start();
     as2_.start();
+    as_model_.start();
     targetDuration = 0;
     currentDuration = 0;
     mode = "prismatic";     // prismatic, rotational, trajectory, model
@@ -133,12 +134,14 @@ void cob_cartesian_trajectories::jointStateCallback(const sensor_msgs::JointStat
             if (jointStates[i] <= (LowerLimits[i] + 0.04))
             {
                 ROS_INFO("Stopping trajectory because arm joint %d reached almost lower joint limit!", i+1);
+                success = false;
                 stopTrajectory();
                 //std::cout << "Stopping trajectory because arm joint " << i+1 << " reached almost lower joint limit!" << "\n";
             }
             else if (jointStates[i] >= (UpperLimits[i] - 0.04))
             {
                 ROS_INFO("Stopping trajectory because arm joint %d reached almost upper joint limit!", i+1);
+                success = false;
                 stopTrajectory();
                 //std::cout << "Stopping trajectory because arm joint " << i+1 << " reached almost upper joint limit!" << "\n";
             }
@@ -180,6 +183,31 @@ void cob_cartesian_trajectories::moveLinActionCB(const cob_mmcontroller::OpenFri
     }
     return;
 
+}
+// action for model 
+void cob_cartesian_trajectories::moveModelActionCB(const cob_mmcontroller::ArticulationModelGoalConstPtr& goal)
+{
+    mode = goal->model.name;
+    targetDuration = goal->target_duration.data.toSec();
+    params = goal->model.params;
+    if(start())
+    {
+        while(bRun)
+        {
+            //wait until finished
+        
+            //publish feedback
+            feedback_.time_left = targetDuration - currentDuration;
+            as_model_.publishFeedback(feedback_);
+
+            sleep(1);
+        }
+        if (success)
+            as_model_.setSucceeded();
+        else
+            as_model_.setAborted();
+    }
+    return;
 }
 
 bool cob_cartesian_trajectories::movePriCB(cob_mmcontroller::MovePrismatic::Request& request, cob_mmcontroller::MovePrismatic::Response& response)    //TODO // prismatic callback
@@ -232,6 +260,8 @@ bool cob_cartesian_trajectories::start() //TODO request->model.params // start
         tstart = ros::Time::now();
         currentDuration = 0;
         trajectory_points.clear();
+        success = false;
+        Error_last = Twist::Zero();
         return true;
     }    
 }
@@ -249,6 +279,7 @@ void cob_cartesian_trajectories::cartStateCallback(const geometry_msgs::PoseStam
             geometry_msgs::Twist twist;
             cart_command_pub.publish(twist);
             ROS_INFO("finished trajectory in %f", ros::Time::now().toSec() - tstart.toSec());
+            success = true;
             stopTrajectory();
             return;
         }
@@ -605,27 +636,27 @@ geometry_msgs::Twist cob_cartesian_trajectories::PIDController(const double dt, 
     
     cout << "Error twist: " << "\n" << Error << "\n";
     
-    Error_sum.vel.x(Error_sum.vel.x() + (F_target.p.x() - F_current.p.x()) * dt);
-    Error_sum.vel.y(Error_sum.vel.y() + (F_target.p.y() - F_current.p.y()) * dt);
-    Error_sum.vel.z(Error_sum.vel.z() + (F_target.p.z() - F_current.p.z()) * dt);
-    Error_sum.rot.x(Error_sum.rot.x() + (target_roll - current_roll) * dt);
-    Error_sum.rot.y(Error_sum.rot.y() + (target_pitch - current_pitch) * dt);
-    Error_sum.rot.z(Error_sum.rot.z() + (target_yaw - current_yaw) * dt); 
+    Error_sum.vel.x(Error_sum.vel.x() + Error.vel.x() * dt);
+    Error_sum.vel.y(Error_sum.vel.y() + Error.vel.y() * dt);
+    Error_sum.vel.z(Error_sum.vel.z() + Error.vel.z() * dt);
+    Error_sum.rot.x(Error_sum.rot.x() + Error.rot.x() * dt);
+    Error_sum.rot.y(Error_sum.rot.y() + Error.rot.y() * dt);
+    Error_sum.rot.z(Error_sum.rot.z() + Error.rot.z() * dt); 
     
     cout << "Error_sum twist: " << "\n" << Error_sum << "\n";
     
-    Error_dot.vel.x((Error_last.vel.x() - F_target.p.x() - F_current.p.x()) / dt);
-    Error_dot.vel.y((Error_last.vel.y() - F_target.p.y() - F_current.p.y()) / dt);
-    Error_dot.vel.z((Error_last.vel.z() - F_target.p.z() - F_current.p.z()) / dt);
-    Error_dot.rot.x((Error_last.rot.x() - target_roll - current_roll) / dt);
-    Error_dot.rot.y((Error_last.rot.y() - target_pitch - current_pitch) / dt);
-    Error_dot.rot.z((Error_last.rot.z() - target_yaw - current_yaw) / dt);
+    Error_dot.vel.x((Error.vel.x() - Error_last.vel.x()) / dt);
+    Error_dot.vel.y((Error.vel.y() - Error_last.vel.y()) / dt);
+    Error_dot.vel.z((Error.vel.z() - Error_last.vel.z()) / dt);
+    Error_dot.rot.x((Error.rot.x() - Error_last.rot.x()) / dt);
+    Error_dot.rot.y((Error.rot.y() - Error_last.rot.y()) / dt);
+    Error_dot.rot.z((Error.rot.z() - Error_last.rot.z()) / dt);
     
     cout << "Error_dot twist: " << "\n" << Error_dot << "\n";
     
     // create twist
     twist.linear.x = p_gain_*Error.vel.x() + i_gain_*Error_sum.vel.x();
-    twist.linear.y = p_gain_*Error.vel.y() + i_gain_*Error_sum.vel.y();
+    twist.linear.y = p_gain_*Error.vel.y() + i_gain_*Error_sum.vel.y(); 
     twist.linear.z = p_gain_*Error.vel.z();//p_gain_*Error.vel.z());
     twist.angular.x = 0.0;//p_gain_*Error.rot.x());//(p_gain_*Error.rot.x() + i_gain_*Error_sum.rot.x());
     twist.angular.y = 0.0;//p_gain_*Error.rot.y());//(p_gain_*Error.rot.y() + i_gain_*Error_sum.rot.y());
@@ -635,6 +666,13 @@ geometry_msgs::Twist cob_cartesian_trajectories::PIDController(const double dt, 
     pubTrack(9, ros::Duration(0.5), F_current);
     pubTwistMarkers(ros::Duration(1.0), twist, F_current);
     
+    Error_last.vel.x(Error.vel.x());
+    Error_last.vel.y(Error.vel.y());
+    Error_last.vel.z(Error.vel.z());
+    Error_last.rot.x(Error.rot.x());
+    Error_last.rot.y(Error.rot.y());
+    Error_last.rot.z(Error.rot.z());
+
     return twist;
 }
 
