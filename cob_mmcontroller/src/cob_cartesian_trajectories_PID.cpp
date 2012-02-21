@@ -261,6 +261,7 @@ bool cob_cartesian_trajectories::start() //TODO request->model.params // start
         currentDuration = 0;
         trajectory_points.clear();
         success = false;
+        Error_last = Twist::Zero();
         return true;
     }    
 }
@@ -655,7 +656,7 @@ geometry_msgs::Twist cob_cartesian_trajectories::PIDController(const double dt, 
     
     // create twist
     twist.linear.x = p_gain_*Error.vel.x() + i_gain_*Error_sum.vel.x();
-    twist.linear.y = p_gain_*Error.vel.y() + i_gain_*Error_sum.vel.y();
+    twist.linear.y = p_gain_*Error.vel.y() + i_gain_*Error_sum.vel.y(); 
     twist.linear.z = p_gain_*Error.vel.z();//p_gain_*Error.vel.z());
     twist.angular.x = 0.0;//p_gain_*Error.rot.x());//(p_gain_*Error.rot.x() + i_gain_*Error_sum.rot.x());
     twist.angular.y = 0.0;//p_gain_*Error.rot.y());//(p_gain_*Error.rot.y() + i_gain_*Error_sum.rot.y());
