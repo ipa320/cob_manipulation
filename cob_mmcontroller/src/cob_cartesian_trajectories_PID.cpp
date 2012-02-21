@@ -635,21 +635,21 @@ geometry_msgs::Twist cob_cartesian_trajectories::PIDController(const double dt, 
     
     cout << "Error twist: " << "\n" << Error << "\n";
     
-    Error_sum.vel.x(Error_sum.vel.x() + (F_target.p.x() - F_current.p.x()) * dt);
-    Error_sum.vel.y(Error_sum.vel.y() + (F_target.p.y() - F_current.p.y()) * dt);
-    Error_sum.vel.z(Error_sum.vel.z() + (F_target.p.z() - F_current.p.z()) * dt);
-    Error_sum.rot.x(Error_sum.rot.x() + (target_roll - current_roll) * dt);
-    Error_sum.rot.y(Error_sum.rot.y() + (target_pitch - current_pitch) * dt);
-    Error_sum.rot.z(Error_sum.rot.z() + (target_yaw - current_yaw) * dt); 
+    Error_sum.vel.x(Error_sum.vel.x() + Error.vel.x() * dt);
+    Error_sum.vel.y(Error_sum.vel.y() + Error.vel.y() * dt);
+    Error_sum.vel.z(Error_sum.vel.z() + Error.vel.z() * dt);
+    Error_sum.rot.x(Error_sum.rot.x() + Error.rot.x() * dt);
+    Error_sum.rot.y(Error_sum.rot.y() + Error.rot.y() * dt);
+    Error_sum.rot.z(Error_sum.rot.z() + Error.rot.z() * dt); 
     
     cout << "Error_sum twist: " << "\n" << Error_sum << "\n";
     
-    Error_dot.vel.x((Error_last.vel.x() - F_target.p.x() - F_current.p.x()) / dt);
-    Error_dot.vel.y((Error_last.vel.y() - F_target.p.y() - F_current.p.y()) / dt);
-    Error_dot.vel.z((Error_last.vel.z() - F_target.p.z() - F_current.p.z()) / dt);
-    Error_dot.rot.x((Error_last.rot.x() - target_roll - current_roll) / dt);
-    Error_dot.rot.y((Error_last.rot.y() - target_pitch - current_pitch) / dt);
-    Error_dot.rot.z((Error_last.rot.z() - target_yaw - current_yaw) / dt);
+    Error_dot.vel.x((Error.vel.x() - Error_last.vel.x()) / dt);
+    Error_dot.vel.y((Error.vel.y() - Error_last.vel.y()) / dt);
+    Error_dot.vel.z((Error.vel.z() - Error_last.vel.z()) / dt);
+    Error_dot.rot.x((Error.rot.x() - Error_last.rot.x()) / dt);
+    Error_dot.rot.y((Error.rot.y() - Error_last.rot.y()) / dt);
+    Error_dot.rot.z((Error.rot.z() - Error_last.rot.z()) / dt);
     
     cout << "Error_dot twist: " << "\n" << Error_dot << "\n";
     
@@ -665,6 +665,13 @@ geometry_msgs::Twist cob_cartesian_trajectories::PIDController(const double dt, 
     pubTrack(9, ros::Duration(0.5), F_current);
     pubTwistMarkers(ros::Duration(1.0), twist, F_current);
     
+    Error_last.vel.x(Error.vel.x());
+    Error_last.vel.y(Error.vel.y());
+    Error_last.vel.z(Error.vel.z());
+    Error_last.rot.x(Error.rot.x());
+    Error_last.rot.y(Error.rot.y());
+    Error_last.rot.z(Error.rot.z());
+
     return twist;
 }
 
