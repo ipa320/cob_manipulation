@@ -46,7 +46,9 @@ class cob_articulation_cartcollector:
         self.object_parts = []
         self.object_msg = ArticulatedObjectMsg()
 
-        
+        set_param(self.object_msg, "sigma_position", self.sigma_position, ParamMsg.PRIOR)
+        set_param(self.object_msg, "sigma_orientation", self.sigma_orientation, ParamMsg.PRIOR)
+        set_param(self.object_msg, "reduce_dofs", self.reduce_dofs, ParamMsg.PRIOR)
 
     def callback(self, pose):
         print 'adding pose ..'
