@@ -3,6 +3,8 @@
 import roslib; roslib.load_manifest('cob_mmcontroller')
 import rospy
 
+import rosbag
+
 from geometry_msgs.msg import Pose, PoseStamped, Point, Quaternion 
 from articulation_msgs.msg import *
 from articulation_msgs.srv import *
@@ -61,6 +63,17 @@ class cob_articulation_cartcollector:
         else:
             print 'Stopping to record trajectory'
             self.record = False
+            bag = rosbag.Bag('bag_files/model.bag', 'w')
+            try:
+                model_bag = ArticulatedObjectMsg()
+                model_bag = self.object_msg
+
+                bag.write('object', model_bag)
+                print 'Written to bag file'
+            finally:
+                bag.close()
+
+
         return TriggerResponse()
             
 
