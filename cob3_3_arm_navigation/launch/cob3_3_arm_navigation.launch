@@ -3,8 +3,8 @@
 	<group>
 	    <include file="$(find cob3_3_arm_navigation)/launch/cob3_3_planning_environment.launch" />
 	    <include file="$(find cob3_3_arm_navigation)/launch/environment_server.launch">
-		<arg name="use_monitor" value="true" />
-		<arg name="use_collision_map" value="true" />
+			<arg name="use_monitor" value="true" />
+			<arg name="use_collision_map" value="true" />
 	    </include>
 	    <include file="$(find cob3_3_arm_navigation)/launch/constraint_aware_kinematics.launch" />
 	    <include file="$(find cob3_3_arm_navigation)/launch/ompl_planning.launch" />
@@ -12,16 +12,17 @@
 	    <include file="$(find cob3_3_arm_navigation)/launch/move_groups.launch" />
 
 	    <!--maybe needed for table_top_manipulation --> 
-	    <include file="$(find trajectory_filter_server)/launch/trajectory_unnormalize.launch"/>
-	    <!-- node used to check if current state is in collision or not-->
-	    <include file="$(find current_state_validator)/launch/current_state_validator.launch">
-	    <arg name="group_name_1" value="arm"/>
-	    <arg name="group_name_2" value="torso"/>
-	  </include>
-
-	   
-
-
+		<!--
+		<include file="$(find trajectory_filter_server)/launch/trajectory_unnormalize.launch"/>
+		-->
+	    
+		<!-- node used to check if current state is in collision or not-->
+	    <!--
+		<include file="$(find current_state_validator)/launch/current_state_validator.launch">
+	    	<arg name="group_name_1" value="arm"/>
+	    	<arg name="group_name_2" value="torso"/>
+	  	</include>
+		-->
 	</group>
 
 	<group>
