@@ -7,6 +7,7 @@ from geometry_msgs.msg import Pose, PoseStamped, Point, Quaternion
 from articulation_msgs.msg import *
 from articulation_msgs.srv import *
 from articulation_models.track_utils import *
+from cob_srvs.srv import *
 
 import copy
 
@@ -35,6 +36,8 @@ class cob_articulation_cartcollector:
         self.get_fast_graph = rospy.ServiceProxy('get_fast_graph', ArticulatedObjectSrv)
         self.visualize_graph = rospy.ServiceProxy('visualize_graph', ArticulatedObjectSrv)
 
+        rospy.Service('/record_track', Trigger, self.recordCB)
+        self.record = False
 
         # parameter
         self.sigma_position = rospy.get_param('~sigma_position',0.01)
@@ -50,91 +53,103 @@ class cob_articulation_cartcollector:
         set_param(self.object_msg, "sigma_orientation", self.sigma_orientation, ParamMsg.PRIOR)
         set_param(self.object_msg, "reduce_dofs", self.reduce_dofs, ParamMsg.PRIOR)
 
-    def callback(self, pose):
-        print 'adding pose ..'
 
-        if(len(self.object_parts)==0):
-            self.object_parts = [
-                TrackMsg(
-                           id=i,
-
-                )
-                for i in range(2)
-                ]
-
-        identity = Pose(Point(0,0,0),Quaternion(0,0,0,1))
-        self.object_parts[0].pose.append(identity)
-        self.object_parts[1].pose.append(pose.pose)
-
-        # publish current track
-        rospy.loginfo('sending tracks with '+('/'.join(["%d"%len(track.pose) for track in self.object_parts]))+' poses')
-        for track in self.object_parts:
-            track.header = pose.header
-            self.pose_pub.publish(track)
-        
-        
-        self.object_msg.header = pose.header
-        self.object_msg.parts = copy.deepcopy(self.object_parts)
-        if self.downsample:
-            for part in self.object_msg.parts:
-                if len(part.pose)>self.samples:
-                    part.pose = [p for (i,p) in enumerate(part.pose) if i % (len(part.pose) / self.samples + 1) == 0 or i==len(part.pose)-1]
+    def recordCB(self, req):
+        if not self.record:
+            print 'Starting to record trajectory'
+            self.record = True
         else:
-            for part in self.object_msg.parts:
-                if len(part.pose)>self.samples:
-                    part.pose = part.pose[len(part.pose) - self.samples:]
+            print 'Stopping to record trajectory'
+            self.record = False
+        return TriggerResponse()
+            
 
-        # fit model
-        request = ArticulatedObjectSrvRequest()
-        request.object = self.object_msg
 
-        parts = len(self.object_parts)
-        print "calling fit service"
-        response = self.fit_models(request)
-        print " fit service done"
-        print '\n'.join(
-            ['(%s:%d,%d) bic=%f pos_err=%f rot_err=%f sigma_pos=%f sigma_orient=%f'%(
-                model.name[0:2],
-                model.id/parts,
-                model.id%parts,
-                get_param(model,'bic'),
-                get_param(model,'avg_error_position'),
-                get_param(model,'avg_error_orientation'),
-                get_param(model,'sigma_position'),
-                get_param(model,'sigma_orientation')
-            ) for model in response.object.models])
-        
-        # get fast graph
-        request.object = copy.deepcopy(response.object)
+    def callback(self, pose):
+        if self.record:
+            print 'adding pose ..'
+            if(len(self.object_parts)==0):
+                self.object_parts = [
+                    TrackMsg(
+                               id=i,
 
-        response = self.get_fast_graph(request)
-        self.object_pub.publish(response.object)
-        self.object_msg.models = response.object.models
+                    )
+                    for i in range(2)
+                    ]
 
-        # visualize graph
-        request.object = copy.deepcopy(response.object)
-        response = self.visualize_graph(request)
+            identity = Pose(Point(0,0,0),Quaternion(0,0,0,1))
+            self.object_parts[0].pose.append(identity)
+            self.object_parts[1].pose.append(pose.pose)
 
-        rospy.loginfo('received articulation model: '+(' '.join(
-            ['(%s:%d,%d)'%(model.name[0:2],model.id/parts,model.id%parts) for model in response.object.models])))
+            # publish current track
+            rospy.loginfo('sending tracks with '+('/'.join(["%d"%len(track.pose) for track in self.object_parts]))+' poses')
+            for track in self.object_parts:
+                track.header = pose.header
+                self.pose_pub.publish(track)
+            
+            
+            self.object_msg.header = pose.header
+            self.object_msg.parts = copy.deepcopy(self.object_parts)
+            if self.downsample:
+                for part in self.object_msg.parts:
+                    if len(part.pose)>self.samples:
+                        part.pose = [p for (i,p) in enumerate(part.pose) if i % (len(part.pose) / self.samples + 1) == 0 or i==len(part.pose)-1]
+            else:
+                for part in self.object_msg.parts:
+                    if len(part.pose)>self.samples:
+                        part.pose = part.pose[len(part.pose) - self.samples:]
 
-        print '\n'.join(
-            ['(%s:%d,%d) bic=%f pos_err=%f rot_err=%f'%(
-                model.name[0:2],
-                model.id/parts,
-                model.id%parts,
-                get_param(model,'bic'),
-                get_param(model,'avg_error_position'),
-                get_param(model,'avg_error_orientation')
-            ) for model in response.object.models])
-        print "dofs=%d, nominal dofs=%d, bic=%f pos_err=%f rot_err=%f"%(
-                get_param(response.object,'dof'),
-                get_param(response.object,'dof.nominal'),
-                get_param(response.object,'bic'),
-                get_param(response.object,'avg_error_position'),
-                get_param(response.object,'avg_error_orientation')
-                )
-        print "done evaluating new pose.."
+            # fit model
+            request = ArticulatedObjectSrvRequest()
+            request.object = self.object_msg
+
+            parts = len(self.object_parts)
+            print "calling fit service"
+            response = self.fit_models(request)
+            print " fit service done"
+            print '\n'.join(
+                ['(%s:%d,%d) bic=%f pos_err=%f rot_err=%f sigma_pos=%f sigma_orient=%f'%(
+                    model.name[0:2],
+                    model.id/parts,
+                    model.id%parts,
+                    get_param(model,'bic'),
+                    get_param(model,'avg_error_position'),
+                    get_param(model,'avg_error_orientation'),
+                    get_param(model,'sigma_position'),
+                    get_param(model,'sigma_orientation')
+                ) for model in response.object.models])
+            
+            # get fast graph
+            request.object = copy.deepcopy(response.object)
+
+            response = self.get_fast_graph(request)
+            self.object_pub.publish(response.object)
+            self.object_msg.models = response.object.models
+
+            # visualize graph
+            request.object = copy.deepcopy(response.object)
+            response = self.visualize_graph(request)
+
+            rospy.loginfo('received articulation model: '+(' '.join(
+                ['(%s:%d,%d)'%(model.name[0:2],model.id/parts,model.id%parts) for model in response.object.models])))
+
+            print '\n'.join(
+                ['(%s:%d,%d) bic=%f pos_err=%f rot_err=%f'%(
+                    model.name[0:2],
+                    model.id/parts,
+                    model.id%parts,
+                    get_param(model,'bic'),
+                    get_param(model,'avg_error_position'),
+                    get_param(model,'avg_error_orientation')
+                ) for model in response.object.models])
+            print "dofs=%d, nominal dofs=%d, bic=%f pos_err=%f rot_err=%f"%(
+                    get_param(response.object,'dof'),
+                    get_param(response.object,'dof.nominal'),
+                    get_param(response.object,'bic'),
+                    get_param(response.object,'avg_error_position'),
+                    get_param(response.object,'avg_error_orientation')
+                    )
+            print "done evaluating new pose.."
 
 
 
