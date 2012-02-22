@@ -24,3 +24,4 @@ if __name__ == '__main__':
 
     client.send_goal(goal)
     client.wait_for_result(rospy.Duration.from_sec(15.0))
+    print client.get_result()

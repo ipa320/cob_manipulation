@@ -121,6 +121,7 @@ private:
     // action
     bool success;                       // status of finished action
     cob_mmcontroller::ArticulationModelFeedback feedback_;
+    cob_mmcontroller::ArticulationModelResult result_;
 
     string mode;                        // prismatic, rotational, trajectory, model
     std::vector<articulation_msgs::ParamMsg> params;    // articulation parameters

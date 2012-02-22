@@ -203,9 +203,15 @@ void cob_cartesian_trajectories::moveModelActionCB(const cob_mmcontroller::Artic
             sleep(1);
         }
         if (success)
-            as_model_.setSucceeded();
+        {
+            result_.finished = 0;
+            as_model_.setSucceeded(result_);
+        }
         else
-            as_model_.setAborted();
+        {
+            result_.finished = 1;
+            as_model_.setAborted(result_);
+        }
     }
     return;
 }
