@@ -26,6 +26,7 @@ if __name__ == '__main__':
         goal.model = msg
 
     #print goal.model
+    goal.model.params.append(ParamMsg('angle', 1.57, 1))
     goal.target_duration.data.secs = 10.0
 
     client.send_goal(goal)
