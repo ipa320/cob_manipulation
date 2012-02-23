@@ -9,9 +9,10 @@ from geometry_msgs.msg import Pose, PoseStamped, Point, Quaternion
 from articulation_msgs.msg import *
 from articulation_msgs.srv import *
 from articulation_models.track_utils import *
-from cob_srvs.srv import *
+from cob_mmcontroller.srv import *
 
 import copy
+import os
 
 class cob_articulation_cartcollector:
     def __init__(self):
@@ -38,8 +39,9 @@ class cob_articulation_cartcollector:
         self.get_fast_graph = rospy.ServiceProxy('get_fast_graph', ArticulatedObjectSrv)
         self.visualize_graph = rospy.ServiceProxy('visualize_graph', ArticulatedObjectSrv)
 
-        rospy.Service('/record_track', Trigger, self.recordCB)
+        rospy.Service('/record_track', RecordTrack, self.recordCB)
         self.record = False
+        self.finished = False
 
         # parameter
         self.sigma_position = rospy.get_param('~sigma_position',0.01)
@@ -61,25 +63,28 @@ class cob_articulation_cartcollector:
             print 'Starting to record trajectory'
             self.record = True
         else:
-            print 'Stopping to record trajectory'
+            print 'Already recording trajectory and will stop now'
             self.record = False
-            bag = rosbag.Bag('bag_files/model.bag', 'w')
+            while not self.finished:
+                rospy.sleep(0.1)
+            model_bag = ArticulatedObjectMsg()
+            model_bag = self.object_msg
+            file_name = os.path.join('bag_files', str(req.file_name.data) + '_'.join([model.name[0:2] for model in model_bag.models]) + '.bag')
+            bag = rosbag.Bag(file_name, 'w')
             try:
-                model_bag = ArticulatedObjectMsg()
-                model_bag = self.object_msg
-
                 bag.write('object', model_bag)
                 print 'Written to bag file'
             finally:
                 bag.close()
 
 
-        return TriggerResponse()
+        return RecordTrackResponse()
             
 
 
     def callback(self, pose):
         if self.record:
+            self.finished  = False
             print 'adding pose ..'
             if(len(self.object_parts)==0):
                 self.object_parts = [
@@ -163,7 +168,7 @@ class cob_articulation_cartcollector:
                     get_param(response.object,'avg_error_orientation')
                     )
             print "done evaluating new pose.."
-
+            self.finished = True
 
 
 def main():

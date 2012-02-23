@@ -5,6 +5,7 @@ import rospy
 import actionlib
 
 from cob_mmcontroller.msg import *
+from cob_mmcontroller.srv import *
 from articulation_msgs.msg import ParamMsg
 
 if __name__ == '__main__':
@@ -12,11 +13,17 @@ if __name__ == '__main__':
     client = actionlib.SimpleActionClient('moveModel', ArticulationModelAction)
     client.wait_for_server()
 
+    record_srv = rospy.ServiceProxy('/record_track', RecordTrack)
+
+    request = RecordTrackRequest()
+    request.file_name.data = "rotational_y_0.5_"
+    response = record_srv(request)
+
     goal = ArticulationModelGoal()
     # Fill in the goal here
     goal.model_id = 1
     goal.model.name = "rotational"
-    goal.model.params.append(ParamMsg('angle', -1.57, 1))
+    goal.model.params.append(ParamMsg('angle', 1.57, 1))
     goal.model.params.append(ParamMsg('rot_center.x', 0.0, 1)) 
     goal.model.params.append(ParamMsg('rot_center.y', 0.5, 1)) 
     goal.model.params.append(ParamMsg('rot_center.z', 0.0, 1)) 
@@ -25,3 +32,6 @@ if __name__ == '__main__':
     client.send_goal(goal)
     client.wait_for_result(rospy.Duration.from_sec(15.0))
     print client.get_result()
+
+    response = record_srv(request)
+    print response
