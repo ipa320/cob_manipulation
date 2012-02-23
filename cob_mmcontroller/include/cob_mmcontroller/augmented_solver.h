@@ -43,6 +43,12 @@ namespace KDL
         virtual int CartToJnt(const JntArray& q_init, const FrameVel& v_in, JntArrayVel& q_out){return -1;};
 
         void setAugmentedJacobian(Eigen::Matrix<double,6,Eigen::Dynamic> _jac_augmented);
+
+        void JLATask(const JntArray q_in, Eigen::Matrix<double, 7, 1> &z_in, Eigen::Matrix<double, 7 , 10> &jac_c,  Eigen::Matrix<double, 7, 7> &W_c);
+        void ManipulabilityTask(const JntArray q_in, Eigen::Matrix<double, 7, 1> &z_in, Eigen::Matrix<double, 7 , 10> &jac_c,  Eigen::Matrix<double, 7, 7>  &W_c);
+        void BaseObstacleTask(const JntArray q_in, Eigen::Matrix<double, 7, 1> &z_in, Eigen::Matrix<double, 7 , 10> &jac_c,  Eigen::Matrix<double, 7, 7>  &W_c);
+    
+
 	void setBaseToArmFactor(double base_to_arm_factor){ base_to_arm_factor_ = base_to_arm_factor; }
     private:
         const Chain chain;

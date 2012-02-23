@@ -203,8 +203,6 @@ void cob_cartesian_trajectories::cartStateCallback(const geometry_msgs::PoseStam
 		twist.angular.y =  ktwist.rot.y();
 		twist.angular.z =  ktwist.rot.z();
 
-
-		twist.linear.z = -0.1;
 		cart_command_pub.publish(twist);
 		currentDuration+=dt.toSec();
 
@@ -283,7 +281,7 @@ KDL::Twist cob_cartesian_trajectories::getTwist(double dt, Frame F_current)
 	//lin.vel.y(0.6 * F_diff.p.y());
 	lin.vel.x(0.0);
 	lin.vel.y(0.0);
-	lin.vel.z(0.005);
+	lin.vel.z(-0.02);
 	lin.rot.x(0.0);
 	lin.rot.y(0.0);
 	lin.rot.z(0.0);
@@ -300,6 +298,7 @@ KDL::Twist cob_cartesian_trajectories::getTwist(double dt, Frame F_current)
 		lin.rot.z(0.030*(targetDuration-dt)); //TODO: Rotationsgeschwindigkeit	*/
 	//DEBUG
 	geometry_msgs::PoseArray poses;
+	poses.header.stamp = ros::Time::now();
 	poses.poses.resize(3);
 	tf::PoseKDLToMsg(F_current, poses.poses[0]);
 	tf::PoseKDLToMsg(F_soll, poses.poses[1]);
