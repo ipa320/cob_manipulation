@@ -67,15 +67,27 @@ class cob_articulation_cartcollector:
             self.record = False
             while not self.finished:
                 rospy.sleep(0.1)
-            model_bag = ArticulatedObjectMsg()
-            model_bag = self.object_msg
-            file_name = os.path.join('bag_files', str(req.file_name.data) + '_'.join([model.name[0:2] for model in model_bag.models]) + '.bag')
+            articulationObject_bag = ArticulatedObjectMsg()
+            articulationObject_bag = self.object_msg
+            file_name = os.path.join('bag_files', str(req.file_name.data) + '_articulationObject_' + '_'.join([model.name[0:2] for model in articulationObject_bag.models]) + '.bag')
             bag = rosbag.Bag(file_name, 'w')
             try:
-                bag.write('object', model_bag)
-                print 'Written to bag file'
+                bag.write('object', articulationObject_bag)
+                print 'Wrote articulationObject to bag file'
             finally:
                 bag.close()
+
+            for model in articulationObject_bag.models:
+                model_bag = ModelMsg()
+                model_bag = model
+                file_name = os.path.join('bag_files', '_'.join([req.file_name.data, model.name, str(model.id)]) + '.bag')
+                bag = rosbag.Bag(file_name, 'w')
+                try:
+                    bag.write('track', model_bag)
+                    print 'Wrote model %d to bag file'%model.id
+                finally:
+                    bag.close()
+
 
 
         return RecordTrackResponse()
