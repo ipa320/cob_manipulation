@@ -16,7 +16,7 @@ if __name__ == '__main__':
     record_srv = rospy.ServiceProxy('/record_track', RecordTrack)
 
     request = RecordTrackRequest()
-    request.file_name.data = "rotational_y_0.5"
+    request.file_name.data = "rotational_y_0.5_1.57"
     response = record_srv(request)
 
     goal = ArticulationModelGoal()

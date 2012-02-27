@@ -83,7 +83,7 @@ class cob_articulation_cartcollector:
                 file_name = os.path.join('bag_files', '_'.join([req.file_name.data, model.name, str(model.id)]) + '.bag')
                 bag = rosbag.Bag(file_name, 'w')
                 try:
-                    bag.write('track', model_bag)
+                    bag.write('model', model_bag)
                     print 'Wrote model %d to bag file'%model.id
                 finally:
                     bag.close()
