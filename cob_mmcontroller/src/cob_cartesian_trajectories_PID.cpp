@@ -188,6 +188,7 @@ void cob_cartesian_trajectories::moveLinActionCB(const cob_mmcontroller::OpenFri
 void cob_cartesian_trajectories::moveModelActionCB(const cob_mmcontroller::ArticulationModelGoalConstPtr& goal)
 {
     mode = goal->model.name;
+    std::cout << "Mode:" << mode << "\n";
     targetDuration = goal->target_duration.data.toSec();
     params = goal->model.params;
     if(start())
@@ -394,7 +395,10 @@ void cob_cartesian_trajectories::getTargetPosition(double dt, KDL::Frame &F_targ
     else if (mode == "model");
         getModelTarget(dt, F_target);*/
     else
+    {
         ROS_ERROR("Invalid mode");
+        F_target = F_start;
+    }
 }
 
 // linear trajectory 
