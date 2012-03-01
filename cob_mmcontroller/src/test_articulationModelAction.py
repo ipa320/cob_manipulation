@@ -22,11 +22,11 @@ if __name__ == '__main__':
     goal.model_id = 1
 
     bag = rosbag.Bag(sys.argv[1])
-    for topic, msg, t in bag.read_messages(topics='track'):
+    for topic, msg, t in bag.read_messages(topics='model'):
         goal.model = msg
 
     #print goal.model
-    goal.model.params.append(ParamMsg('angle', 1.57, 1))
+    goal.model.params.append(ParamMsg('angle', -1.57, 1))
     goal.target_duration.data.secs = 10.0
 
     client.send_goal(goal)
