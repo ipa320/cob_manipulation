@@ -13,6 +13,9 @@ from cob_mmcontroller.srv import *
 from articulation_msgs.msg import ParamMsg
 
 if __name__ == '__main__':
+    bag_name = sys.argv[1]
+    angle = sys.argv[2]
+    
     rospy.init_node('articulationModel_client')
     client = actionlib.SimpleActionClient('moveModel', ArticulationModelAction)
     client.wait_for_server()
@@ -26,7 +29,7 @@ if __name__ == '__main__':
         goal.model = msg
 
     #print goal.model
-    goal.model.params.append(ParamMsg('angle', -1.57, 1))
+    goal.model.params.append(ParamMsg('angle', angle, 1))
     goal.target_duration.data.secs = 10.0
 
     client.send_goal(goal)
