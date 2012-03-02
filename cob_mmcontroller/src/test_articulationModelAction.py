@@ -7,14 +7,24 @@ import actionlib
 import rosbag
 
 import sys
+from optparse import OptionParser
 
 from cob_mmcontroller.msg import *
 from cob_mmcontroller.srv import *
 from articulation_msgs.msg import ParamMsg
 
 if __name__ == '__main__':
-    bag_name = sys.argv[1]
-    angle = sys.argv[2]
+
+    parser = OptionParser()
+    parser.add_option('-f', '--filename', dest = 'bagfilename',
+                      action = 'store', help = 'bag file name')
+    parser.add_option('-c', '--config', dest = 'config',
+                      action = 'store',
+                      help = 'mechanism configuration. for example opening angle of a door in rad. no default')
+    parser.add_option('-d', '--duration', dest = 'duration',
+                      default = 10.0, action = 'store',
+                      help = 'duration until target postion should be reached. default = 10.0')
+    (options, args) = parser.parse_args()
     
     rospy.init_node('articulationModel_client')
     client = actionlib.SimpleActionClient('moveModel', ArticulationModelAction)
@@ -24,14 +34,14 @@ if __name__ == '__main__':
     # Fill in the goal here
     goal.model_id = 1
 
-    bag = rosbag.Bag(sys.argv[1])
+    bag = rosbag.Bag(options.bagfilename)
     for topic, msg, t in bag.read_messages(topics='model'):
         goal.model = msg
 
     #print goal.model
-    goal.model.params.append(ParamMsg('angle', float(angle), 1))
-    goal.target_duration.data.secs = 10.0
+    goal.model.params.append(ParamMsg('angle', options.config, 1))
+    goal.target_duration.data.secs = options.duration 
 
     client.send_goal(goal)
-    client.wait_for_result(rospy.Duration.from_sec(15.0))
+    client.wait_for_result(rospy.Duration.from_sec(options.duration + 5.0))
     print client.get_result()
