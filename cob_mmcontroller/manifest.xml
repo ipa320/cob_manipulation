@@ -29,5 +29,6 @@
   <depend package="visualization_msgs"/>
   <depend package="articulation_msgs"/>
   <depend package="articulation_models"/>
+  <depend package="articulation_structure"/>
 
 </package>
