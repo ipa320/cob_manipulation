@@ -55,7 +55,7 @@ if __name__ == '__main__':
     goal.target_duration.data.secs = float(options.duration)
 
     client.send_goal(goal)
-    client.wait_for_result(rospy.Duration.from_sec(options.duration + 5.0))
+    client.wait_for_result(rospy.Duration.from_sec(float(options.duration) + 5.0))
     print client.get_result()
 
     response = record_srv(request)
