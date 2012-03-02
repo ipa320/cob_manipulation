@@ -48,11 +48,11 @@ if __name__ == '__main__':
     # Fill in the goal here
     goal.model_id = 1
     goal.model.name = "rotational"
-    goal.model.params.append(ParamMsg('angle', options.angle, 1))
-    goal.model.params.append(ParamMsg('rot_center.x', options.rot_center_x, 1)) 
-    goal.model.params.append(ParamMsg('rot_center.y', options.rot_center_y, 1)) 
-    goal.model.params.append(ParamMsg('rot_center.z', options.rot_center_z, 1)) 
-    goal.target_duration.data.secs = options.duration
+    goal.model.params.append(ParamMsg('angle', float(options.angle), 1))
+    goal.model.params.append(ParamMsg('rot_center.x', float(options.rot_center_x), 1)) 
+    goal.model.params.append(ParamMsg('rot_center.y', float(options.rot_center_y), 1)) 
+    goal.model.params.append(ParamMsg('rot_center.z', float(options.rot_center_z), 1)) 
+    goal.target_duration.data.secs = float(options.duration)
 
     client.send_goal(goal)
     client.wait_for_result(rospy.Duration.from_sec(options.duration + 5.0))

@@ -39,8 +39,8 @@ if __name__ == '__main__':
         goal.model = msg
 
     #print goal.model
-    goal.model.params.append(ParamMsg('angle', options.config, 1))
-    goal.target_duration.data.secs = options.duration 
+    goal.model.params.append(ParamMsg('angle', float(options.config), 1))
+    goal.target_duration.data.secs = float(options.duration) 
 
     client.send_goal(goal)
     client.wait_for_result(rospy.Duration.from_sec(options.duration + 5.0))
