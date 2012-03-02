@@ -434,7 +434,7 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
     double rot_center_x;
     double rot_center_y;
     double rot_center_z;
-    double radius;
+    double rot_radius;
     KDL::Rotation temp_rot;
     
     double start_roll, start_pitch, start_yaw = 0.0;        //debug
@@ -442,6 +442,7 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
 
     // parameter from parameter server
     angle = getParamValue("angle");
+    rot_radius = getParamValue("rot_radius");
     rot_center_x = getParamValue("rot_center.x");
     rot_center_y = getParamValue("rot_center.y");
     rot_center_z = getParamValue("rot_center.z");
@@ -449,14 +450,18 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
     // calculating target angle with respect to the time
     partial_angle = angle * (dt/targetDuration);
     
-    // calculating radius
-    radius = sqrt(rot_center_x*rot_center_x + rot_center_y*rot_center_y); // + rot_center_z*rot_center_z);
+    // calculating rot_radius
+    if (rot_radius == 0.0)
+    {
+        ROS_DEBUG("Parameter rot_radius no set and will be calculated!");
+        rot_radius = sqrt(rot_center_x*rot_center_x + rot_center_y*rot_center_y); // + rot_center_z*rot_center_z);
+    }
     
     // calulating target position with respect to the time and the start position
-    F_target.p.x(F_start.p.x() + radius*sin(partial_angle));
-    F_target.p.y(F_start.p.y() + radius*(1-cos(partial_angle)));
+    F_target.p.x(F_start.p.x() + rot_radius*sin(partial_angle));
+    F_target.p.y(F_start.p.y() + rot_radius*(1-cos(partial_angle)));
     F_target.p.z(F_start.p.z()); // keep initial height
-    //F_target.p.z(F_start.p.z + radius*sin(partial_angle));
+    //F_target.p.z(F_start.p.z + rot_radius*sin(partial_angle));
     
     
     // calculating the target rotation (at the moment only around the z-axis)
@@ -472,7 +477,7 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
     F_target.M = temp_rot;
 
     // ------------debugging output-----------------------
-    cout << "radius: " << radius << "\n";
+    cout << "rot_radius: " << rot_radius << "\n";
     cout << "Partial Angle: " << partial_angle << "\n";
     cout << "sin: " << sin(partial_angle) << "\n";
     cout << "cos: " << 1-cos(partial_angle) << "\n";
