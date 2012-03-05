@@ -4,7 +4,7 @@ import roslib; roslib.load_manifest('cob_mmcontroller')
 import rospy
 
 from geometry_msgs.msg import Pose, PoseStamped
-from cob_srvs.srv import *
+from cob_mmcontroller.srv import *
 from articulation_msgs.msg import ModelMsg
 from articulation_msgs.srv import *
 
@@ -26,17 +26,20 @@ class cob_articulation_cartcollector_prior:
         self.model_select = rospy.ServiceProxy('model_select', TrackModelSrv)
 
         # services
-        rospy.Service('/collector_toggle', Trigger, self.collector_toggleCB)
+        rospy.Service('/collector_toggle', LearnModelPrior, self.collector_toggleCB)
 
         # variables
-        self.model = ModelMsg()
+        self.model_recorded = ModelMsg()
+        self.model_selected = ModelMsg()
         self.collect = False
 
 
-    def collector_toggleCB(self, req):
-        response = TriggerResponse()
+    def collector_toggleCB(self, request):
+        response = LearnModelPriorResponse()
         if not self.collect:
             print "starting to collect cartesian poses"
+            self.clear_model(self.model_recorded)
+            self.clear_model(self.model_selected)
             self.collect = True
             response.error_message.data = "started collector"
         else:
@@ -45,6 +48,7 @@ class cob_articulation_cartcollector_prior:
             response.error_message.data = "stopped collector"
 
         response.success.data = True
+        response.model = self.model_selected
 
         return response
 
@@ -52,17 +56,19 @@ class cob_articulation_cartcollector_prior:
     def cartCB(self, pose):
         if self.collect:
             print "adding pose"
-            self.model.header = pose.header
-            self.model.track.pose.append(pose.pose)
+            self.model_recorded.header = pose.header
+            self.model_recorded.track.pose.append(pose.pose)
 
             # select model
             request = TrackModelSrvRequest()
-            request.model = self.model
+            request.model = self.model_recorded
             print "select model"
-            response = self.model_select(request)
-            print "%s model selected"%response.model.name
+            self.model_selected = self.model_select(request).model
+            print "%s model selected"%self.model_selected.name
 
         
+    def clear_model(self, model):
+        model = ModelMsg()
 
 
 def main():
