@@ -58,39 +58,45 @@ class cob_articulation_cartcollector:
         set_param(self.object_msg, "reduce_dofs", self.reduce_dofs, ParamMsg.PRIOR)
 
 
-    def recordCB(self, req):
+    def recordCB(self, request):
+        response = RecordTrackResponse()
+        response.success.data = True
         if not self.record:
             print 'Starting to record trajectory'
             self.record = True
+            response.error_message.data = "started recording"
         else:
             print 'Already recording trajectory and will stop now'
             self.record = False
+            response.error_message.data = "stopped recording"
             while not self.finished:
                 rospy.sleep(0.1)
             articulationObject_bag = ArticulatedObjectMsg()
             articulationObject_bag = self.object_msg
-            file_name = os.path.join('bag_files', str(req.file_name.data) + '_articulationObject_' + '_'.join([model.name[0:2] for model in articulationObject_bag.models]) + '.bag')
+            file_name = os.path.join('bag_files', str(request.file_name.data) + '_articulationObject_' + '_'.join([model.name[0:2] for model in articulationObject_bag.models]) + '.bag')
             bag = rosbag.Bag(file_name, 'w')
             try:
                 bag.write('object', articulationObject_bag)
                 print 'Wrote articulationObject to bag file'
+                response.error_message.data = response.error_message.data + " and stored bag file(s) with an object"
             finally:
                 bag.close()
 
             for model in articulationObject_bag.models:
                 model_bag = ModelMsg()
                 model_bag = model
-                file_name = os.path.join('bag_files', '_'.join([req.file_name.data, model.name, str(model.id)]) + '.bag')
+                file_name = os.path.join('bag_files', '_'.join([request.file_name.data, model.name, str(model.id)]) + '.bag')
                 bag = rosbag.Bag(file_name, 'w')
                 try:
                     bag.write('model', model_bag)
                     print 'Wrote model %d to bag file'%model.id
+                    response.error_message.data = response.error_message.data + " and a %s model"%model.name
                 finally:
                     bag.close()
 
 
 
-        return RecordTrackResponse()
+        return response
             
 
 
