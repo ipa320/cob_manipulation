@@ -4,8 +4,9 @@ import roslib; roslib.load_manifest('cob_mmcontroller')
 import rospy
 
 from geometry_msgs.msg import Pose, PoseStamped
+from cob_srvs.srv import *
 from articulation_msgs.msg import ModelMsg
-from articulation_msgs.srv import TrackModelSrv
+from articulation_msgs.srv import *
 
 
 class cob_articulation_cartcollector_prior:
@@ -24,21 +25,42 @@ class cob_articulation_cartcollector_prior:
         # service clients
         self.model_select = rospy.ServiceProxy('model_select', TrackModelSrv)
 
+        # services
+        rospy.Service('/collector_toggle', Trigger, self.collector_toggleCB)
+
         # variables
         self.model = ModelMsg()
+        self.collect = False
+
+
+    def collector_toggleCB(self, req):
+        response = TriggerResponse()
+        if not self.collect:
+            print "starting to collect cartesian poses"
+            self.collect = True
+            response.error_message.data = "started collector"
+        else:
+            print "already collecting, stopping collector now"
+            self.collect = False
+            response.error_message.data = "stopped collector"
+
+        response.success.data = True
+
+        return response
 
 
     def cartCB(self, pose):
-        print "adding pose"
-        self.model.header = pose.header
-        self.model.track.pose.append(pose.pose)
+        if self.collect:
+            print "adding pose"
+            self.model.header = pose.header
+            self.model.track.pose.append(pose.pose)
 
-        # select model
-        request = TrackModelSrvRequest()
-        request.model = self.model
-        print "select model"
-        response = self.model_select(request)
-        print "%s model selected"%response.model.name
+            # select model
+            request = TrackModelSrvRequest()
+            request.model = self.model
+            print "select model"
+            response = self.model_select(request)
+            print "%s model selected"%response.model.name
 
         
 
@@ -46,7 +68,7 @@ class cob_articulation_cartcollector_prior:
 def main():
     try:
         rospy.init_node('cob_articulation_cartcollector')
-        cob_articulation_cartcollector();
+        cob_articulation_cartcollector_prior();
         rospy.spin()
     except rospy.ROSInterruptException: pass
 
