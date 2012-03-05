@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<launch>
+
+    <node pkg="articulation_models" type="model_learner_prior" name="model_learner_prior" cwd="node" output="screen"/>
+
+    <node pkg="cob_mmcontroller" type="cob_articulation_cartcollector_prior.py" name="cob_articulation_cartcollector_prior" cwd="node" output="screen"/>
+        <!--param name="sigma_orientation" value="0.5" /-->
+
+    <node pkg="cob_mmcontroller" type="cob_learn_model_prior.py" name="cob_learn_model_prior" cwd="node" output="screen"/>
+
+</launch>
