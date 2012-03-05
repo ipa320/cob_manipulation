@@ -38,8 +38,10 @@ class cob_articulation_cartcollector_prior:
         response = LearnModelPriorResponse()
         if not self.collect:
             print "starting to collect cartesian poses"
-            self.clear_model(self.model_recorded)
-            self.clear_model(self.model_selected)
+            #reset models
+            self.model_recorded = ModelMsg()
+            self.model_selected = ModelMsg()
+
             self.collect = True
             response.error_message.data = "started collector"
         else:
@@ -55,6 +57,7 @@ class cob_articulation_cartcollector_prior:
 
     def cartCB(self, pose):
         if self.collect:
+            # collect trajectory poses
             print "adding pose"
             self.model_recorded.header = pose.header
             self.model_recorded.track.pose.append(pose.pose)
@@ -66,9 +69,6 @@ class cob_articulation_cartcollector_prior:
             self.model_selected = self.model_select(request).model
             print "%s model selected"%self.model_selected.name
 
-        
-    def clear_model(self, model):
-        model = ModelMsg()
 
 
 def main():
