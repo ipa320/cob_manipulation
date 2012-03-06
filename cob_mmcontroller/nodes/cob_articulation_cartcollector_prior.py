@@ -11,7 +11,7 @@ from articulation_msgs.srv import *
 
 class cob_articulation_cartcollector_prior:
     def __init__(self):
-        try:
+        CartCollectortry:
             # wait for services advertised by articulation_models/src/model_learner_prior.cpp
             rospy.wait_for_service('model_select', 5)
             print "Service OK"
@@ -26,7 +26,7 @@ class cob_articulation_cartcollector_prior:
         self.model_select = rospy.ServiceProxy('model_select', TrackModelSrv)
 
         # services
-        rospy.Service('/collector_toggle', LearnModelPrior, self.collector_toggleCB)
+        rospy.Service('/collector_toggle', CartCollectorPrior, self.collector_toggleCB)
 
         # variables
         self.model_recorded = ModelMsg()
@@ -35,7 +35,7 @@ class cob_articulation_cartcollector_prior:
 
 
     def collector_toggleCB(self, request):
-        response = LearnModelPriorResponse()
+        response = CartCollectorPriorResponse()
         if not self.collect:
             print "starting to collect cartesian poses"
             #reset models
