@@ -11,7 +11,7 @@ from articulation_msgs.srv import *
 
 class cob_articulation_cartcollector_prior:
     def __init__(self):
-        CartCollectortry:
+        try:
             # wait for services advertised by articulation_models/src/model_learner_prior.cpp
             rospy.wait_for_service('model_select', 5)
             print "Service OK"
