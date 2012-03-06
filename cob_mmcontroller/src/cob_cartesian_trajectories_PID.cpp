@@ -134,14 +134,14 @@ void cob_cartesian_trajectories::jointStateCallback(const sensor_msgs::JointStat
             if (jointStates[i] <= (LowerLimits[i] + 0.04))
             {
                 ROS_INFO("Stopping trajectory because arm joint %d reached almost lower joint limit!", i+1);
-                result_ = 2;//success = false;
+                result_.exit_code = 2;
                 stopTrajectory();
                 //std::cout << "Stopping trajectory because arm joint " << i+1 << " reached almost lower joint limit!" << "\n";
             }
             else if (jointStates[i] >= (UpperLimits[i] - 0.04))
             {
                 ROS_INFO("Stopping trajectory because arm joint %d reached almost upper joint limit!", i+1);
-                result_ = 2;//success = false;
+                result_.exit_code = 2;
                 stopTrajectory();
                 //std::cout << "Stopping trajectory because arm joint " << i+1 << " reached almost upper joint limit!" << "\n";
             }
@@ -203,21 +203,10 @@ void cob_cartesian_trajectories::moveModelActionCB(const cob_mmcontroller::Artic
 
             sleep(1);
         }
-        if (result_ != 0)
+        if (result_.exit_code != 0)
             as_model_.setAborted(result_);
         else
             as_model_.setSucceeded(result_);
-
-        /*if (success)
-        {
-            result_.finished = 0;
-            as_model_.setSucceeded(result_);
-        }
-        else
-        {
-            result_.finished = 1;
-            as_model_.setAborted(result_);
-        }*/
     }
     return;
 }
@@ -272,7 +261,7 @@ bool cob_cartesian_trajectories::start() //TODO request->model.params // start
         tstart = ros::Time::now();
         currentDuration = 0;
         trajectory_points.clear();
-        result_ = 1;//success = false;
+        result_.exit_code = 1;
         Error_last = Twist::Zero();
         return true;
     }    
@@ -291,7 +280,7 @@ void cob_cartesian_trajectories::cartStateCallback(const geometry_msgs::PoseStam
             geometry_msgs::Twist twist;
             cart_command_pub.publish(twist);
             ROS_INFO("finished trajectory in %f", ros::Time::now().toSec() - tstart.toSec());
-            result_ = 0;//success = true;
+            result_.exit_code = 0;
             stopTrajectory();
             return;
         }
