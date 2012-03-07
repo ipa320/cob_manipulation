@@ -130,7 +130,7 @@ class cob_learn_model_prior:
 
         # TODO evaluate model
 
-        # TODO output prior models and learned model
+        # output prior models and learned model
         print 75*"-" + "\nPrior models:"
         self.print_prior_models()
         print 75*"-" + "\nLearned model:"
@@ -142,6 +142,9 @@ class cob_learn_model_prior:
 
         # decide / ask whether to store model or not
         if self.query("Do you want to store the just learned model in the prior models", ['y', 'n']) == 'y':
+            if learned_model.id != -1:
+                if self.query("Do you want to update model %d "%learned_model.id, ['y', 'n']) == 'n':
+                    learned_model.id = -1
             # store model in prior models
             try:
                 store_request = TrackModelSrvRequest()
