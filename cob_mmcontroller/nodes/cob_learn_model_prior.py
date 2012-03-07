@@ -122,7 +122,7 @@ class cob_learn_model_prior:
 
         # check if cartcollection went well
         if cartcoll_response.success:
-            model = cartcoll_response.model
+            learned_model = cartcoll_response.model
         else:
             result_.error_message = "Collecting cartesian poses didn't succeed"
             result_.success = False
@@ -131,17 +131,21 @@ class cob_learn_model_prior:
         # TODO evaluate model
 
         # TODO output prior models and learned model
-        print "Prior models:"
+        print 75*"-" + "\nPrior models:"
         self.print_prior_models()
-        print "Learned model:"
-        self.print_model(model)
+        print 75*"-" + "\nLearned model:"
+        self.print_model(learned_model)
+        print 75*"-" + "\nVerbose:"
+        prior_models_list = self.get_prior_models().model
+        prior_models_list.append(learned_model)
+        self.print_models_verbose(prior_models_list)
 
         # decide / ask whether to store model or not
         if self.query("Do you want to store the just learned model in the prior models", ['y', 'n']) == 'y':
             # store model in prior models
             try:
                 store_request = TrackModelSrvRequest()
-                store_request = model
+                store_request = learned_model
                 store_response = self.store_model(store_request)
                 prior_changed = True
                 feedback_.message = "Stored learned model in prior models"
@@ -185,11 +189,50 @@ class cob_learn_model_prior:
 
 
     def print_model(self, model):
-        print "ID: " + str(model.id) + "\tNAME: " + model.name + "\tPOSES: " + str(len(model.track.pose)) #TODO + "\tAVG_ERROR: " bic likelihood
+        print "ID: " + str(model.id) + "\tNAME: " + model.name + "\tPOSES: " + str(len(model.track.pose))
+
+
+    def print_models_verbose(self, models):
+        # prints all evaluation parameters of all given models
+        if models[-1].id != -1: # if learned model upgrades a prior model
+            keep = []
+            # keep prior model with same id as learned one
+            for k in range(len(models)):
+                if models[k].id == models[-1].id:
+                    keep.append(models[k])
+            models = keep
+
+        for n in range(len(models[0].params)):
+            if models[0].params[n].type == 2:
+                for model in models:
+                    print "ID: " + str(model.id) + "\tNAME: " + model.params[n].name + "\tVALUE: " + str(model.params[n].value)
+                print 75*"-"
+
+        if models[-1].name == "rotational":
+            for n in range(len(models[0].params)):
+                if "rot_center" in models[0].params[n].name or "rot_radius" in models[0].params[n].name:
+                    for model in models:
+                        if model.name == models[-1].name:
+                            print "ID: " + str(model.id) + "\tNAME: " + model.params[n].name + "\tVALUE: " + str(model.params[n].value)
+                    print 75*"-"
+        else:
+            for n in range(len(models[0].params)):
+                if "rigid_position" in models[0].params[n].name or "rigid_orientation" in models[0].params[n].name:
+                    for model in models:
+                        if model.name == models[-1].name:
+                            print "ID: " + str(model.id) + "\tNAME: " + model.params[n].name + "\tVALUE: " + str(model.params[n].value)
+                    print 75*"-"
+            
 
 
     def print_prior_models(self):
-        # get prior from model_learner_prior and print them
+        # print prior models
+        for model in self.get_prior_models().model:
+            self.print_model(model)
+
+
+    def get_prior_models(self):
+        # get prior from model_learner_prior
         request = GetModelPriorSrvRequest()
 
         try:
@@ -197,8 +240,8 @@ class cob_learn_model_prior:
         except rospy.ServiceException:
             rospy.logerr("Failed to get prior models")
 
-        for model in response.model:
-            self.print_model(model)
+        return response
+
 
 
     def query(self, question, choises):
@@ -270,10 +313,11 @@ class cob_learn_model_prior:
 
     def save_prior(self, database):
         # get prior from model_learner_prior and save into database
-        request = GetModelPriorSrvRequest()
+        #request = GetModelPriorSrvRequest()
 
         try:
-            response = self.get_prior(request)
+            #response = self.get_prior(request)
+            response = self.get_prior_models()
             output = StringIO.StringIO()
             response.serialize(output)
             with open(database, "w") as dh_handle:
