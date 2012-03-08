@@ -17,6 +17,7 @@ def main():
     rospy.init_node('learnModelPrior_client')
     client = actionlib.SimpleActionClient('learn_model_prior', LearnModelPriorAction)
     client.wait_for_server()
+    print "Server OK"
 
     goal = LearnModelPriorGoal()
     goal.database = options.database
