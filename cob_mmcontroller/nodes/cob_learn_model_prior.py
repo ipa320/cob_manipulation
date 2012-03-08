@@ -192,12 +192,25 @@ class cob_learn_model_prior:
 
 
     def print_model(self, model):
-        print "ID: " + str(model.id) + "\tNAME: " + model.name + "\tPOSES: " + str(len(model.track.pose))
+        print ("ID: " + str(model.id)).ljust(7), ("NAME: " + model.name).ljust(20), ("POSES: " + str(len(model.track.pose))).ljust(30)
+
+
+    def print_parameter(self, model_id, name, value):
+        print ("ID: " + str(model_id)).ljust(7), ("NAME: " + name).ljust(30), ("VALUE: " + str(value)).ljust(30)
+
+
+    def filter_parameters(self, models, param_name):
+        for n in range(len(models[0].params)):
+            if param_name[0] in models[0].params[n].name or param_name[1] in models[0].params[n].name:
+                for model in models:
+                    if model.name == models[-1].name:
+                        self.print_parameter(model.id, model.params[n].name, model.params[n].value)
+                print 75*"-"
 
 
     def print_models_verbose(self, models):
-        # prints all evaluation parameters of all given models
-        if models[-1].id != -1: # if learned model upgrades a prior model
+        # filter out relevant models
+        if models[-1].id != -1: # if learned model updades a prior model
             keep = []
             # keep prior model with same id as learned one
             for k in range(len(models)):
@@ -205,27 +218,18 @@ class cob_learn_model_prior:
                     keep.append(models[k])
             models = keep
 
+        # prints all evaluation parameters of all given models
         for n in range(len(models[0].params)):
             if models[0].params[n].type == 2:
                 for model in models:
-                    print "ID: " + str(model.id) + "\tNAME: " + model.params[n].name + "\tVALUE: " + str(model.params[n].value)
+                    self.print_parameter(model.id, model.params[n].name, model.params[n].value)
                 print 75*"-"
 
-        if models[-1].name == "rotational":
-            for n in range(len(models[0].params)):
-                if "rot_center" in models[0].params[n].name or "rot_radius" in models[0].params[n].name:
-                    for model in models:
-                        if model.name == models[-1].name:
-                            print "ID: " + str(model.id) + "\tNAME: " + model.params[n].name + "\tVALUE: " + str(model.params[n].value)
-                    print 75*"-"
-        else:
-            for n in range(len(models[0].params)):
-                if "rigid_position" in models[0].params[n].name or "rigid_orientation" in models[0].params[n].name:
-                    for model in models:
-                        if model.name == models[-1].name:
-                            print "ID: " + str(model.id) + "\tNAME: " + model.params[n].name + "\tVALUE: " + str(model.params[n].value)
-                    print 75*"-"
-            
+        # prints informative articulation parameter 
+        if models[-1].name == "rotational": # for rotational articulations
+            self.filter_parameters(models, ["rot_center", "rot_radius"])
+        else: # for rigid and prismatic articulation
+            self.filter_parameters(models, ["rigid_position", "rigid_orientation"])
 
 
     def print_prior_models(self):
@@ -244,7 +248,6 @@ class cob_learn_model_prior:
             rospy.logerr("Failed to get prior models")
 
         return response
-
 
 
     def query(self, question, choises):
@@ -301,7 +304,6 @@ class cob_learn_model_prior:
     def load_prior(self, database):
         # load prior from database and set up model_learner_prior node
         request = SetModelPriorSrvRequest()
-
         try:
             with open(database, 'r') as db_handle:
                 saved_prior = db_handle.read()
@@ -316,10 +318,7 @@ class cob_learn_model_prior:
 
     def save_prior(self, database):
         # get prior from model_learner_prior and save into database
-        #request = GetModelPriorSrvRequest()
-
         try:
-            #response = self.get_prior(request)
             response = self.get_prior_models()
             output = StringIO.StringIO()
             response.serialize(output)
@@ -329,7 +328,6 @@ class cob_learn_model_prior:
         except rospy.ServiceException:
             rospy.logerr("Failed to save prior models")
             pass
-
 
 
 
