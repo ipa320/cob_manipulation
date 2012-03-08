@@ -4,14 +4,22 @@ import roslib; roslib.load_manifest('cob_mmcontroller')
 import rospy
 import actionlib
 
+from optparse import OptionParser
+
 from cob_mmcontroller.msg import *
 
 def main():
+    parser = OptionParser()
+    parser.add_option('-d', '--database', dest = 'database', default = "",
+                      action = 'store', help = "file name of database to load prior models from")
+    (options, args) = parser.parse_args()
+
     rospy.init_node('learnModelPrior_client')
     client = actionlib.SimpleActionClient('learn_model_prior', LearnModelPriorAction)
     client.wait_for_server()
 
     goal = LearnModelPriorGoal()
+    goal.database = options.database
     # Fill in the goal here
     client.send_goal(goal, feedback_cb=print_feedback)
     print client.get_state()

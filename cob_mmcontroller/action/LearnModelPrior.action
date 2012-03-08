@@ -1,4 +1,5 @@
 # Define the goal
+string database
 ---
 # Define the result
 bool success

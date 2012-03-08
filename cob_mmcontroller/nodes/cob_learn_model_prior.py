@@ -45,10 +45,10 @@ class cob_learn_model_prior:
         self.get_prior = rospy.ServiceProxy('model_prior_get', GetModelPriorSrv)
         self.start_mm = rospy.ServiceProxy('/mm/start', Trigger)
 
-    def learnModelPriorActionCB(self, goal):
         # variables
-        prior_changed = False
-        prior_db = ""
+        self.prior_changed = False
+
+    def learnModelPriorActionCB(self, goal):
         # set up and initialize action feedback and result
         result_ = LearnModelPriorResult()
         feedback_ = LearnModelPriorFeedback()
@@ -57,16 +57,20 @@ class cob_learn_model_prior:
         self.learnModelPrior_as.publish_feedback(feedback_)
 
         # ask whether prior models shoud be load from database
-        if self.query("Do you want to load prior models from database?", ['y', 'n']) == 'y':
-            # ask user to enter database to load prior models from
-            prior_db = self.query_database(True)
-        
-            # load prior models into model_learner_prior
-            self.load_prior(prior_db)
-            feedback_.message = "set up prior models"
+        if goal.database == "" or not os.path.isfile(goal.database):
+            if self.query("Do you want to load prior models from database?", ['y', 'n']) == 'y':
+                # ask user to enter database to load prior models from
+                goal.database = self.query_database(True)
+            
+                # load prior models into model_learner_prior
+                self.load_prior_from_database(goal.database)
+                feedback_.message = "Loaded prior models from database and set up model_learner"
+            else:
+                #self.prior_changed = True
+                feedback_.message = "No prior models were loaded"
         else:
-            prior_changed = True
-            feedback_.message = "no prior models was loaded"
+            self.load_prior_from_database(goal.database)
+            feedback_.message = "Loaded prior models from database and set up model_learner"
         self.learnModelPrior_as.publish_feedback(feedback_)
 
         # ask user how trajectory will be generated
@@ -146,17 +150,9 @@ class cob_learn_model_prior:
                 if self.query("Do you want to update model %d "%learned_model.id, ['y', 'n']) == 'n':
                     learned_model.id = -1
             # store model in prior models
-            try:
-                store_request = TrackModelSrvRequest()
-                store_request = learned_model
-                store_response = self.store_model(store_request)
-                prior_changed = True
-                feedback_.message = "Stored learned model in prior models"
-            except rospy.ServiceException:
-                prior_changed = False
-                feedback_.message = "Failed to store learned model in prior models"
+            self.store_model_to_prior(learned_model)
         else:
-            prior_changed = False
+            self.prior_changed = False
             feedback_.message = "Didn't store learned model in prior models"
         self.learnModelPrior_as.publish_feedback(feedback_)
 
@@ -164,24 +160,24 @@ class cob_learn_model_prior:
 
         # save new prior to database
         feedback_.message = "Prior models were not saved in database"
-        if prior_changed:
+        if self.prior_changed:
             # get database name if necessary
-            if prior_db != "" and self.query("Do you want to save the new prior models to database %s"%prior_db, ['y', 'n']) == 'y':
-                    self.save_prior(prior_db)
-                    feedback_.message = "Prior models were saved in %s"%prior_db
+            if goal.database != "" and self.query("Do you want to save the new prior models to database %s"%goal.database, ['y', 'n']) == 'y':
+                    self.save_prior_to_database(goal.database)
+                    feedback_.message = "Prior models were saved in %s"%goal.database
             elif self.query("Do you want to save the new prior models in a database", ['y', 'n']) == 'y':
-                self.save_prior(self.query_database())
+                self.save_prior_to_database(self.query_database())
                 feedback_.message = "Prior models were saved"
             else:
                 if self.query("Do you really want to discard the new prior models", ['y', 'n']) == 'y':
                     print "New prior model will be discard"
                 else:
-                    self.save_prior(self.query_database())
+                    self.save_prior_to_database(self.query_database())
                     feedback_.message = "Prior models were saved"
         else:
             print "No new prior models were generated"
             if self.query("Do you want to save the currently loaded prior models anyway", ['y', 'n']) == 'y':
-                self.save_prior(self.query_database())
+                self.save_prior_to_database(self.query_database())
                 feedback_.message = "Prior models were saved"
         self.learnModelPrior_as.publish_feedback(feedback_)
 
@@ -190,11 +186,8 @@ class cob_learn_model_prior:
         self.learnModelPrior_as.set_succeeded(result_)
 
 
-
-    def print_model(self, model):
-        print ("ID: " + str(model.id)).ljust(7), ("NAME: " + model.name).ljust(20), ("POSES: " + str(len(model.track.pose))).ljust(30)
-
-
+    ######################################################
+    # output methods
     def print_parameter(self, model_id, name, value):
         print ("ID: " + str(model_id)).ljust(7), ("NAME: " + name).ljust(30), ("VALUE: " + str(value)).ljust(30)
 
@@ -206,6 +199,16 @@ class cob_learn_model_prior:
                     if model.name == models[-1].name:
                         self.print_parameter(model.id, model.params[n].name, model.params[n].value)
                 print 75*"-"
+
+
+    def print_model(self, model):
+        print ("ID: " + str(model.id)).ljust(7), ("NAME: " + model.name).ljust(20), ("POSES: " + str(len(model.track.pose))).ljust(30)
+
+
+    def print_prior_models(self):
+        # print prior models
+        for model in self.get_prior_models().model:
+            self.print_model(model)
 
 
     def print_models_verbose(self, models):
@@ -232,24 +235,8 @@ class cob_learn_model_prior:
             self.filter_parameters(models, ["rigid_position", "rigid_orientation"])
 
 
-    def print_prior_models(self):
-        # print prior models
-        for model in self.get_prior_models().model:
-            self.print_model(model)
-
-
-    def get_prior_models(self):
-        # get prior from model_learner_prior
-        request = GetModelPriorSrvRequest()
-
-        try:
-            response = self.get_prior(request)
-        except rospy.ServiceException:
-            rospy.logerr("Failed to get prior models")
-
-        return response
-
-
+    ######################################################
+    # methods for user interaction
     def query(self, question, choises):
         # let user choose 
         while True:
@@ -300,8 +287,34 @@ class cob_learn_model_prior:
         param_value = float(raw_input("Enter float value for parameter '%s': "%param_name))
         return param_value
 
+    ######################################################
+    # load, save and store methods
+    def get_prior_models(self):
+        # get prior from model_learner_prior
+        request = GetModelPriorSrvRequest()
 
-    def load_prior(self, database):
+        try:
+            response = self.get_prior(request)
+        except rospy.ServiceException:
+            rospy.logerr("Failed to get prior models")
+
+        return response
+
+
+    def store_model_to_prior(self, model):
+        # adds a learned model to the prior models
+        try:
+            store_request = TrackModelSrvRequest()
+            store_request = model
+            store_response = self.store_model(store_request)
+            self.prior_changed = True
+            feedback_.message = "Stored learned model in prior models"
+        except rospy.ServiceException:
+            self.prior_changed = False
+            feedback_.message = "Failed to store learned model in prior models"
+
+
+    def load_prior_from_database(self, database):
         # load prior from database and set up model_learner_prior node
         request = SetModelPriorSrvRequest()
         try:
@@ -316,7 +329,7 @@ class cob_learn_model_prior:
             pass
 
 
-    def save_prior(self, database):
+    def save_prior_to_database(self, database):
         # get prior from model_learner_prior and save into database
         try:
             response = self.get_prior_models()
