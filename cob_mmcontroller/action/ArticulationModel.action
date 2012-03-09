@@ -1,7 +1,7 @@
 # Define the goal
 uint32 model_id
 articulation_msgs/ModelMsg model
-std_msgs/Duration target_duration
+duration target_duration
 ---
 # Define the result
 uint32 exit_code 
