@@ -149,15 +149,21 @@ class cob_articulation_models_prior(object):
 
     ######################################################
     # load, save and store methods
+    def get_prior_model_by_id(self, model_id):
+        prior_models = self.get_prior_models()
+        for prior_model in prior_models.model:
+            if prior_model.id == model_id:
+                return prior_model
+        return None
+
     def get_prior_models(self):
         # get prior from model_learner_prior
         request = GetModelPriorSrvRequest()
 
         try:
             response = self.get_prior(request)
-        except rospy.ServiceException:
-            rospy.logerr("Failed to get prior models")
-
+        except rospy.ServiceException, e:
+            rospy.logerr("Failed to get prior models: %s"%e)
         return response
 
 
@@ -168,10 +174,10 @@ class cob_articulation_models_prior(object):
             store_request = model
             store_response = self.store_model(store_request)
             self.prior_changed = True
-            feedback_.message = "Stored learned model in prior models"
-        except rospy.ServiceException:
+        except rospy.ServiceException, e:
             self.prior_changed = False
-            feedback_.message = "Failed to store learned model in prior models"
+            rospy.errlog("Failed to store learned model in prior models: %s"%e)
+        return self.prior_changed
 
 
     def load_prior_from_database(self, database):
@@ -180,13 +186,15 @@ class cob_articulation_models_prior(object):
         try:
             with open(database, 'r') as db_handle:
                 saved_prior = db_handle.read()
-
                 request.deserialize(saved_prior)
                 response = self.set_prior(request)
                 rospy.loginfo("%d prior model(s) loaded from %s", len(request.model), database)
-        except rospy.ServiceException:
-            rospy.logerr("Failed to load prior models")
-            pass
+        except rospy.ServiceException, e:
+            rospy.logerr("Failed to set prior models: %s"%e)
+            raise
+        except IOError, e:
+            rospy.logerr("Failed to read prior database: %s"%e)
+            raise
 
 
     def save_prior_to_database(self, database):
@@ -198,9 +206,9 @@ class cob_articulation_models_prior(object):
             with open(database, "w") as dh_handle:
                 dh_handle.write(output.getvalue())
             output.close()
-        except rospy.ServiceException:
-            rospy.logerr("Failed to save prior models")
-            pass
+        except (IOError, UnicodeError), e:
+            rospy.logerr("Failed to write prior models to database: %s"%e)
+            
 
 
     ######################################################

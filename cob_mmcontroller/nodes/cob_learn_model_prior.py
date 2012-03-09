@@ -126,15 +126,16 @@ class cob_learn_model_prior:
         self.models_prior_object.print_models_verbose(prior_models_list)
 
         # decide / ask whether to store model or not
+        feedback_.message = "Didn't store learned model in prior models"
         if self.models_prior_object.query("Do you want to store the just learned model in the prior models", ['y', 'n']) == 'y':
             if learned_model.id != -1:
                 if self.models_prior_object.query("Do you want to update model %d "%learned_model.id, ['y', 'n']) == 'n':
                     learned_model.id = -1
             # store model in prior models
-            self.models_prior_object.store_model_to_prior(learned_model)
+            if self.models_prior_object.store_model_to_prior(learned_model):
+                feedback_.message = "Stored learned model in prior models"
         else:
             self.models_prior_object.prior_changed = False
-            feedback_.message = "Didn't store learned model in prior models"
         self.learnModelPrior_as.publish_feedback(feedback_)
 
 
