@@ -29,10 +29,6 @@ class cob_articulation_models_prior(object):
             rospy.logerr("Service(s) not found")
             rospy.signal_shutdown("Missing services")
 
-        # action servers
-        #self.learnModelPrior_as = actionlib.SimpleActionServer('learn_model_prior', LearnModelPriorAction, self.learnModelPriorActionCB, False)
-        #self.learnModelPrior_as.start()
-
         # action clients
         self.moveModel_ac = actionlib.SimpleActionClient('moveModel', ArticulationModelAction)
         self.moveModel_ac.wait_for_server()
@@ -207,3 +203,23 @@ class cob_articulation_models_prior(object):
             pass
 
 
+    ######################################################
+    # cartcollector methods
+    def cartcollector_start(self):
+        self.cartcollector_toggle()
+        return
+
+    
+    def cartcollector_stop(self):
+        return self.cartcollector_toggle()
+
+
+    def cartcollector_toggle(self):
+        try:
+            cartcoll_request = CartCollectorPriorRequest()
+            cartcoll_response = self.toggle_collector(cartcoll_request)
+        except rospy.ServiceException, e:
+            rospy.errlog("Toggle cartcollector service failed: %s"%e)
+            raise
+        
+        return cartcoll_response

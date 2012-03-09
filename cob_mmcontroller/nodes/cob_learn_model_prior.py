@@ -65,13 +65,14 @@ class cob_learn_model_prior:
         # wait for user interaction to start cartcollector and get model of kinematic mechanism
         # wait for keypress to start
         raw_input("Press any key to start recording")
-        cartcoll_request = CartCollectorPriorRequest()
-        cartcoll_response = self.models_prior_object.toggle_collector(cartcoll_request)
+        self.models_prior_object.cartcollector_start()
         feedback_.message = "Started to record trajectory and calculating model"
         self.learnModelPrior_as.publish_feedback(feedback_)
         
         # execute movement
         if trajectory_generation == 'a':
+            print "Recording of the cartesain gripper coordinates is now running"
+            print "Please wait until the trajectory execution has finished, watch out and stay tuned!"
             feedback_.message = "Trajectory generation started"
             self.learnModelPrior_as.publish_feedback(feedback_)
             # start mm controller
@@ -81,7 +82,7 @@ class cob_learn_model_prior:
             self.models_prior_object.moveModel_ac.send_goal(moveModel_goal)
             self.models_prior_object.moveModel_ac.wait_for_result(rospy.Duration.from_sec(moveModel_goal.target_duration.data.secs + 0.5))
             # stop cartcollector
-            cartcoll_response = self.models_prior_object.toggle_collector(cartcoll_request)
+            cartcoll_response = self.models_prior_object.cartcollector_stop()
             # evaluate moveModel result
             if self.models_prior_object.moveModel_ac.get_result() == 0:
                 feedback_.message = "Succeesful trajectory generation"
@@ -92,6 +93,9 @@ class cob_learn_model_prior:
                 result_.success = False
                 self.learnModelPrior_as.set_aborted(result_)
             self.learnModelPrior_as.publish_feedback(feedback_)
+        else:
+            print "Cartcollector is now recording the cartesian coordinates of the gripper"
+            print "Please execute now the movement and stop recording afterwards"
 
             
         # stop cartcollector
@@ -99,8 +103,7 @@ class cob_learn_model_prior:
         if trajectory_generation == 'm':
             # wait for keypress to stop
             raw_input("Press any key to stop recording")
-            cartcoll_request = CartCollectorPriorRequest()
-            cartcoll_response = self.models_prior_object.toggle_collector(cartcoll_request)
+            cartcoll_response = self.models_prior_object.cartcollector_stop()
 
         # check if cartcollection went well
         if cartcoll_response.success:
