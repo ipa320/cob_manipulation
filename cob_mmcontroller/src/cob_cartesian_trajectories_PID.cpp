@@ -189,7 +189,7 @@ void cob_cartesian_trajectories::moveModelActionCB(const cob_mmcontroller::Artic
 {
     mode = goal->model.name;
     std::cout << "Mode:" << mode << "\n";
-    targetDuration = goal->target_duration.data.toSec();
+    targetDuration = goal->target_duration.toSec();
     params = goal->model.params;
     if(start())
     {
@@ -214,7 +214,7 @@ void cob_cartesian_trajectories::moveModelActionCB(const cob_mmcontroller::Artic
 bool cob_cartesian_trajectories::movePriCB(cob_mmcontroller::MovePrismatic::Request& request, cob_mmcontroller::MovePrismatic::Response& response)    //TODO // prismatic callback
 {
     mode = "prismatic";
-    targetDuration = request.target_duration.data.toSec();
+    targetDuration = request.target_duration.toSec();
     params = request.params;
     std::cout << targetDuration << "\n";
     return start();
@@ -223,7 +223,7 @@ bool cob_cartesian_trajectories::movePriCB(cob_mmcontroller::MovePrismatic::Requ
 bool cob_cartesian_trajectories::moveRotCB(cob_mmcontroller::MoveRotational::Request& request, cob_mmcontroller::MoveRotational::Response& response)    //TODO // rotational callback
 {
     mode = "rotational";
-    targetDuration = request.target_duration.data.toSec();
+    targetDuration = request.target_duration.toSec();
     params = request.params;
     std::cout << targetDuration << "\n";
     return start();
@@ -232,7 +232,7 @@ bool cob_cartesian_trajectories::moveRotCB(cob_mmcontroller::MoveRotational::Req
 /*bool cob_cartesian_trajectories::moveTrajCB(cob_mmcontroller::MoveTrajectory::Request& request, cob_mmcontroller::MoveTrajectory::Response& response)   // TODO // trajectory callback
 {
     mode = "trajectory";
-    targetDuration = request.target_duration.data.toSec();
+    targetDuration = request.target_duration.toSec();
     track = request.pose
     return start();
 }*/
@@ -240,7 +240,7 @@ bool cob_cartesian_trajectories::moveRotCB(cob_mmcontroller::MoveRotational::Req
 bool cob_cartesian_trajectories::moveModelCB(cob_mmcontroller::MoveModel::Request& request, cob_mmcontroller::MoveModel::Response& response)  //TODO // model callback
 {
     mode = "model";
-    targetDuration = request.target_duration.data.toSec();
+    targetDuration = request.target_duration.toSec();
     //model_params = request.model.params            // model parameters
     track = request.model.track.pose_projected;         // trajectory
     return start();

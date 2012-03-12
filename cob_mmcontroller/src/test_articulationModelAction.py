@@ -38,7 +38,7 @@ if __name__ == '__main__':
     for topic, msg, t in bag.read_messages(topics='model'):
         goal.model = msg
 
-    goal.model.params.append(ParamMsg('angle', float(options.config), 1))
+    goal.model.params.append(ParamMsg('action', float(options.config), 1))
     goal.target_duration.secs = float(options.duration) 
 
     client.send_goal(goal)
