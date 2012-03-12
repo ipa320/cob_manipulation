@@ -435,7 +435,7 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
     double target_roll, target_pitch, target_yaw = 0.0;     //debug
 
     // parameter from parameter server
-    angle = getParamValue("angle");
+    angle = getParamValue("action");
     rot_radius = getParamValue("rot_radius");
     rot_center_x = getParamValue("rot_center.x");
     rot_center_y = getParamValue("rot_center.y");
@@ -541,7 +541,7 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
     //double alpha, d1, d2, d3;
     //double norm;
     
-    angle = getParamValue("angle");
+    angle = getParamValue("action");
     rot_radius = getParamValue("rot_radius");
     rot_center_x = getParamValue("rot_center.x");
     rot_center_y = getParamValue("rot_center.y");
