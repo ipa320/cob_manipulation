@@ -1,5 +1,5 @@
 articulation_msgs/ModelMsg model	# single kinematic model
-std_msgs/Duration target_duration	# duration of movement
+duration target_duration	# duration of movement
 ---
-std_msgs/Bool success
-std_msgs/String error_message
+bool success
+string error_message
