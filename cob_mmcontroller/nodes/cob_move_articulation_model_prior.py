@@ -31,7 +31,7 @@ class cob_move_articulation_model_prior:
         # get model according to model_id
         execute_model = self.model_prior_object.get_prior_model_by_id(goal.model_id)
         if execute_model == None:
-            err_msg = "No model for found with ID %d"%goal.model_id
+            err_msg = "No model found with ID %d"%goal.model_id
             feedback_.message = err_msg
             self.moveModelPrior_as.publish_feedback(feedback_)
             rospy.errlog(err_msg)
@@ -58,7 +58,7 @@ class cob_move_articulation_model_prior:
         self.models_prior_object.moveModel_ac.send_goal(execute_model)
         self.models_prior_object.moveModel_ac.wait_for_result(rospy.Duration.from_sec(moveModel_goal.target_duration.secs + 0.5))
         # stop cartcollector
-        cartcoll_response = self.models_prior_object.cartcollector_stop()
+        learned_model = self.models_prior_object.cartcollector_stop()
 
         # evaluate moveModel result
         if self.models_prior_object.moveModel_ac.get_result() == 0:
@@ -71,14 +71,20 @@ class cob_move_articulation_model_prior:
             self.moveModelPrior_as.set_aborted(result_)
         self.moveModelPrior_as.publish_feedback(feedback_)
 
-        # evaluation ?
-
+        # TODO evaluation 
+        # check model id of collected cartesian model
+        if learned_model.model.id != execute_model.id:
+            print "Collected model id differs from executed model"
         
-        # decision
+        # TODO decision
 
-        # store to prior
 
-        # save prior to database
+        # TODO store/update to prior
+        self.model_prior_object.store_model_to_prior(self.model_prior_object.compare_evaluation(executed_model, learned_model))
+
+
+        # TODO save prior to database
+        self.model_prior_object.save_prior_to_database(goal.database)
 
 
 def main():

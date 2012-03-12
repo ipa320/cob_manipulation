@@ -35,7 +35,7 @@ class cob_articulation_models_prior(object):
 
         # service clients
         self.toggle_collector = rospy.ServiceProxy('collector_toggle', CartCollectorPrior) #?? change into action!?
-        self.select_model = rospy.ServiceProxy('model_select_eval', TrackModelSrv)
+        self.eval_model = rospy.ServiceProxy('model_select_eval', TrackModelSrv)
         self.store_model = rospy.ServiceProxy('model_store', TrackModelSrv)
         self.set_prior = rospy.ServiceProxy('model_prior_set', SetModelPriorSrv)
         self.get_prior = rospy.ServiceProxy('model_prior_get', GetModelPriorSrv)
@@ -231,3 +231,42 @@ class cob_articulation_models_prior(object):
             raise
         
         return cartcoll_response
+
+
+
+    ######################################################
+    # evaluation method
+    def evaluate_model(self, model):
+        request = TrackModelSrvRequest()
+        request.model = model
+        try:
+            return self.eval_model(request.model)
+        except rospy.ServiceException, e:
+            rospy.infolog("Model evaluation service failed, trying service call again")
+            return self.eval_model(track_model)
+
+
+    def compare_evaluation(self, prior_model, learned_model):
+        try:
+            prior_response = self.evaluate_model(prior_model)
+            learned_response = self.evaluate_model(learned_model)
+            if self.get_parameter_value(learned_response.model, 'bic') <= self.get_parameter_value(prior_response.model, 'bic'):
+                return learned_response
+            else:
+                return prior_response
+
+        except rospy.ServiceException, e:
+            rospy.errlog("Model evaluation service failed: %s"%e)
+            rospy.signal_shutdown("Evaluation Failed")
+        except LookupError, e:
+            rospy.errlog(e)
+            rospy.signal_shutdown("Evaluation Failed")
+
+
+    def get_parameter_value(self, model, param_name):
+        for parameter in model.param:
+            if parameter.name == param_name:
+                return parameter.value
+        raise LookupError("Parameter not %s found"%param_name)
+
+
