@@ -1,3 +1,4 @@
 <launch>
+    <param name="global_frame" value="/map" />
     <rosparam command="load" ns="robot_description_planning" file="$(find cob3_3_arm_navigation)/config/cob3_3_planning_description.yaml" />
 </launch>
