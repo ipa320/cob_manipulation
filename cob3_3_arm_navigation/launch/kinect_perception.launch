@@ -1,5 +1,5 @@
 <launch>
-
+	<include file="$(find cob3_3_arm_navigation)/launch/cob3_3_planning_environment.launch" />
 
      <!-- self filter Kinect points -->
       <node pkg="robot_self_filter" type="self_filter" respawn="true" name="stereo_self_filter" 
@@ -23,7 +23,7 @@
 
     <node pkg="collider" type="collider_node" name="collider_node" respawn="true" output="screen">
      <param name="fixed_frame" type="string" value="base_link" />
-     <param name="resolution" type="double" value="0.025" />
+     <param name="resolution" type="double" value="0.05" />
      <param name="max_range" type="double" value="2.5" />
      <param name="publish_static_over_dynamic_map" value="true" />
      <param name="sensor_model_hit" value= "0.8" />
