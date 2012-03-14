@@ -94,6 +94,7 @@ private:
     ros::Publisher map_pub_;
     ros::Publisher twist_pub_;
     ros::Publisher track_pub_;
+    ros::Publisher model_pub_;
     ros::ServiceServer serv_prismatic;
     ros::ServiceServer serv_rotational;
     ros::ServiceServer serv_model;

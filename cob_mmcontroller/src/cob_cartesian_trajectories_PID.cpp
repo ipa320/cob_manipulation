@@ -18,6 +18,7 @@ cob_cartesian_trajectories::cob_cartesian_trajectories() : as_(n, "moveCirc", bo
     map_pub_ = n.advertise<visualization_msgs::Marker>("/visualization_marker", 1);
     twist_pub_ = n.advertise<visualization_msgs::Marker>("/visualization_marker", 1);   // publish twist to be visualized inj rviz
     track_pub_ = n.advertise<articulation_msgs::TrackMsg>("/track", 1);                 // publish generated trajectory for debugging
+    model_pub_ = n.advertise<articulation_msgs::ModelMsg>("/model", 1);                 // publish given model for debugging
     bRun = false;
     as_.start();
     as2_.start();
@@ -187,6 +188,7 @@ void cob_cartesian_trajectories::moveLinActionCB(const cob_mmcontroller::OpenFri
 // action for model 
 void cob_cartesian_trajectories::moveModelActionCB(const cob_mmcontroller::ArticulationModelGoalConstPtr& goal)
 {
+    articulation_msgs::ModelMsg pub_model;
     mode = goal->model.name;
     std::cout << "Mode:" << mode << "\n";
     targetDuration = goal->target_duration.toSec();
@@ -197,6 +199,13 @@ void cob_cartesian_trajectories::moveModelActionCB(const cob_mmcontroller::Artic
         {
             //wait until finished
         
+            //publish model
+            pub_model = goal->model;
+            pub_model.header.stamp = ros::Time::now();
+            pub_model.header.frame_id = "/map";
+            pub_model.id = 9;
+
+            model_pub_.publish(pub_model);
             //publish feedback
             feedback_.time_left = targetDuration - currentDuration;
             as_model_.publishFeedback(feedback_);
