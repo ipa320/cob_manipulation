@@ -189,6 +189,14 @@ void cob_cartesian_trajectories::moveLinActionCB(const cob_mmcontroller::OpenFri
 void cob_cartesian_trajectories::moveModelActionCB(const cob_mmcontroller::ArticulationModelGoalConstPtr& goal)
 {
     articulation_msgs::ModelMsg pub_model;
+    //tf broadcaster 
+    static tf::TransformBroadcaster br;
+    tf::Transform transform;
+
+    //set up articulation frame
+    transform.setOrigin( tf::Vector3(getParamValue("rot_center.x"), getParamValue("rot_center.y"), getParamValue("rot_center.z")) );
+    transform.setRotation( tf::Quaternion(getParamValue("rot_axis.x"), getParamValue("rot_axis.y"), getParamValue("rot_axis.z"), getParamValue("rot_axis.w")) );
+
     mode = goal->model.name;
     std::cout << "Mode:" << mode << "\n";
     targetDuration = goal->target_duration.toSec();
@@ -198,12 +206,13 @@ void cob_cartesian_trajectories::moveModelActionCB(const cob_mmcontroller::Artic
         while(bRun)
         {
             //wait until finished
+            //publish articulation frame
+            br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "/map", "/rotation_center"));
         
             //publish model
             pub_model = goal->model;
             pub_model.header.stamp = ros::Time::now();
             pub_model.header.frame_id = "/map";
-            pub_model.id = 9;
 
             model_pub_.publish(pub_model);
             //publish feedback
@@ -449,7 +458,7 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
     rot_center_x = getParamValue("rot_center.x");
     rot_center_y = getParamValue("rot_center.y");
     rot_center_z = getParamValue("rot_center.z");
-    
+
     // calculating target angle with respect to the time
     partial_angle = angle * (dt/targetDuration);
     

@@ -6,6 +6,7 @@
 #include <geometry_msgs/Pose.h>
 #include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
 #include <tf_conversions/tf_kdl.h>
+#include <tf/transform_broadcaster.h>
 #include <sensor_msgs/JointState.h>
 #include <cob_srvs/Trigger.h>
 #include <trajectory_msgs/JointTrajectory.h>
