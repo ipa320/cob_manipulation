@@ -193,21 +193,32 @@ void cob_cartesian_trajectories::moveModelActionCB(const cob_mmcontroller::Artic
     static tf::TransformBroadcaster br;
     tf::Transform transform;
 
-    //set up articulation frame
-    transform.setOrigin( tf::Vector3(getParamValue("rot_center.x"), getParamValue("rot_center.y"), getParamValue("rot_center.z")) );
-    transform.setRotation( tf::Quaternion(getParamValue("rot_axis.x"), getParamValue("rot_axis.y"), getParamValue("rot_axis.z"), getParamValue("rot_axis.w")) );
-
     mode = goal->model.name;
     std::cout << "Mode:" << mode << "\n";
     targetDuration = goal->target_duration.toSec();
     params = goal->model.params;
+
+    //set up articulation frame
+    if (mode == "rotational")
+    {
+        transform.setOrigin( tf::Vector3(getParamValue("rot_center.x"), getParamValue("rot_center.y"), getParamValue("rot_center.z")) );
+        transform.setRotation( tf::Quaternion(getParamValue("rot_axis.x"), getParamValue("rot_axis.y"), getParamValue("rot_axis.z"), getParamValue("rot_axis.w")) );
+    }
+    else
+    {
+        transform.setOrigin( tf::Vector3(getParamValue("rigid_position.x"), getParamValue("rigid_position.y"), getParamValue("rigid_position.z")) );
+        transform.setRotation( tf::Quaternion(getParamValue("rigid_orientation.x"), getParamValue("rigid_orientation.y"), getParamValue("rigid_orientation.z"), getParamValue("rigid_orientation.w")) );
+    }
+    //publish articulation frame
+    br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "/map", "/articulation_center"));
+
     if(start())
     {
         while(bRun)
         {
             //wait until finished
-            //publish articulation frame
-            br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "/map", "/rotation_center"));
+            //publish articulation frame TODO: necessary
+            br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "/map", "/articulation_center"));
         
             //publish model
             pub_model = goal->model;
