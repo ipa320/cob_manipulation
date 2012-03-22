@@ -449,7 +449,7 @@ void cob_cartesian_trajectories::getPriTarget(double dt, KDL::Frame &F_target)
     std::cout << "F_X: " << F_target.p.x() << " F_Y: " << F_target.p.y() << " F_Z: " << F_target.p.z() << "\n";
 }
 
-//rotational trajectory from rot_axis, rot_radius and angle
+/*//rotational trajectory from rot_axis, rot_radius and angle
 void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
 {
     double angle;
@@ -517,7 +517,7 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
     cout << "Start R-P-Y: " << start_roll << " " << start_pitch << " " << start_yaw << "\n";
     cout << "Target R-P-Y: " << target_roll << " " << target_pitch << " " << target_yaw << "\n";
     cout << "Current Duration: " << dt << "\n";
-}
+}*/
 
 // to avoid the jump from positive to negative and the other way around 
 // when crossing pi or -pi for roll and yaw angles and pi/2 and -pi/2 for pitch
@@ -548,7 +548,7 @@ double cob_cartesian_trajectories::unwrapRPY(std::string axis, double angle)
     return unwrapped_angle;
 }
 
-/*//rotational 6D-trajectory from rot_axis, rot_radius and angle
+//rotational 6D-trajectory from rot_axis, rot_radius and angle
 void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
 {
     double angle;
@@ -563,12 +563,11 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
     double rot_axis_w;
     KDL::Frame F_articulation;
     KDL::Frame F_track;
-    //KDL::Rotation rot;
-    //KDL::Vector rot_vec;
-    //KDL::Rotation temp_rot;
-    
-    //double alpha, d1, d2, d3;
-    //double norm;
+    KDL::Frame F_track_start;
+    KDL::Frame F_EE_start;
+    Eigen::Hyperplane<double, 3> rot_plane;
+    Eigen::Hyperplane<double, 3> door_plane;
+    Eigen::ParametrizedLine<double, 3> articulation_rot_axis;
     
     angle = getParamValue("action");
     rot_radius = getParamValue("rot_radius");
@@ -587,7 +586,113 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
     F_articulation.p.x(rot_center_x);
     F_articulation.p.y(rot_center_y);
     F_articulation.p.z(rot_center_z);
-    F_articulation.M.Quaternion(rot_axis_x, rot_axis_y, rot_axis_z, rot_axis_w);    //TODO: check if z-axis = articulation axis
+    F_articulation.M = KDL::Rotation::Quaternion(rot_axis_x, rot_axis_y, rot_axis_z, rot_axis_w);    //TODO: check if z-axis = articulation axis
+    std::cout << "F_articulation" <<  F_articulation << "\n"; //debug
+
+    // EE start position is sdh_tip_link frame
+    F_EE_start = F_start;
+
+    // origin of track start frame correlates with EE start
+    F_track_start.p = F_EE_start.p;
+    // TODO distance to articulation == rot_radius!?
+
+    // z-axis of articulation frame in global coordinates to use as normal for rotation plane
+    KDL::Vector articulation_axis_z(0, 0, 1);
+    std::cout << "articulation_axis_z" << "\n" <<  articulation_axis_z << "\n"; //debug
+    KDL::Vector rot_axis = F_articulation.M.Inverse()*articulation_axis_z; // TODO check
+    std::cout << "rot_axis" << "\n" <<  rot_axis << "\n"; //debug
+    Eigen::Vector3d articulation_Z(rot_axis.x(), rot_axis.y(), rot_axis.z());
+    std::cout << "articulation_Z" << "\n" <<  articulation_Z << "\n"; //debug
+
+    // origin of track start frame as point in plane of rotation
+    Eigen::Vector3d track_start_O(F_track_start.p.x(), F_track_start.p.y(), F_track_start.p.z());
+    std::cout << "track_start_O" << "\n" <<  track_start_O << "\n"; //debug
+
+    // rotation plane
+    rot_plane = Eigen::Hyperplane<double, 3>(articulation_Z, track_start_O);
+    std::cout << "rot_plane_offset" << "\n" <<  rot_plane.offset() << "\n"; //debug
+    std::cout << "rot_plane_coeffs" << "\n" <<  rot_plane.coeffs() << "\n"; //debug
+    std::cout << "rot_plane_distance to track_start" << "\n" <<  rot_plane.absDistance(track_start_O) << "\n"; //debug
+
+    // origin of articulation frame
+    Eigen::Vector3d articulation_O(F_articulation.p.x(), F_articulation.p.y(), F_articulation.p.z());
+    std::cout << "rot_plane_distance to articulation_O" << "\n" <<  rot_plane.absDistance(articulation_O) << "\n"; //debug
+    std::cout << "articulation_O" << "\n" <<  articulation_O << "\n"; //debug
+
+    // door plane
+    door_plane = Eigen::Hyperplane<double, 3>::Through(articulation_O, articulation_O + articulation_Z, track_start_O);
+    std::cout << "door_plane_offset" << "\n" <<  door_plane.offset() << "\n"; //debug
+    std::cout << "door_plane_coeffs" << "\n" <<  door_plane.coeffs() << "\n"; //debug
+    std::cout << "door_plane_distance to articulation_O" << "\n" <<  door_plane.absDistance(articulation_O) << "\n"; //debug
+    std::cout << "door_plane_distance to track_start" << "\n" <<  door_plane.absDistance(track_start_O) << "\n"; //debug
+
+    // intersection line of both planes
+    Eigen::Vector3d direction = rot_plane.normal().cross(door_plane.normal());
+    if (direction.norm() < 1e-6)
+        ROS_ERROR("Planes parallel");
+    //TODO origin neccessary????
+
+    double n1_n1 = rot_plane.normal().dot(rot_plane.normal());
+    double n1_n2 = rot_plane.normal().dot(door_plane.normal());
+    double n2_n2 = door_plane.normal().dot(door_plane.normal());
+    double determinant = n1_n1*n2_n2 - n1_n2*n1_n2;
+
+    double c1 = (rot_plane.offset()*n2_n2 - door_plane.offset()*n1_n2) / determinant;
+    double c2 = (door_plane.offset()*n1_n1 - rot_plane.offset()*n1_n2) / determinant;
+
+    Eigen::Vector3d origin = c1*rot_plane.normal() + c2*door_plane.normal() + direction / direction.norm(); //TODO right?????
+
+    Eigen::ParametrizedLine<double, 3> intersection(origin, direction);
+    std::cout << "intersection.origin" << "\n" <<  intersection.origin() << "\n"; //debug
+    std::cout << "intersection.direction" << "\n" <<  intersection.direction() << "\n"; //debug
+    std::cout << "intersection.direction normalized" << "\n" <<  intersection.direction()/intersection.direction().norm() << "\n"; //debug
+    // get maximal coeff of vector
+    int index;
+    double maxCoeff_intersect = intersection.direction().maxCoeff(&index);
+    std::cout << "max intersection coeff" << "\n" <<  maxCoeff_intersect << "\t" << index << "\n"; //debug
+
+    // translation from EE start to articulation in global coord
+    KDL::Vector trans_ee_art = F_articulation.p - F_EE_start.p;
+    trans_ee_art.Normalize();
+    std::cout << "trans_ee_art" << "\n" <<  trans_ee_art << "\n"; //debug
+    
+    if (sign(maxCoeff_intersect) != sign(trans_ee_art[index]))
+        intersection.direction() *= (-1.0);
+    std::cout << "intersection.direction" << "\n" <<  intersection.direction() << "\n"; //debug
+    std::cout << "intersection.direction normalized" << "\n" <<  intersection.direction()/intersection.direction().norm() << "\n"; //debug
+    
+
+    // set up orientation of track start frame
+    //
+    // projection of intersection line on EE frame planes to calculate RPY angles
+    //
+    // transform intersection.direction into EE frame
+    KDL::Vector intersection_EE = F_EE_start.M*KDL::Vector(intersection.direction()[0], intersection.direction()[1], intersection.direction()[2]);
+    std::cout << "intersection_EE" << "\n" <<  intersection_EE << "\n"; //debug
+    Eigen::ParametrizedLine<double, 3>::VectorType intersection_direction_EE = Eigen::Vector3d(intersection_EE.x(), intersection_EE.y(), intersection_EE.z());
+    std::cout << "intersection_direction_EE" << "\n" <<  intersection_direction_EE << "\n"; //debug
+    Eigen::Vector3d axis_x = Eigen::Vector3d(1, 0, 0);
+    Eigen::Vector3d axis_y = Eigen::Vector3d(0, 1, 0);
+    Eigen::Vector3d axis_z = Eigen::Vector3d(0, 0, 1);
+    std::cout << "axis_x" << "\n" <<  axis_x << "\n"; //debug
+    std::cout << "axis_y" << "\n" <<  axis_y << "\n"; //debug
+    std::cout << "axis_z" << "\n" <<  axis_z << "\n"; //debug
+    // pitch angle
+    Eigen::ParametrizedLine<double, 3> helpLine_y = Eigen::ParametrizedLine<double, 3>(intersection_direction_EE, axis_y);
+    Eigen::Hyperplane<double, 3> plane_xz = Eigen::Hyperplane<double, 3>(axis_y, axis_x);
+    //Eigen::VectorXd intersection_point_y = plane_xz.intersection(helpLine_y); 
+    double intersection_y = helpLine_y.intersection(plane_xz); 
+    std::cout << "intersection_y" << "\n" <<  intersection_y << "\n"; //debug
+    Eigen::Vector3d intersection_point_y = intersection.direction() + intersection_y*axis_x;
+    std::cout << "intersection_point_y" << "\n" <<  intersection_point_y << "\n"; //debug
+
+    // project x-axis on auxiliary vector
+    double pitch = acos((axis_x.dot(intersection_point_y)) / intersection_point_y.squaredNorm());
+    std::cout << "pitch" << "\n" <<  pitch << "\n"; //debug
+
+    bRun = false;
+    //F_track_start.M()
+
 
     // creating trajectory frame w.r.t. the articulation frame
     // orientation is like sdh_tip_link frame
@@ -599,43 +704,7 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
     // transformation of trajectory frame into base_link frame ??? map frame
     F_target = F_track*F_articulation;       // FT_a*FA_bl
 
-
-
-
-    --------------old approach------------------
-    //rot.Quaternion(rot_axis_x, rot_axis_y, rot_axis_z, rot_axis_w);
-    //rot_vec = rot.GetRot();
-    
-    //Calculation of vector to rotate around 
-    alpha = 2 * asin(rot_axis_w);
-    d1 = rot_axis_x / sin(alpha/2);
-    d2 = rot_axis_y / sin(alpha/2);
-    d3 = rot_axis_z / sin(alpha/2);
-    cout << "d1: " << d1 << " d2: " << d2 << " d3: " << d3 << "\n";
-    rot_vec.x(d1);
-    rot_vec.y(d2);
-    rot_vec.z(d3);
-    norm = rot_vec.Normalize(0.1);
-    
-    cout << "Norm: " << norm << "\n";
-    
-    //cout << "Rotation: " << rot << "\n";
-    cout << "Rotation vector: " << rot_vec << "\n";
-    
-    partial_angle = angle * (dt/targetDuration);
-    
-    cout << "Partial Angle: " << partial_angle << "\n";
-    
-    
-    
-    
-    temp_rot = Rotation::Rot(rot_vec, partial_angle);
-    temp_rot = temp_rot*F_start.M;
-    
-    cout << "temp_rot: " << "\n" << temp_rot << "\n";
-    
-    F_target.M = temp_rot;
-}*/
+}
 
 
 double cob_cartesian_trajectories::getParamValue(std::string param_name)

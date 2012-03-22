@@ -18,6 +18,7 @@
 #include <visualization_msgs/MarkerArray.h>
 #include <math.h>
 #include <map>
+#include <Eigen/Geometry>
 
 #include <articulation_msgs/ParamMsg.h>
 #include <articulation_msgs/TrackMsg.h>
