@@ -146,5 +146,7 @@ private:
     std::vector<double> jointStates;
 
     map<std::string, double> last_rpy_angles;       // stores the last angles for R-P-Y unwrapping function
+
+    tf::TransformBroadcaster br;
 };
 

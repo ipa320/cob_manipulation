@@ -32,6 +32,8 @@ cob_cartesian_trajectories::cob_cartesian_trajectories() : as_(n, "moveCirc", bo
     double const PI = 4.0*std::atan(1.0);
 
     getJointLimits(UpperLimits, LowerLimits);   // get arm joint limits from topic /robot_description
+
+    tf::TransformBroadcaster br;
 }
 
 
@@ -190,8 +192,8 @@ void cob_cartesian_trajectories::moveModelActionCB(const cob_mmcontroller::Artic
 {
     articulation_msgs::ModelMsg pub_model;
     //tf broadcaster 
-    static tf::TransformBroadcaster br;
-    tf::Transform transform;
+    //static tf::TransformBroadcaster br;
+    tf::Transform transform_articulation;
 
     mode = goal->model.name;
     std::cout << "Mode:" << mode << "\n";
@@ -201,16 +203,16 @@ void cob_cartesian_trajectories::moveModelActionCB(const cob_mmcontroller::Artic
     //set up articulation frame
     if (mode == "rotational")
     {
-        transform.setOrigin( tf::Vector3(getParamValue("rot_center.x"), getParamValue("rot_center.y"), getParamValue("rot_center.z")) );
-        transform.setRotation( tf::Quaternion(getParamValue("rot_axis.x"), getParamValue("rot_axis.y"), getParamValue("rot_axis.z"), getParamValue("rot_axis.w")) );
+        transform_articulation.setOrigin( tf::Vector3(getParamValue("rot_center.x"), getParamValue("rot_center.y"), getParamValue("rot_center.z")) );
+        transform_articulation.setRotation( tf::Quaternion(getParamValue("rot_axis.x"), getParamValue("rot_axis.y"), getParamValue("rot_axis.z"), getParamValue("rot_axis.w")) );
     }
     else
     {
-        transform.setOrigin( tf::Vector3(getParamValue("rigid_position.x"), getParamValue("rigid_position.y"), getParamValue("rigid_position.z")) );
-        transform.setRotation( tf::Quaternion(getParamValue("rigid_orientation.x"), getParamValue("rigid_orientation.y"), getParamValue("rigid_orientation.z"), getParamValue("rigid_orientation.w")) );
+        transform_articulation.setOrigin( tf::Vector3(getParamValue("rigid_position.x"), getParamValue("rigid_position.y"), getParamValue("rigid_position.z")) );
+        transform_articulation.setRotation( tf::Quaternion(getParamValue("rigid_orientation.x"), getParamValue("rigid_orientation.y"), getParamValue("rigid_orientation.z"), getParamValue("rigid_orientation.w")) );
     }
     //publish articulation frame
-    br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "/map", "/articulation_center"));
+    br.sendTransform(tf::StampedTransform(transform_articulation, ros::Time::now(), "/map", "/articulation_center"));
 
     if(start())
     {
@@ -218,7 +220,7 @@ void cob_cartesian_trajectories::moveModelActionCB(const cob_mmcontroller::Artic
         {
             //wait until finished
             //publish articulation frame TODO: necessary
-            br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "/map", "/articulation_center"));
+            br.sendTransform(tf::StampedTransform(transform_articulation, ros::Time::now(), "/map", "/articulation_center"));
         
             //publish model
             pub_model = goal->model;
@@ -565,9 +567,11 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
     KDL::Frame F_track;
     KDL::Frame F_track_start;
     KDL::Frame F_EE_start;
-    Eigen::Hyperplane<double, 3> rot_plane;
     Eigen::Hyperplane<double, 3> door_plane;
     Eigen::ParametrizedLine<double, 3> articulation_rot_axis;
+    //tf broadcaster 
+    //static tf::TransformBroadcaster br_track;
+    tf::Transform transform_track_start;
     
     angle = getParamValue("action");
     rot_radius = getParamValue("rot_radius");
@@ -591,15 +595,16 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
 
     // EE start position is sdh_tip_link frame
     F_EE_start = F_start;
+    std::cout << "F_EE_start" <<  F_EE_start << "\n"; //debug
 
     // origin of track start frame correlates with EE start
     F_track_start.p = F_EE_start.p;
     // TODO distance to articulation == rot_radius!?
 
     // z-axis of articulation frame in global coordinates to use as normal for rotation plane
-    KDL::Vector articulation_axis_z(0, 0, 1);
-    std::cout << "articulation_axis_z" << "\n" <<  articulation_axis_z << "\n"; //debug
-    KDL::Vector rot_axis = F_articulation.M.Inverse()*articulation_axis_z; // TODO check
+    //KDL::Vector articulation_axis_z(0, 0, 1);
+    //std::cout << "articulation_axis_z" << "\n" <<  articulation_axis_z << "\n"; //debug
+    KDL::Vector rot_axis = F_articulation.M*KDL::Vector(0, 0, 1); //articulation_axis_z; // TODO check
     std::cout << "rot_axis" << "\n" <<  rot_axis << "\n"; //debug
     Eigen::Vector3d articulation_Z(rot_axis.x(), rot_axis.y(), rot_axis.z());
     std::cout << "articulation_Z" << "\n" <<  articulation_Z << "\n"; //debug
@@ -608,15 +613,9 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
     Eigen::Vector3d track_start_O(F_track_start.p.x(), F_track_start.p.y(), F_track_start.p.z());
     std::cout << "track_start_O" << "\n" <<  track_start_O << "\n"; //debug
 
-    // rotation plane
-    rot_plane = Eigen::Hyperplane<double, 3>(articulation_Z, track_start_O);
-    std::cout << "rot_plane_offset" << "\n" <<  rot_plane.offset() << "\n"; //debug
-    std::cout << "rot_plane_coeffs" << "\n" <<  rot_plane.coeffs() << "\n"; //debug
-    std::cout << "rot_plane_distance to track_start" << "\n" <<  rot_plane.absDistance(track_start_O) << "\n"; //debug
-
     // origin of articulation frame
     Eigen::Vector3d articulation_O(F_articulation.p.x(), F_articulation.p.y(), F_articulation.p.z());
-    std::cout << "rot_plane_distance to articulation_O" << "\n" <<  rot_plane.absDistance(articulation_O) << "\n"; //debug
+    //std::cout << "rot_plane_distance to articulation_O" << "\n" <<  rot_plane.absDistance(articulation_O) << "\n"; //debug
     std::cout << "articulation_O" << "\n" <<  articulation_O << "\n"; //debug
 
     // door plane
@@ -626,72 +625,130 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
     std::cout << "door_plane_distance to articulation_O" << "\n" <<  door_plane.absDistance(articulation_O) << "\n"; //debug
     std::cout << "door_plane_distance to track_start" << "\n" <<  door_plane.absDistance(track_start_O) << "\n"; //debug
 
-    // intersection line of both planes
-    Eigen::Vector3d direction = rot_plane.normal().cross(door_plane.normal());
-    if (direction.norm() < 1e-6)
-        ROS_ERROR("Planes parallel");
-    //TODO origin neccessary????
+    // perpendicular of articulation_Z through track_start_O
+    //Eigen::Vector3d perpendicular = rot_plane.normal().cross(door_plane.normal());
+    Eigen::Vector3d perpendicular = articulation_Z.cross(door_plane.normal());
+    std::cout << "perdendicular" << "\n" <<  perpendicular << "\n"; //debug
+    if (perpendicular.norm() < 1e-6)
+        ROS_ERROR("Normals are parallel");
 
-    double n1_n1 = rot_plane.normal().dot(rot_plane.normal());
-    double n1_n2 = rot_plane.normal().dot(door_plane.normal());
-    double n2_n2 = door_plane.normal().dot(door_plane.normal());
-    double determinant = n1_n1*n2_n2 - n1_n2*n1_n2;
-
-    double c1 = (rot_plane.offset()*n2_n2 - door_plane.offset()*n1_n2) / determinant;
-    double c2 = (door_plane.offset()*n1_n1 - rot_plane.offset()*n1_n2) / determinant;
-
-    Eigen::Vector3d origin = c1*rot_plane.normal() + c2*door_plane.normal() + direction / direction.norm(); //TODO right?????
-
-    Eigen::ParametrizedLine<double, 3> intersection(origin, direction);
-    std::cout << "intersection.origin" << "\n" <<  intersection.origin() << "\n"; //debug
-    std::cout << "intersection.direction" << "\n" <<  intersection.direction() << "\n"; //debug
-    std::cout << "intersection.direction normalized" << "\n" <<  intersection.direction()/intersection.direction().norm() << "\n"; //debug
-    // get maximal coeff of vector
-    int index;
-    double maxCoeff_intersect = intersection.direction().maxCoeff(&index);
-    std::cout << "max intersection coeff" << "\n" <<  maxCoeff_intersect << "\t" << index << "\n"; //debug
+    std::cout << "perdendicular norm" << "\n" <<  perpendicular.norm() << "\n"; //debug
+    std::cout << "perpendicular normalized" << "\n" <<  perpendicular/perpendicular.norm() << "\n"; //debug
 
     // translation from EE start to articulation in global coord
     KDL::Vector trans_ee_art = F_articulation.p - F_EE_start.p;
     trans_ee_art.Normalize();
     std::cout << "trans_ee_art" << "\n" <<  trans_ee_art << "\n"; //debug
+
+    // transform trans_ee_art into F_EE_start
+    KDL::Vector trans_ee_art_EE = F_EE_start.M.Inverse()*trans_ee_art;
+    std::cout << "trans_ee_art_EE" << "\n" <<  trans_ee_art_EE << "\n"; //debug
+
+    // transform perpendicular into EE frame
+    KDL::Vector perpendicular_EE_KDL = F_EE_start.M.Inverse()*KDL::Vector(perpendicular[0], perpendicular[1], perpendicular[2]);
+    std::cout << "perpendicular_EE_KDL" << "\n" <<  perpendicular_EE_KDL << "\n"; //debug
+    Eigen::Vector3d perpendicular_EE = Eigen::Vector3d(perpendicular_EE_KDL.x(), perpendicular_EE_KDL.y(), perpendicular_EE_KDL.z());
+    std::cout << "perpendicular_EE" << "\n" <<  perpendicular_EE << "\n"; //debug
+
+    // get axis pointing on articulation
+    int axis;
+    Eigen::Vector3d trans_EE = Eigen::Vector3d(trans_ee_art_EE.x(), trans_ee_art_EE.y(), trans_ee_art_EE.z());
+    trans_EE.maxCoeff(&axis);  // index correlates with axis
+    std::cout << "axis" << "\n" << axis << "\n"; //debug
+
+    // get maximal coeff of vector
+    int index;
+    double maxCoeff_perpendicular_EE = perpendicular_EE.maxCoeff(&index);
+    std::cout << "max perpendicular coeff" << "\n" <<  maxCoeff_perpendicular_EE << "\t" << index << "\n"; //debug
+
+    // check and set direction 
+    if (sign(maxCoeff_perpendicular_EE) != sign(trans_EE[index]))
+        perpendicular *= (-1.0);
+        perpendicular_EE *= (-1.0);
+    std::cout << "perpendicular" << "\n" <<  perpendicular << "\n"; //debug
+    std::cout << "perpendicular_EE" << "\n" <<  perpendicular_EE << "\n"; //debug
+
+    // collect vectors for F_track_start orientation
+    map<int, KDL::Vector> track_start_rot;
+
+    track_start_rot[axis] = KDL::Vector(perpendicular[0], perpendicular[1], perpendicular[2]);
+    // check axis direction
+    std::cout << "axis mod" << "\n" << axis%1 << "\n"; //debug
+    KDL::Vector rot_axis_EE = F_EE_start*rot_axis;
+    if (rot_axis_EE.z() < 0.0)
+        track_start_rot[abs(axis-1)] = (-1.0)*rot_axis;
+    else
+        track_start_rot[abs(axis-1)] = rot_axis;
+    if (axis == 0)
+    {
+        Eigen::Vector3d track_start_Z = perpendicular.cross(articulation_Z);
+        track_start_rot[2] = KDL::Vector(track_start_Z[0], track_start_Z[1], track_start_Z[2]);
+    }   
+    else if (axis == 1)
+    {
+        Eigen::Vector3d track_start_Z = articulation_Z.cross(perpendicular);
+        track_start_rot[2] = KDL::Vector(track_start_Z[0], track_start_Z[1], track_start_Z[2]);
+    }
+    else
+        ROS_ERROR("Wrong axis");
+    std::cout << "rot vector x" << "\n" << track_start_rot[0] << "\n"; //debug
+    std::cout << "rot vector y" << "\n" << track_start_rot[1] << "\n"; //debug
+    std::cout << "rot vector z" << "\n" << track_start_rot[2] << "\n"; //debug
+    F_track_start.M = KDL::Rotation(track_start_rot[0], track_start_rot[1], track_start_rot[2]);
+    std::cout << "F_track_start" << "\n" << F_track_start << "\n"; //debug
+
+    // set up transform to broadcast
+    for (unsigned int i = 0; i < 5; i++)
+    {
+        tf::TransformKDLToTF(F_track_start, transform_track_start);
+        br.sendTransform(tf::StampedTransform(transform_track_start, ros::Time::now(), "/map", "/track_start"));
+        sleep(0.1);
+    }
+
+    /*// collect vectors for F_track_start orientation
+    KDL::Vector track_start_rot_x;
+    KDL::Vector track_start_rot_y;
+    KDL::Vector track_start_rot_z;
+    //TODO simplification: vector of KDL::Vectors, choice of axis simpler and choice of second axis via modulo
     
-    if (sign(maxCoeff_intersect) != sign(trans_ee_art[index]))
-        intersection.direction() *= (-1.0);
-    std::cout << "intersection.direction" << "\n" <<  intersection.direction() << "\n"; //debug
-    std::cout << "intersection.direction normalized" << "\n" <<  intersection.direction()/intersection.direction().norm() << "\n"; //debug
+    if (axis == 0)
+    {
+        track_start_rot_x = KDL::Vector(perpendicular[0], perpendicular[1], perpendicular[2]);
+        track_start_rot_y = rot_axis;
+        // get z-axis 
+        Eigen::Vector3d track_start_Z = perpendicular.cross(articulation_Z);
+        track_start_rot_z = KDL::Vector(track_start_Z[0], track_start_Z[1], track_start_Z[2])
+    }   
+    else if (axis == 1)
+    {
+        track_start_rot_y = rot_axis;
+        track_start_rot_y = KDL::Vector(perpendicular[0], perpendicular[1], perpendicular[2]);
+        // get z-axis 
+        Eigen::Vector3d track_start_Z = articulation_Z.cross(perpendicular);
+        track_start_rot_z = KDL::Vector(track_start_Z[0], track_start_Z[1], track_start_Z[2])
+    }
+    else
+        ROS_ERROR("Wrong axis");
+
+    // Normalize
+    track_start_rot_x.Normalize();
+    track_start_rot_y.Normalize();
+    track_start_rot_z.Normalize();
+
+    // check of orientation is right -> z-axis 
+    KDL::Vector track_start_rot_z_TS = F_EE_start*track_start_rot_z;
     
+    if (sign(Eigen::Vector3d(track_start_rot_z_TS.x(), track_start_rot_z_TS.y(), track_start_rot_z_TS.z()).maxCoeff()) < 0.0)
+    {
+        track_start_rot_y *= (-1.0);
+        // get z-axis 
+        Eigen::Vector3d track_start_Z = articulation_Z.cross(perpendicular);
+        track_start_rot_z = KDL::Vector(track_start_Z[0], track_start_Z[1], track_start_Z[2])
+    }
 
-    // set up orientation of track start frame
-    //
-    // projection of intersection line on EE frame planes to calculate RPY angles
-    //
-    // transform intersection.direction into EE frame
-    KDL::Vector intersection_EE = F_EE_start.M*KDL::Vector(intersection.direction()[0], intersection.direction()[1], intersection.direction()[2]);
-    std::cout << "intersection_EE" << "\n" <<  intersection_EE << "\n"; //debug
-    Eigen::ParametrizedLine<double, 3>::VectorType intersection_direction_EE = Eigen::Vector3d(intersection_EE.x(), intersection_EE.y(), intersection_EE.z());
-    std::cout << "intersection_direction_EE" << "\n" <<  intersection_direction_EE << "\n"; //debug
-    Eigen::Vector3d axis_x = Eigen::Vector3d(1, 0, 0);
-    Eigen::Vector3d axis_y = Eigen::Vector3d(0, 1, 0);
-    Eigen::Vector3d axis_z = Eigen::Vector3d(0, 0, 1);
-    std::cout << "axis_x" << "\n" <<  axis_x << "\n"; //debug
-    std::cout << "axis_y" << "\n" <<  axis_y << "\n"; //debug
-    std::cout << "axis_z" << "\n" <<  axis_z << "\n"; //debug
-    // pitch angle
-    Eigen::ParametrizedLine<double, 3> helpLine_y = Eigen::ParametrizedLine<double, 3>(intersection_direction_EE, axis_y);
-    Eigen::Hyperplane<double, 3> plane_xz = Eigen::Hyperplane<double, 3>(axis_y, axis_x);
-    //Eigen::VectorXd intersection_point_y = plane_xz.intersection(helpLine_y); 
-    double intersection_y = helpLine_y.intersection(plane_xz); 
-    std::cout << "intersection_y" << "\n" <<  intersection_y << "\n"; //debug
-    Eigen::Vector3d intersection_point_y = intersection.direction() + intersection_y*axis_x;
-    std::cout << "intersection_point_y" << "\n" <<  intersection_point_y << "\n"; //debug
-
-    // project x-axis on auxiliary vector
-    double pitch = acos((axis_x.dot(intersection_point_y)) / intersection_point_y.squaredNorm());
-    std::cout << "pitch" << "\n" <<  pitch << "\n"; //debug
-
-    bRun = false;
-    //F_track_start.M()
+    F_track_start.M = KDL::Rotation(track_start_rot_x, track_start_rot_y, track_start_rot_z);
+    */
+    //bRun = false;
 
 
     // creating trajectory frame w.r.t. the articulation frame
@@ -702,7 +759,7 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
     F_track.M.RPY(-PI/2.0, -(PI/2.0+partial_angle), 0.0);  //TODO: check orientation //depending also on handle orientation
 
     // transformation of trajectory frame into base_link frame ??? map frame
-    F_target = F_track*F_articulation;       // FT_a*FA_bl
+    F_target = F_start;//F_track*F_articulation;       // FT_a*FA_bl
 
 }
 
@@ -894,6 +951,7 @@ void cob_cartesian_trajectories::sendMarkers()
 
 int main(int argc, char **argv)
 {
+
     ros::init(argc, argv, "cob_cartesian_trajectories");
     cob_cartesian_trajectories controller ;
     ros::spin();
