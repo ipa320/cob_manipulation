@@ -34,6 +34,8 @@ cob_cartesian_trajectories::cob_cartesian_trajectories() : as_(n, "moveCirc", bo
     getJointLimits(UpperLimits, LowerLimits);   // get arm joint limits from topic /robot_description
 
     tf::TransformBroadcaster br;
+
+    //int axis_center;    // axis of F_track_start pointing to the rotational axis of articulation
     
     bTrack_start = false;
     debug = true;
@@ -564,6 +566,7 @@ void cob_cartesian_trajectories::getRotStart(KDL::Frame &F_track_start)
     double rot_axis_y;
     double rot_axis_z;
     double rot_axis_w;
+    double rot_radius_actual;
 
     int axis_no;
     int index_maxCoeff;
@@ -583,7 +586,7 @@ void cob_cartesian_trajectories::getRotStart(KDL::Frame &F_track_start)
 
     //tf transform
     tf::Transform transform_track_start;
-
+    
     rot_center_x = getParamValue("rot_center.x");
     rot_center_y = getParamValue("rot_center.y");
     rot_center_z = getParamValue("rot_center.z");
@@ -605,13 +608,9 @@ void cob_cartesian_trajectories::getRotStart(KDL::Frame &F_track_start)
     // origin of track start frame correlates with EE start
     F_track_start.p = F_EE_start.p;
 
-    // TODO distance to articulation == rot_radius!?
-
     // z-axis of articulation frame in global coordinates to use as normal for rotation plane
-    KDL::Vector rot_axis = F_articulation.M*KDL::Vector(0, 0, 1); // TODO check
     KDL::Vector articulation_Z_KDL = F_articulation.M.UnitZ(); // TODO check
     vector3dKDLToEigen(articulation_Z_KDL, articulation_Z);
-    std::cout << "rot_axis" << "\n" <<  rot_axis << "\n"; //debug
     std::cout << "articulation_Z_KDL" << "\n" <<  articulation_Z_KDL << "\n"; //debug
     std::cout << "articulation_Z" << "\n" <<  articulation_Z << "\n"; //debug
 
@@ -641,7 +640,6 @@ void cob_cartesian_trajectories::getRotStart(KDL::Frame &F_track_start)
 
     // translation from EE start to articulation in global coord
     KDL::Vector trans_ee_art_KDL = F_articulation.p - F_EE_start.p;
-    trans_ee_art_KDL.Normalize();
     std::cout << "trans_ee_art_KDL" << "\n" <<  trans_ee_art_KDL << "\n"; //debug
 
     // transform trans_ee_art into F_EE_start
@@ -653,6 +651,14 @@ void cob_cartesian_trajectories::getRotStart(KDL::Frame &F_track_start)
     std::cout << "perpendicular_EE_KDL" << "\n" <<  perpendicular_EE_KDL << "\n"; //debug
     vector3dKDLToEigen(perpendicular_EE_KDL, perpendicular_EE);
     std::cout << "perpendicular_EE" << "\n" <<  perpendicular_EE << "\n"; //debug
+
+    // get actual rot_radius TODO
+    rot_radius_actual = dot(trans_ee_art_KDL_EE, perpendicular_EE_KDL);
+    std::cout << "rot_radius_actual" << "\n" <<  rot_radius_actual << "\n"; //debug
+
+    // normalize trans_ee_art_KDL(_EE)
+    trans_ee_art_KDL.Normalize();
+    trans_ee_art_KDL_EE.Normalize();
 
     // get axis pointing on articulation
     vector3dKDLToEigen(trans_ee_art_KDL_EE, trans_ee_art_EE);
@@ -673,13 +679,12 @@ void cob_cartesian_trajectories::getRotStart(KDL::Frame &F_track_start)
     // collect vectors for F_track_start orientation
     vector3dEigenToKDL(perpendicular, track_start_rot[axis_no]);
     // check axis direction
-    std::cout << "axis mod" << "\n" << axis_no%1 << "\n"; //debug
-    KDL::Vector rot_axis_EE = F_EE_start*rot_axis;
+    std::cout << "other axis" << "\n" << abs(axis_no-1) << "\n"; //debug
     KDL::Vector articulation_Z_KDL_EE = F_EE_start*articulation_Z_KDL;
-    if (rot_axis_EE.z() < 0.0)
-        track_start_rot[abs(axis_no-1)] = (-1.0)*rot_axis;
+    if (articulation_Z_KDL_EE.z() < 0.0)
+        track_start_rot[abs(axis_no-1)] = (-1.0)*articulation_Z_KDL;
     else
-        track_start_rot[abs(axis_no-1)] = rot_axis;
+        track_start_rot[abs(axis_no-1)] = articulation_Z_KDL;
     if (axis_no == 0)
     {
         Eigen::Vector3d track_start_Z = perpendicular.cross(articulation_Z);
@@ -701,6 +706,23 @@ void cob_cartesian_trajectories::getRotStart(KDL::Frame &F_track_start)
     tf::TransformKDLToTF(F_track_start, transform_track_start);
     br.sendTransform(tf::StampedTransform(transform_track_start, ros::Time::now(), "/map", "/track_start"));
     
+    // calculating rot_radius
+    rot_radius = getParamValue("rot_radius");
+    if (rot_radius == 0.0)
+    {
+        ROS_DEBUG("Parameter rot_radius no set, rot_radius_actual will be taken!");
+    }
+    std::cout << "radius difference" << "\n" << rot_radius-rot_radius_actual << "\n"; //debug
+    if (abs(rot_radius - rot_radius_actual) > 0.05)
+    {
+        std::cout << "rot_radius" << "\n" << rot_radius << "\n"; //debug
+        std::cout << "rot_radius_actual" << "\n" << rot_radius_actual << "\n"; //debug
+        ROS_ERROR("model radius and actual radius differ quite much");
+    }
+    rot_radius = rot_radius_actual;
+
+
+    axis_center = axis_no;
     bTrack_start = false;
 }
 
@@ -709,25 +731,17 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
 {
     double angle;
     double partial_angle;
-    double rot_radius;
-    /*double rot_center_x;
-    double rot_center_y;
-    double rot_center_z;
-    double rot_axis_x;
-    double rot_axis_y;
-    double rot_axis_z;
-    double rot_axis_w;
-    KDL::Frame F_articulation;
-    KDL::Frame F_EE_start;*/
+
     KDL::Frame F_track_start;
     KDL::Frame F_track;
 
     // get start frame of trajectory
     if (bTrack_start)
         getRotStart(F_track_start);
+
+    F_track = F_track_start;
         
     angle = getParamValue("action");
-    rot_radius = getParamValue("rot_radius");
     /*rot_center_x = getParamValue("rot_center.x");
     rot_center_y = getParamValue("rot_center.y");
     rot_center_z = getParamValue("rot_center.z");
@@ -739,17 +753,15 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
     // calculating partial_angle
     partial_angle = angle * (dt/targetDuration);
 
-
-
-    // creating trajectory frame w.r.t. the articulation frame
+    // creating trajectory frame w.r.t. the track_start frame
     // orientation is like sdh_tip_link frame
-    F_track.p.x(rot_radius*cos(partial_angle));
-    F_track.p.y(rot_radius*sin(partial_angle));
+    F_track.p[axis_center] += rot_radius*(1-cos(partial_angle));
+    F_track.p[2] += -rot_radius*sin(partial_angle);
 
-    F_track.M.RPY(-PI/2.0, -(PI/2.0+partial_angle), 0.0);  //TODO: check orientation //depending also on handle orientation
+    // TODO Rotation M
 
     // transformation of trajectory frame into base_link frame ??? map frame
-    F_target = F_EE_start;//F_track*F_articulation;       // FT_a*FA_bl
+    F_target = F_track;       // 
 
 }
 

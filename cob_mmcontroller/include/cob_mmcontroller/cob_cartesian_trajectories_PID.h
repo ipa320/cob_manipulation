@@ -154,6 +154,9 @@ private:
 
     tf::TransformBroadcaster br;
 
+    int axis_center;    // axis of F_track_start pointing to the rotational axis of articulation
+    double rot_radius;
+
     bool bTrack_start;
     bool debug;
 };
