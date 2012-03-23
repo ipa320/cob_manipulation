@@ -121,6 +121,7 @@ private:
     ros::Time timer;
     ros::Time tstart;
     KDL::Frame F_EE_start;
+    KDL::Frame F_track_start;
     KDL::Twist Error;
     KDL::Twist Error_sum;
     KDL::Twist Error_dot;
