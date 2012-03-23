@@ -33,7 +33,6 @@
 #include <kdl/jntarray.hpp>
 #include <kdl/frames.hpp>
 
-#include <cob_mmcontroller/OpenFridgeAction.h>
 #include <cob_mmcontroller/ArticulationModelAction.h>
 #include <actionlib/server/simple_action_server.h>
 
@@ -47,8 +46,6 @@ public:
 
 private:
     ros::NodeHandle n;
-    actionlib::SimpleActionServer<cob_mmcontroller::OpenFridgeAction> as_;
-    actionlib::SimpleActionServer<cob_mmcontroller::OpenFridgeAction> as2_;
     actionlib::SimpleActionServer<cob_mmcontroller::ArticulationModelAction> as_model_;
     
     void cartStateCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
@@ -81,8 +78,6 @@ private:
     void sendMarkers();
 
     // action callbacks
-    void moveCircActionCB(const cob_mmcontroller::OpenFridgeGoalConstPtr& goal);
-    void moveLinActionCB(const cob_mmcontroller::OpenFridgeGoalConstPtr& goal);
     void moveModelActionCB(const cob_mmcontroller::ArticulationModelGoalConstPtr& goal);
     
     // service callbacks

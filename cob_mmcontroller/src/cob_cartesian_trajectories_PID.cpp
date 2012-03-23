@@ -1,6 +1,6 @@
 #include <cob_mmcontroller/cob_cartesian_trajectories_PID.h>
 
-cob_cartesian_trajectories::cob_cartesian_trajectories() : as_(n, "moveCirc", boost::bind(&cob_cartesian_trajectories::moveCircActionCB, this, _1), false), as2_(n, "moveLin", boost::bind(&cob_cartesian_trajectories::moveLinActionCB, this, _1), false), as_model_(n, "moveModel", boost::bind(&cob_cartesian_trajectories::moveModelActionCB, this, _1), false)
+cob_cartesian_trajectories::cob_cartesian_trajectories() : as_model_(n, "moveModel", boost::bind(&cob_cartesian_trajectories::moveModelActionCB, this, _1), false)
 {
     ros::NodeHandle node;
     node.param("cob_cartesian_trajectories_PID/p_gain", p_gain_, 1.0);
@@ -20,8 +20,6 @@ cob_cartesian_trajectories::cob_cartesian_trajectories() : as_(n, "moveCirc", bo
     track_pub_ = n.advertise<articulation_msgs::TrackMsg>("/track", 1);                 // publish generated trajectory for debugging
     model_pub_ = n.advertise<articulation_msgs::ModelMsg>("/model", 1);                 // publish given model for debugging
     bRun = false;
-    as_.start();
-    as2_.start();
     as_model_.start();
     targetDuration = 0;
     currentDuration = 0;
@@ -160,38 +158,6 @@ void cob_cartesian_trajectories::jointStateCallback(const sensor_msgs::JointStat
 }
 
 
-
-void cob_cartesian_trajectories::moveCircActionCB(const cob_mmcontroller::OpenFridgeGoalConstPtr& goal)
-{
-    mode = "circular";
-    current_hinge = goal->hinge;
-    if(start())
-    {
-        while(bRun)
-        {
-            //wait until finished
-            sleep(1);
-        }
-        as_.setSucceeded();
-    }
-    return;
-
-}
-void cob_cartesian_trajectories::moveLinActionCB(const cob_mmcontroller::OpenFridgeGoalConstPtr& goal)
-{
-    mode = "linear";
-    if(start())
-    {
-        while(bRun)
-        {
-            //wait until finished
-            sleep(1);
-        }
-        as2_.setSucceeded();
-    }
-    return;
-
-}
 // action for model 
 void cob_cartesian_trajectories::moveModelActionCB(const cob_mmcontroller::ArticulationModelGoalConstPtr& goal)
 {
