@@ -580,7 +580,7 @@ void cob_cartesian_trajectories::getRotStart(KDL::Frame &F_handle)
     Eigen::Vector3d perpendicular_EE;
     Eigen::Vector3d trans_ee_art_EE;
 
-    Eigen::Hyperplane<double, 3> door_plane;
+    Eigen::Hyperplane<double, 3> handle_plane;
     
     map<int, KDL::Vector> track_start_rot;
 
@@ -623,14 +623,14 @@ void cob_cartesian_trajectories::getRotStart(KDL::Frame &F_handle)
     std::cout << "articulation_O" << "\n" <<  articulation_O << "\n"; //debug
 
     // door plane TODO change name
-    door_plane = Eigen::Hyperplane<double, 3>::Through(articulation_O, articulation_O + articulation_Z, track_start_O);
-    std::cout << "door_plane_offset" << "\n" <<  door_plane.offset() << "\n"; //debug
-    std::cout << "door_plane_coeffs" << "\n" <<  door_plane.coeffs() << "\n"; //debug
-    std::cout << "door_plane_distance to articulation_O" << "\n" <<  door_plane.absDistance(articulation_O) << "\n"; //debug
-    std::cout << "door_plane_distance to track_start" << "\n" <<  door_plane.absDistance(track_start_O) << "\n"; //debug
+    handle_plane = Eigen::Hyperplane<double, 3>::Through(articulation_O, articulation_O + articulation_Z, track_start_O);
+    std::cout << "handle_plane_offset" << "\n" <<  handle_plane.offset() << "\n"; //debug
+    std::cout << "handle_plane_coeffs" << "\n" <<  handle_plane.coeffs() << "\n"; //debug
+    std::cout << "handle_plane_distance to articulation_O" << "\n" <<  handle_plane.absDistance(articulation_O) << "\n"; //debug
+    std::cout << "handle_plane_distance to track_start" << "\n" <<  handle_plane.absDistance(track_start_O) << "\n"; //debug
 
-    // perpendicular of articulation_Z through track_start_O TODO check if normalized (should be)
-    perpendicular = articulation_Z.cross(door_plane.normal());
+    // perpendicular of articulation_Z through track_start_O (already normalized)
+    perpendicular = articulation_Z.cross(handle_plane.normal());
     std::cout << "perdendicular" << "\n" <<  perpendicular << "\n"; //debug
     if (perpendicular.norm() < 1e-6)
         ROS_ERROR("Normals are parallel");
@@ -652,7 +652,7 @@ void cob_cartesian_trajectories::getRotStart(KDL::Frame &F_handle)
     vector3dKDLToEigen(perpendicular_EE_KDL, perpendicular_EE);
     std::cout << "perpendicular_EE" << "\n" <<  perpendicular_EE << "\n"; //debug
 
-    // get actual rot_radius TODO
+    // get actual rot_radius
     rot_radius_actual = abs(dot(trans_ee_art_KDL_EE, perpendicular_EE_KDL));
     std::cout << "rot_radius_actual" << "\n" <<  rot_radius_actual << "\n"; //debug
 
@@ -755,7 +755,6 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
     tf::TransformKDLToTF(F_track_start, transform_track_start);
     br.sendTransform(tf::StampedTransform(transform_track_start, ros::Time::now(), "/map", "/track_start"));
     
-    // TODO Rotation M
     if (axis_center == 0)
         F_track.M.DoRotY(-partial_angle);
     else if (axis_center == 1)
