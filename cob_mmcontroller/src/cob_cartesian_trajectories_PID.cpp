@@ -704,16 +704,6 @@ void cob_cartesian_trajectories::getRotStart(KDL::Frame &F_track_start)
     bTrack_start = false;
 }
 
-void cob_cartesian_trajectories::vector3dKDLToEigen(KDL::Vector &from, Eigen::Vector3d &to)
-{
-    to = Eigen::Vector3d(from.x(), from.y(), from.z());
-}
-
-void cob_cartesian_trajectories::vector3dEigenToKDL(Eigen::Vector3d &from, KDL::Vector &to)
-{
-    to = KDL::Vector(from[0], from[1], from[2]);
-}
-
 //rotational 6D-trajectory from rot_axis, rot_radius and angle
 void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
 {
@@ -948,6 +938,19 @@ void cob_cartesian_trajectories::sendMarkers()
     }
     //map_pub_.publish(marker);
 }
+
+//TOOLS
+void cob_cartesian_trajectories::vector3dKDLToEigen(KDL::Vector &from, Eigen::Vector3d &to)
+{
+    to = Eigen::Vector3d(from.x(), from.y(), from.z());
+}
+
+void cob_cartesian_trajectories::vector3dEigenToKDL(Eigen::Vector3d &from, KDL::Vector &to)
+{
+    to = KDL::Vector(from[0], from[1], from[2]);
+}
+
+
 
 int main(int argc, char **argv)
 {
