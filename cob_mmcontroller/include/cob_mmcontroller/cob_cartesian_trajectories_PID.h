@@ -59,8 +59,13 @@ private:
     void getTargetPosition(double dt, KDL::Frame &F_target);
     void getPriTarget(double dt, KDL::Frame &F_target);
     void getRotTarget(double dt, KDL::Frame &F_target);
+    void getRotStart(KDL::Frame &F_track_start);
     double getParamValue(std::string param_name);
     double unwrapRPY(std::string axis,  double angle);    
+
+    // tools
+    void vector3dKDLToEigen(KDL::Vector &from, Eigen::Vector3d &to);
+    void vector3dEigenToKDL(Eigen::Vector3d &from, KDL::Vector &to);
 
     // controller
     geometry_msgs::Twist PIDController(const double dt, const KDL::Frame &F_target, const KDL::Frame &F_Current);
@@ -115,7 +120,7 @@ private:
 
     ros::Time timer;
     ros::Time tstart;
-    KDL::Frame F_start;
+    KDL::Frame F_EE_start;
     KDL::Twist Error;
     KDL::Twist Error_sum;
     KDL::Twist Error_dot;
@@ -148,5 +153,8 @@ private:
     map<std::string, double> last_rpy_angles;       // stores the last angles for R-P-Y unwrapping function
 
     tf::TransformBroadcaster br;
+
+    bool bTrack_start;
+    bool debug;
 };
 
