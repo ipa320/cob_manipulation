@@ -458,36 +458,6 @@ void cob_cartesian_trajectories::getPriTarget(double dt, KDL::Frame &F_target)
 }
 
 
-// to avoid the jump from positive to negative and the other way around 
-// when crossing pi or -pi for roll and yaw angles and pi/2 and -pi/2 for pitch
-double cob_cartesian_trajectories::unwrapRPY(std::string axis, double angle)
-{
-    double unwrapped_angle = 0.0;
-    double fractpart, intpart;
-    double discont = PI;    //point of discontinuity
-
-    // FORMULA: phi(n)_adjusted = MODULO( phi(n) - phi(n-1) + PI, 2*PI) + phi(n-1) - PI
-    
-    // the pitch angle is only defined from -PI/2 to PI/2
-    if (strncmp(&axis[strlen(axis.c_str())-6], "_pitch", 6) == 0)
-        discont = PI/2;
-    
-    fractpart = modf(((angle - last_rpy_angles[axis] + discont) / (2*discont)), &intpart);    // modulo for double and getting only the fractal part of the division
-    
-    if (fractpart >= 0.0) // to get always the positive modulo
-        unwrapped_angle = (fractpart)*(2*discont) - discont + last_rpy_angles[axis];
-    else
-        unwrapped_angle = (1+fractpart)*(2*discont) - discont + last_rpy_angles[axis];
-
-    std::cout << "modulo: " << intpart << " + " << (fractpart) << "\n";
-    
-    std::cout << axis << " angle: " << angle << "\n";
-    std::cout << "unwrapped " << axis << " angle: " << unwrapped_angle << "\n";
-    last_rpy_angles[axis] = unwrapped_angle;
-    return unwrapped_angle;
-}
-
-
 //rotational 6D-trajectory from rot_axis, rot_radius and angle
 void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
 {
@@ -880,6 +850,7 @@ void cob_cartesian_trajectories::sendMarkers()
 }
 
 //TOOLS
+//
 void cob_cartesian_trajectories::vector3dKDLToEigen(KDL::Vector &from, Eigen::Vector3d &to)
 {
     to = Eigen::Vector3d(from.x(), from.y(), from.z());
@@ -888,6 +859,36 @@ void cob_cartesian_trajectories::vector3dKDLToEigen(KDL::Vector &from, Eigen::Ve
 void cob_cartesian_trajectories::vector3dEigenToKDL(Eigen::Vector3d &from, KDL::Vector &to)
 {
     to = KDL::Vector(from[0], from[1], from[2]);
+}
+
+
+// to avoid the jump from positive to negative and the other way around 
+// when crossing pi or -pi for roll and yaw angles and pi/2 and -pi/2 for pitch
+double cob_cartesian_trajectories::unwrapRPY(std::string axis, double angle)
+{
+    double unwrapped_angle = 0.0;
+    double fractpart, intpart;
+    double discont = PI;    //point of discontinuity
+
+    // FORMULA: phi(n)_adjusted = MODULO( phi(n) - phi(n-1) + PI, 2*PI) + phi(n-1) - PI
+    
+    // the pitch angle is only defined from -PI/2 to PI/2
+    if (strncmp(&axis[strlen(axis.c_str())-6], "_pitch", 6) == 0)
+        discont = PI/2;
+    
+    fractpart = modf(((angle - last_rpy_angles[axis] + discont) / (2*discont)), &intpart);    // modulo for double and getting only the fractal part of the division
+    
+    if (fractpart >= 0.0) // to get always the positive modulo
+        unwrapped_angle = (fractpart)*(2*discont) - discont + last_rpy_angles[axis];
+    else
+        unwrapped_angle = (1+fractpart)*(2*discont) - discont + last_rpy_angles[axis];
+
+    std::cout << "modulo: " << intpart << " + " << (fractpart) << "\n";
+    
+    std::cout << axis << " angle: " << angle << "\n";
+    std::cout << "unwrapped " << axis << " angle: " << unwrapped_angle << "\n";
+    last_rpy_angles[axis] = unwrapped_angle;
+    return unwrapped_angle;
 }
 
 
