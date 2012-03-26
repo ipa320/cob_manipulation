@@ -443,8 +443,9 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
 
     // creating trajectory frame w.r.t. the track_start frame
     // orientation is like sdh_tip_link frame
-    F_track.p[axis_center] = rot_radius*(1-cos(partial_angle));
-    F_track.p[2] = -rot_radius*sin(partial_angle);
+    // TODO right and left opening door --> right opening door 
+    F_track.p[axis_center] = rot_radius*(1-cos(partial_angle)) * opening_side;
+    F_track.p[2] = -rot_radius*sin(partial_angle) * opening_side;
 
     // tf transform F_track_start
     tf::Transform transform_track_start;
@@ -563,15 +564,31 @@ void cob_cartesian_trajectories::getRotStart(KDL::Frame &F_handle)
     trans_ee_art_KDL.Normalize();
     trans_ee_art_KDL_EE.Normalize();
 
-    // get axis pointing on articulation
+    // get axis pointing on articulation --> use maxCoeff of absolute x and y axes 
     vector3dKDLToEigen(trans_ee_art_KDL_EE, trans_ee_art_EE);
-    double maxCoeff_trans_ee_art_EE = trans_ee_art_EE.maxCoeff(&axis_no);  // index correlates with axis
+    // take only x and y axes 
+    Eigen::Vector2d xORy = Eigen::Vector2d(abs(trans_ee_art_EE[0]), abs(trans_ee_art_EE[1]));
+    xORy.maxCoeff(&axis_no);  // index correlates with axis
     std::cout << "axis_no" << "\n" << axis_no << "\n"; //debug
 
-    // check and set direction of perpendicular
-    if (sign(maxCoeff_trans_ee_art_EE) != sign(perpendicular_EE[axis_no]))
-        perpendicular *= (-1.0);
-        perpendicular_EE *= (-1.0);
+    // check if articulation origin is on the right (positive) or left (negative) side w.r.t. the handle frame
+    // meaning the current door is opening on the left or the right side
+    // and check and set direction of perpendicular depending on this
+    if (trans_ee_art_EE[axis_no] > 0.0)
+    {
+        opening_side = 1.0;
+        if (sign(trans_ee_art_EE[axis_no]) != sign(perpendicular_EE[axis_no]))
+            perpendicular *= (-1.0);
+            perpendicular_EE *= (-1.0);
+    }
+    else
+    {
+        opening_side = -1.0;
+        if (sign(trans_ee_art_EE[axis_no]) == sign(perpendicular_EE[axis_no]))
+            perpendicular *= (-1.0);
+            perpendicular_EE *= (-1.0);
+    }
+    std::cout << "opening side" << "\n" <<  opening_side << "\n"; //debug
     std::cout << "perpendicular" << "\n" <<  perpendicular << "\n"; //debug
     std::cout << "perpendicular_EE" << "\n" <<  perpendicular_EE << "\n"; //debug
 

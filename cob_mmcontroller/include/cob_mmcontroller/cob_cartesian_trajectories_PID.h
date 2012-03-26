@@ -152,6 +152,7 @@ private:
 
     int axis_center;    // axis of F_track_start pointing to the rotational axis of articulation
     double rot_radius;
+    double opening_side; // +1.0 is legt opening
 
     bool bHandle;
     bool debug;
