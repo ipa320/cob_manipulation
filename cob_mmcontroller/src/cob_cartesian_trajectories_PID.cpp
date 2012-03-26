@@ -163,7 +163,6 @@ void cob_cartesian_trajectories::moveModelActionCB(const cob_mmcontroller::Artic
 {
     articulation_msgs::ModelMsg pub_model;
     //tf broadcaster 
-    //static tf::TransformBroadcaster br;
     tf::Transform transform_articulation;
 
     mode = goal->model.name;
@@ -375,7 +374,6 @@ geometry_msgs::Twist cob_cartesian_trajectories::getTwist(double dt, Frame F_cur
     tf::PoseKDLToMsg(F_target, poses.poses[1]);
     tf::PoseKDLToMsg(F_diff, poses.poses[2]);
     debug_cart_pub_.publish(poses);
-    //std::cout << "Twist x: " << 0.1 * F_diff.p.x() << " y: " << 0.1 * F_diff.p.y() << "\n";
     //
 
     return ControllTwist;
@@ -443,15 +441,9 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
 
     // creating trajectory frame w.r.t. the track_start frame
     // orientation is like sdh_tip_link frame
-    // TODO right and left opening door --> right opening door 
     F_track.p[axis_center] = rot_radius*(1-cos(partial_angle)) * opening_side;
     F_track.p[2] = -rot_radius*sin(partial_angle) * opening_side;
 
-    // tf transform F_track_start
-    tf::Transform transform_track_start;
-    tf::TransformKDLToTF(F_track_start, transform_track_start);
-    br.sendTransform(tf::StampedTransform(transform_track_start, ros::Time::now(), "/map", "/track_start"));
-    
     if (axis_center == 0)
         F_track.M.DoRotY(-partial_angle);
     else if (axis_center == 1)
@@ -459,14 +451,19 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
     else
         ROS_ERROR("Wrong rotation axis in F_track");
 
+    // transformation of trajectory frame into base_link frame ??? map frame
+    F_target.p = F_track_start*F_track.p;       // transform F_Track in F_track_start 
+    F_target.M = F_EE_start.M*F_track.M;        // rotation with respect to gripper start frame (F_EE_start)
+
+    // tf transform F_track_start
+    tf::Transform transform_track_start;
+    tf::TransformKDLToTF(F_track_start, transform_track_start);
+    br.sendTransform(tf::StampedTransform(transform_track_start, ros::Time::now(), "/map", "/track_start"));
+    
     // tf transform F_track
     tf::Transform transform_track;
     tf::TransformKDLToTF(F_track, transform_track);
     br.sendTransform(tf::StampedTransform(transform_track, ros::Time::now(), "/track_start", "/track"));
-
-    // transformation of trajectory frame into base_link frame ??? map frame
-    F_target.p = F_track_start*F_track.p;       // 
-    F_target.M = F_EE_start.M*F_track.M;
 
     // tf transform F_target
     tf::Transform transform_target;
@@ -627,7 +624,7 @@ void cob_cartesian_trajectories::getRotStart(KDL::Frame &F_handle)
     tf::TransformKDLToTF(F_handle, transform_handle);
     br.sendTransform(tf::StampedTransform(transform_handle, ros::Time::now(), "/map", "/handle"));
     
-    // calculate, check and set up rot_radius
+    // calculate, check and set up rot_radius TODO: abort if tolerance is exceeded
     rot_radius = getParamValue("rot_radius");
     if (rot_radius == 0.0)
     {
