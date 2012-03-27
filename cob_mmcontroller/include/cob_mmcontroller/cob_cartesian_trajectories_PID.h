@@ -61,8 +61,10 @@ private:
     double unwrapRPY(std::string axis,  double angle);    
 
     // tools
-    void vector3dKDLToEigen(KDL::Vector &from, Eigen::Vector3d &to);
-    void vector3dEigenToKDL(Eigen::Vector3d &from, KDL::Vector &to);
+    void vector3dKDLToEigen(const KDL::Vector &from, Eigen::Vector3d &to);
+    Eigen::Vector3d vector3dKDLToEigen(const KDL::Vector &from);
+    void vector3dEigenToKDL(const Eigen::Vector3d &from, KDL::Vector &to);
+    KDL::Vector vector3dEigenToKDL(const Eigen::Vector3d &from);
 
     // controller
     geometry_msgs::Twist PIDController(const double dt, const KDL::Frame &F_target, const KDL::Frame &F_Current);
