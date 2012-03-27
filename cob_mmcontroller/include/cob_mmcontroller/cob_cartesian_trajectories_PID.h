@@ -55,6 +55,7 @@ private:
     // trajectory generation
     void getTargetPosition(double dt, KDL::Frame &F_target);
     void getPriTarget(double dt, KDL::Frame &F_target);
+    void getPriStart(KDL::Frame &F_track_start);
     void getRotTarget(double dt, KDL::Frame &F_target);
     void getRotStart(KDL::Frame &F_track_start);
     double getParamValue(std::string param_name);
