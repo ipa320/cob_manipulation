@@ -599,25 +599,10 @@ void cob_cartesian_trajectories::getRotStart(KDL::Frame &F_handle)
         handle_rot[abs(axis_no-1)] = (-1.0)*articulation_Z_KDL;
     else
         handle_rot[abs(axis_no-1)] = articulation_Z_KDL;
-    // calculate cross produkt to get handle_rot z-axis 
-    /*Eigen::Vector3d handle_X = vector3dKDLToEigen(handle_rot[0]);
-    Eigen::Vector3d handle_Y = vector3dKDLToEigen(handle_rot[1]);
-    Eigen::Vector3d handle_Z = handle_X.cross(handle_Y);
-    handle_rot[2] = vector3dEigenToKDL(handle_Z);*/
     
+    // calculate cross produkt to get handle_rot z-axis 
     handle_rot[2] = vector3dEigenToKDL(vector3dKDLToEigen(handle_rot[0]).cross(vector3dKDLToEigen(handle_rot[1])));
-    /*if (axis_no == 0)
-    {
-        Eigen::Vector3d handle_Z = perpendicular.cross(articulation_Z);
-        handle_rot[2] = KDL::Vector(handle_Z[0], handle_Z[1], handle_Z[2]);
-    }   
-    else if (axis_no == 1)
-    {
-        Eigen::Vector3d handle_Z = articulation_Z.cross(perpendicular);
-        handle_rot[2] = KDL::Vector(handle_Z[0], handle_Z[1], handle_Z[2]);
-    }
-    else
-        ROS_ERROR("Wrong axis");*/
+
     std::cout << "rot vector x" << "\n" << handle_rot[0] << "\n"; //debug
     std::cout << "rot vector y" << "\n" << handle_rot[1] << "\n"; //debug
     std::cout << "rot vector z" << "\n" << handle_rot[2] << "\n"; //debug
