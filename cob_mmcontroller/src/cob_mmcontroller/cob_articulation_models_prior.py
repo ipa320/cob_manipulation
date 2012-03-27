@@ -130,11 +130,16 @@ class cob_articulation_models_prior(object):
         goal.model_id = 1
         if self.query("What kind of articulation should be generated? Rotational or prismatic?", ['r', 'p']) == 'r':
             goal.model.name = 'rotational'
-            goal.model.params.append(ParamMsg('angle', self.query_parameter('angle'), 1))
+            goal.model.params.append(ParamMsg('action', self.query_parameter('angle'), 1))
             goal.model.params.append(ParamMsg('rot_center.x', self.query_parameter('rot_center.x'), 1))
             goal.model.params.append(ParamMsg('rot_center.y', self.query_parameter('rot_center.y'), 1))
             goal.model.params.append(ParamMsg('rot_center.z', self.query_parameter('rot_center.z'), 1))
-            goal.target_duration.data.secs = self.query_parameter('target_duration')
+            goal.model.params.append(ParamMsg('rot_axis.x', self.query_parameter('rot_axis.x'), 1))
+            goal.model.params.append(ParamMsg('rot_axis.y', self.query_parameter('rot_axis.y'), 1))
+            goal.model.params.append(ParamMsg('rot_axis.z', self.query_parameter('rot_axis.z'), 1))
+            goal.model.params.append(ParamMsg('rot_axis.w', self.query_parameter('rot_axis.w'), 1))
+
+            goal.target_duration.secs = self.query_parameter('target_duration')
         else:
             #TODO
             goal.model.name = 'prismatic'
@@ -176,7 +181,7 @@ class cob_articulation_models_prior(object):
             self.prior_changed = True
         except rospy.ServiceException, e:
             self.prior_changed = False
-            rospy.errlog("Failed to store learned model in prior models: %s"%e)
+            rospy.logerr("Failed to store learned model in prior models: %s"%e)
         return self.prior_changed
 
 
@@ -227,7 +232,7 @@ class cob_articulation_models_prior(object):
             cartcoll_request = CartCollectorPriorRequest()
             cartcoll_response = self.toggle_collector(cartcoll_request)
         except rospy.ServiceException, e:
-            rospy.errlog("Toggle cartcollector service failed: %s"%e)
+            rospy.logerr("Toggle cartcollector service failed: %s"%e)
             raise
         
         return cartcoll_response
@@ -242,29 +247,29 @@ class cob_articulation_models_prior(object):
         try:
             return self.eval_model(request.model)
         except rospy.ServiceException, e:
-            rospy.infolog("Model evaluation service failed, trying service call again")
+            rospy.loginfo("Model evaluation service failed, trying service call again")
             return self.eval_model(track_model)
 
 
     def compare_evaluation(self, prior_model, learned_model):
         try:
-            prior_response = self.evaluate_model(prior_model)
-            learned_response = self.evaluate_model(learned_model)
-            if self.get_parameter_value(learned_response.model, 'bic') <= self.get_parameter_value(prior_response.model, 'bic'):
-                return learned_response
+            prior_response = self.evaluate_model(prior_model).model
+            learned_response = self.evaluate_model(learned_model).model
+            if self.get_parameter_value(learned_response, 'bic') <= self.get_parameter_value(prior_response, 'bic'):
+                return learned_response, "learned"
             else:
-                return prior_response
+                return prior_response, "prior"
 
         except rospy.ServiceException, e:
-            rospy.errlog("Model evaluation service failed: %s"%e)
+            rospy.logerr("Model evaluation service failed: %s"%e)
             rospy.signal_shutdown("Evaluation Failed")
         except LookupError, e:
-            rospy.errlog(e)
+            rospy.logerr(e)
             rospy.signal_shutdown("Evaluation Failed")
 
 
     def get_parameter_value(self, model, param_name):
-        for parameter in model.param:
+        for parameter in model.params:
             if parameter.name == param_name:
                 return parameter.value
         raise LookupError("Parameter not %s found"%param_name)

@@ -7,6 +7,7 @@ import actionlib
 import StringIO
 import sys
 import os
+import tf
 
 from cob_mmcontroller.cob_articulation_models_prior import *
 
@@ -25,6 +26,9 @@ class cob_learn_model_prior:
         # action servers
         self.learnModelPrior_as = actionlib.SimpleActionServer('learn_model_prior', LearnModelPriorAction, self.learnModelPriorActionCB, False)
         self.learnModelPrior_as.start() 
+
+        # tf broadcaster
+        self.br = tf.TransformBroadcaster()
 
     def learnModelPriorActionCB(self, goal):
         # set up and initialize action feedback and result
@@ -80,7 +84,7 @@ class cob_learn_model_prior:
             mm_response = self.models_prior_object.start_mm(mm_request)
             # send goal to cob_cartesian_trajectories_PID's moveModel action
             self.models_prior_object.moveModel_ac.send_goal(moveModel_goal)
-            self.models_prior_object.moveModel_ac.wait_for_result(rospy.Duration.from_sec(moveModel_goal.target_duration.data.secs + 0.5))
+            self.models_prior_object.moveModel_ac.wait_for_result(rospy.Duration.from_sec(moveModel_goal.target_duration.secs + 0.5))
             # stop cartcollector
             cartcoll_response = self.models_prior_object.cartcollector_stop()
             # evaluate moveModel result
@@ -113,8 +117,6 @@ class cob_learn_model_prior:
             result_.success = False
             self.learnModelPrior_as.set_aborted(result_)
 
-        # TODO evaluate model
-
         # output prior models and learned model
         print 75*"-" + "\nPrior models:"
         self.models_prior_object.print_prior_models()
@@ -124,6 +126,20 @@ class cob_learn_model_prior:
         prior_models_list = self.models_prior_object.get_prior_models().model
         prior_models_list.append(learned_model)
         self.models_prior_object.print_models_verbose(prior_models_list)
+
+        # broadcast learned model frame
+        self.br.sendTransform((self.models_prior_object.get_parameter_value(learned_model, "rot_center.x"),
+                               self.models_prior_object.get_parameter_value(learned_model, "rot_center.y"),
+                               self.models_prior_object.get_parameter_value(learned_model, "rot_center.z")),
+                              (self.models_prior_object.get_parameter_value(learned_model, "rot_axis.x"),
+                               self.models_prior_object.get_parameter_value(learned_model, "rot_axis.y"),
+                               self.models_prior_object.get_parameter_value(learned_model, "rot_axis.z"),
+                               self.models_prior_object.get_parameter_value(learned_model, "rot_axis.w")),
+                              rospy.Time.now(),
+                              "/learned_model",
+                              "/map"
+                             )
+
 
         # decide / ask whether to store model or not
         feedback_.message = "Didn't store learned model in prior models"

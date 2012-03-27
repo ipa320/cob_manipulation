@@ -43,13 +43,13 @@ class cob_articulation_cartcollector_prior:
             self.model_selected = ModelMsg()
 
             self.collect = True
-            response.error_message.data = "started collector"
+            response.error_message = "started collector"
         else:
             print "already collecting, stopping collector now"
             self.collect = False
-            response.error_message.data = "stopped collector"
+            response.error_message = "stopped collector"
 
-        response.success.data = True
+        response.success = True
         response.model = self.model_selected
 
         return response
