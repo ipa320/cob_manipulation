@@ -595,7 +595,7 @@ void cob_cartesian_trajectories::getRotStart(KDL::Frame &F_handle)
     // check direction of articulation_Z and set up second vector of handle_rot (parallel to articulation_Z)
     std::cout << "other axis" << "\n" << abs(axis_no-1) << "\n"; //debug
     KDL::Vector articulation_Z_KDL_EE = F_EE_start*articulation_Z_KDL;
-    if (articulation_Z_KDL_EE.z() < 0.0)
+    if (articulation_Z_KDL_EE[abs(axis_no-1)] < 0.0)
         handle_rot[abs(axis_no-1)] = (-1.0)*articulation_Z_KDL;
     else
         handle_rot[abs(axis_no-1)] = articulation_Z_KDL;
