@@ -141,8 +141,19 @@ class cob_articulation_models_prior(object):
 
             goal.target_duration.secs = self.query_parameter('target_duration')
         else:
-            #TODO
             goal.model.name = 'prismatic'
+            goal.model.params.append(ParamMsg('action', self.query_parameter('opening length'), 1))
+            goal.model.params.append(ParamMsg('rigid_position.x', self.query_parameter('rigid_position.x'), 1))
+            goal.model.params.append(ParamMsg('rigid_position.y', self.query_parameter('rigid_position.y'), 1))
+            goal.model.params.append(ParamMsg('rigid_position.z', self.query_parameter('rigid_position.z'), 1))
+            goal.model.params.append(ParamMsg('rigid_orientation.x', 0.0, 1)) #self.query_parameter('rigid_orientation.x'), 1))
+            goal.model.params.append(ParamMsg('rigid_orientation.y', 0.0, 1)) #self.query_parameter('rigid_orientation.y'), 1))
+            goal.model.params.append(ParamMsg('rigid_orientation.z', 0.0, 1)) #self.query_parameter('rigid_orientation.z'), 1))
+            goal.model.params.append(ParamMsg('rigid_orientation.w', 1.0, 1)) #self.query_parameter('rigid_orientation.w'), 1))
+            goal.model.params.append(ParamMsg('prismatic_dir.x', self.query_parameter('prismatic_dir.x'), 1))
+            goal.model.params.append(ParamMsg('prismatic_dir.y', self.query_parameter('prismatic_dir.y'), 1))
+            goal.model.params.append(ParamMsg('prismatic_dir.z', self.query_parameter('prismatic_dir.z'), 1))
+            goal.target_duration.secs = self.query_parameter('target_duration')
 
         return goal
 

@@ -405,7 +405,7 @@ void cob_cartesian_trajectories::getPriTarget(double dt, KDL::Frame &F_target)
     double pris_dir_y;
     double pris_dir_z;
     
-    length = getParamValue("length");
+    length = getParamValue("action");
     pris_dir_x = getParamValue("prismatic_dir.x");
     pris_dir_y = getParamValue("prismatic_dir.y");
     pris_dir_z = getParamValue("prismatic_dir.z");
