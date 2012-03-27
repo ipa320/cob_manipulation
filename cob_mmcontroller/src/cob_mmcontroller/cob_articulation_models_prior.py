@@ -125,12 +125,24 @@ class cob_articulation_models_prior(object):
         return database
 
 
-    def query_articulation_parameters(self):
+    def query_articulation_parameters(self, cart_arm_pose):
         goal = ArticulationModelGoal()
         goal.model_id = 1
         if self.query("What kind of articulation should be generated? Rotational or prismatic?", ['r', 'p']) == 'r':
             goal.model.name = 'rotational'
-            goal.model.params.append(ParamMsg('action', self.query_parameter('angle'), 1))
+            if self.query("Do you want to enter the parameters in a simple or complex way?", ['s', 'c']) == 's':
+                print "It is assumed that the robot is grasping the articulated objects handle right now!"
+                print "First enter location of articulation with respect to the handle."
+                artic_loc = self.query("Is the articulation on the left side, the right side, above or below?", ['l', 'r', 'a', 'b'])
+                print "Now enter the distance between the handle and the rotational axis:"
+                radius = self.query_parameter('radius')
+                handle_orient = self.query("Is the handle parallel or orthogonal to the rotational axis?", ['p', 'o'])
+
+                if handle_orient == 'p':
+                    if artic_loc == 'l':
+                # TODO handle all cases and transform in global frame
+
+
             goal.model.params.append(ParamMsg('rot_center.x', self.query_parameter('rot_center.x'), 1))
             goal.model.params.append(ParamMsg('rot_center.y', self.query_parameter('rot_center.y'), 1))
             goal.model.params.append(ParamMsg('rot_center.z', self.query_parameter('rot_center.z'), 1))
@@ -139,6 +151,7 @@ class cob_articulation_models_prior(object):
             goal.model.params.append(ParamMsg('rot_axis.z', self.query_parameter('rot_axis.z'), 1))
             goal.model.params.append(ParamMsg('rot_axis.w', self.query_parameter('rot_axis.w'), 1))
 
+            goal.model.params.append(ParamMsg('action', self.query_parameter('angle'), 1))
             goal.target_duration.secs = self.query_parameter('target_duration')
         else:
             #TODO
@@ -272,6 +285,13 @@ class cob_articulation_models_prior(object):
         for parameter in model.params:
             if parameter.name == param_name:
                 return parameter.value
+        raise LookupError("Parameter not %s found"%param_name)
+
+
+    def set_parameter_value(self, model, param_name, param_value):
+        for parameter in model.params:
+            if parameter.name == param_name:
+                parameter.value = param_value
         raise LookupError("Parameter not %s found"%param_name)
 
 

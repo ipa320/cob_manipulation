@@ -16,6 +16,7 @@ from articulation_msgs.srv import *
 from cob_mmcontroller.msg import *
 from cob_mmcontroller.srv import *
 from cob_srvs.srv import *
+from geometry_msgs.msg import *
 
 class cob_learn_model_prior:
     def __init__(self):
@@ -29,6 +30,14 @@ class cob_learn_model_prior:
 
         # tf broadcaster
         self.br = tf.TransformBroadcaster()
+
+        # subsciber
+        self.arm_cart = rospy.Subscriber('/arm_controller/cart_state', PoseStamped, self.armCartCB)
+
+    
+    def armCartCB(self, cart_state):
+        self.cart_arm_pose = cart_state.pose
+
 
     def learnModelPriorActionCB(self, goal):
         # set up and initialize action feedback and result
@@ -61,7 +70,7 @@ class cob_learn_model_prior:
         # if automatically execution was chosen, request parameters
         if trajectory_generation == 'a':
             feedback_.message = "trajectory will be generated automatically by cob_cartesian_trajectories_PID"
-            moveModel_goal = self.models_prior_object.query_articulation_parameters()
+            moveModel_goal = self.models_prior_object.query_articulation_parameters(self.cart_arm_pose)
         else:
             feedback_.message = "trajectory will be generated manually"
         self.learnModelPrior_as.publish_feedback(feedback_)
