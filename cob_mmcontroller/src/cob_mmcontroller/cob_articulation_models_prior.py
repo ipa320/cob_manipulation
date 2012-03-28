@@ -7,6 +7,10 @@ import actionlib
 import StringIO
 import sys
 import os
+import tf
+import tf_conversions
+import PyKDL
+
 
 from articulation_msgs.msg import *
 from articulation_msgs.srv import *
@@ -43,6 +47,9 @@ class cob_articulation_models_prior(object):
 
         # variables
         self.prior_changed = False
+
+        #tf listener
+        self.listener = tf.TransformListener()
 
 
     ######################################################
@@ -128,13 +135,21 @@ class cob_articulation_models_prior(object):
         return database
 
 
-    def query_articulation_parameters(self, cart_arm_pose):
+    def query_articulation_parameters(self):
         goal = ArticulationModelGoal()
         goal.model_id = 1
         if self.query("What kind of articulation should be generated? Rotational or prismatic?", ['r', 'p']) == 'r':
             goal.model.name = 'rotational'
             if self.query("Do you want to enter the parameters in a simple or complex way?", ['s', 'c']) == 's':
+                # initialize F_articulation
+                F_articulation_EE = PyKDL.Frame.Identity()
                 print "It is assumed that the robot is grasping the articulated objects handle right now!"
+                # get transform from /map to /sdh_tip_link
+                try:
+                    F_sdh_tip = tf_conversions.posemath.fromTf(self.listener.lookupTransform('/map', '/sdh_tip_link', rospy.Time(0)))
+                except (tf.LookupException, tf.ConnectivityException):
+                    rospy.logerr("COuld not look up transformation") #TODO
+
                 print "First enter location of articulation with respect to the handle."
                 artic_loc = self.query("Is the articulation on the left side, the right side, above or below?", ['l', 'r', 'a', 'b'])
                 print "Now enter the distance between the handle and the rotational axis:"
@@ -142,21 +157,52 @@ class cob_articulation_models_prior(object):
                 handle_orient = self.query("Is the handle parallel or orthogonal to the rotational axis?", ['p', 'o'])
 
                 if handle_orient == 'p':
-                    if artic_loc == 'l':
-                # TODO handle all cases and transform in global frame
+                    if artic_loc == 'l' or artic_loc == 'b':
+                        F_articulation_EE.p.x(-radius)
+                    elif artic_loc == 'r' or artic_loc == 'a':
+                        F_articulation_EE.p.x(radius)
+                else:
+                    if artic_loc == 'l' or artic_loc == 'a':
+                        F_articulation_EE.p.y(-radius)
+                    elif artic_loc == 'r' or artic_loc == 'b':
+                        F_articulation_EE.p.y(radius)
+
+                if artic_loc == 'a' or artic_loc == 'b':
+                    if handle_orient == 'p':
+                        F_articulation_EE.M = PyKDL.Rotation.Quaternion(0.7071, 0, 0, -0.7071)
+                    else:
+                        F_articulation_EE.M = PyKDL.Rotation.Quaternion(0, 0.7071, 0, 0.7071)
+                else:
+                    if handle_orient == 'p':
+                        F_articulation_EE.M = PyKDL.Rotation.Quaternion(0.7071, 0, 0, 0.7071)
+                    else:
+                        F_articulation_EE.M = PyKDL.Rotation.Quaternion(0, 0.7071, 0, 0.7071)
 
 
-            goal.model.params.append(ParamMsg('rot_center.x', self.query_parameter('rot_center.x'), 1))
-            goal.model.params.append(ParamMsg('rot_center.y', self.query_parameter('rot_center.y'), 1))
-            goal.model.params.append(ParamMsg('rot_center.z', self.query_parameter('rot_center.z'), 1))
-            goal.model.params.append(ParamMsg('rot_axis.x', self.query_parameter('rot_axis.x'), 1))
-            goal.model.params.append(ParamMsg('rot_axis.y', self.query_parameter('rot_axis.y'), 1))
-            goal.model.params.append(ParamMsg('rot_axis.z', self.query_parameter('rot_axis.z'), 1))
-            goal.model.params.append(ParamMsg('rot_axis.w', self.query_parameter('rot_axis.w'), 1))
+                F_articulation = F_sdh_tip*F_articulation_EE
+                (x, y, z, w) = F_articulation.M.GetQuaternion()
+
+                goal.model.params.append(ParamMsg('rot_center.x', F_articulation.p.x(), 1))
+                goal.model.params.append(ParamMsg('rot_center.y', F_articulation.p.y(), 1))
+                goal.model.params.append(ParamMsg('rot_center.z', F_articulation.p.z(), 1))
+                goal.model.params.append(ParamMsg('rot_axis.x', x, 1))
+                goal.model.params.append(ParamMsg('rot_axis.y', y, 1))
+                goal.model.params.append(ParamMsg('rot_axis.z', z, 1))
+                goal.model.params.append(ParamMsg('rot_axis.w', w, 1))
+
+            else:
+                goal.model.params.append(ParamMsg('rot_center.x', self.query_parameter('rot_center.x'), 1))
+                goal.model.params.append(ParamMsg('rot_center.y', self.query_parameter('rot_center.y'), 1))
+                goal.model.params.append(ParamMsg('rot_center.z', self.query_parameter('rot_center.z'), 1))
+                goal.model.params.append(ParamMsg('rot_axis.x', self.query_parameter('rot_axis.x'), 1))
+                goal.model.params.append(ParamMsg('rot_axis.y', self.query_parameter('rot_axis.y'), 1))
+                goal.model.params.append(ParamMsg('rot_axis.z', self.query_parameter('rot_axis.z'), 1))
+                goal.model.params.append(ParamMsg('rot_axis.w', self.query_parameter('rot_axis.w'), 1))
 
             goal.model.params.append(ParamMsg('action', self.query_parameter('angle'), 1))
             goal.target_duration.secs = self.query_parameter('target_duration')
         else:
+            print "It is assumed that the robot is grasping the articulated objects handle right now!"
             goal.model.name = 'prismatic'
             goal.model.params.append(ParamMsg('action', self.query_parameter('opening length'), 1))
             goal.model.params.append(ParamMsg('rigid_position.x', 0.0, 1)) #self.query_parameter('rigid_position.x'), 1))
@@ -166,6 +212,7 @@ class cob_articulation_models_prior(object):
             goal.model.params.append(ParamMsg('rigid_orientation.y', 0.0, 1)) #self.query_parameter('rigid_orientation.y'), 1))
             goal.model.params.append(ParamMsg('rigid_orientation.z', 0.0, 1)) #self.query_parameter('rigid_orientation.z'), 1))
             goal.model.params.append(ParamMsg('rigid_orientation.w', 1.0, 1)) #self.query_parameter('rigid_orientation.w'), 1))
+            print "Enter now the direction in which the prismatic articulation can be moved (in global coordinates)"
             goal.model.params.append(ParamMsg('prismatic_dir.x', self.query_parameter('prismatic_dir.x'), 1))
             goal.model.params.append(ParamMsg('prismatic_dir.y', self.query_parameter('prismatic_dir.y'), 1))
             goal.model.params.append(ParamMsg('prismatic_dir.z', self.query_parameter('prismatic_dir.z'), 1))
