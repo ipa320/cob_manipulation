@@ -450,29 +450,29 @@ void cob_cartesian_trajectories::getPriStart(KDL::Frame &F_handle)
     F_articulation.p.y(getParamValue("rigid_position.y"));
     F_articulation.p.z(getParamValue("rigid_position.z"));
     F_articulation.M = KDL::Rotation::Quaternion(getParamValue("rigid_orientation.x"), getParamValue("rigid_orientation.y"), getParamValue("rigid_orientation.z"), getParamValue("rigid_orientation.w"));
-    debug ? (std::cout << "F_articulation" <<  F_articulation << "\n" ) : (std::cout << ""); //debug
+    debug ? (std::cout << "F_articulation" << "\n" <<  F_articulation << "\n" ) : (std::cout << ""); //debug
 
     // origin of track start frame correlates with EE start
     F_handle.p = F_EE_start.p;
-    debug ? (std::cout << "F_EE_start" <<  F_EE_start << "\n") : (std::cout << ""); //debug
+    debug ? (std::cout << "F_EE_start" << "\n" <<  F_EE_start << "\n") : (std::cout << ""); //debug
 
     // Vector prismatic_dir
     KDL::Vector prismatic_dir_ART = KDL::Vector(getParamValue("prismatic_dir.x"), getParamValue("prismatic_dir.y"), getParamValue("prismatic_dir.z"));
-    debug ? (std::cout << "prismatic_dir_ART" <<  prismatic_dir_ART << "\n") : (std::cout << ""); //debug
+    debug ? (std::cout << "prismatic_dir_ART" << "\n" <<  prismatic_dir_ART << "\n") : (std::cout << ""); //debug
 
     // transform prismatic_dir_ART in global frame
     KDL::Vector prismatic_dir = F_articulation.M*prismatic_dir_ART;
-    debug ? (std::cout << "prismatic_dir" <<  prismatic_dir << "\n") : (std::cout << ""); //debug
+    debug ? (std::cout << "prismatic_dir" << "\n" <<  prismatic_dir << "\n") : (std::cout << ""); //debug
 
     // transform prismatic_dir in F_EE_start
     KDL::Vector prismatic_dir_EE = F_EE_start.M.Inverse()*prismatic_dir;
-    debug ? (std::cout << "prismatic_dir_EE" <<  prismatic_dir_EE << "\n") : (std::cout << ""); //debug
+    debug ? (std::cout << "prismatic_dir_EE" << "\n" <<  prismatic_dir_EE << "\n") : (std::cout << ""); //debug
 
     if (prismatic_dir_EE.z() < 0.0)
         handle_rot[2] = prismatic_dir * (-1.0);
     else
         handle_rot[2] = prismatic_dir;
-    debug ? (std::cout << "prismatic_dir" <<  prismatic_dir << "\n") : (std::cout << ""); //debug
+    debug ? (std::cout << "prismatic_dir" << "\n" <<  prismatic_dir << "\n") : (std::cout << ""); //debug
     handle_rot[2].Normalize();
 
     // get axis that is perpendicular to prismatic_dir
