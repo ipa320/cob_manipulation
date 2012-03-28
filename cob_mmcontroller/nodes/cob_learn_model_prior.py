@@ -130,17 +130,30 @@ class cob_learn_model_prior:
         self.models_prior_object.print_models_verbose(prior_models_list)
 
         # broadcast learned model frame
-        self.br.sendTransform((self.models_prior_object.get_parameter_value(learned_model, "rot_center.x"),
-                               self.models_prior_object.get_parameter_value(learned_model, "rot_center.y"),
-                               self.models_prior_object.get_parameter_value(learned_model, "rot_center.z")),
-                              (self.models_prior_object.get_parameter_value(learned_model, "rot_axis.x"),
-                               self.models_prior_object.get_parameter_value(learned_model, "rot_axis.y"),
-                               self.models_prior_object.get_parameter_value(learned_model, "rot_axis.z"),
-                               self.models_prior_object.get_parameter_value(learned_model, "rot_axis.w")),
-                              rospy.Time.now(),
-                              "/learned_model",
-                              "/map"
-                             )
+        if learned_model.name == "rotational":
+            self.br.sendTransform((self.models_prior_object.get_parameter_value(learned_model, "rot_center.x"),
+                                   self.models_prior_object.get_parameter_value(learned_model, "rot_center.y"),
+                                   self.models_prior_object.get_parameter_value(learned_model, "rot_center.z")),
+                                  (self.models_prior_object.get_parameter_value(learned_model, "rot_axis.x"),
+                                   self.models_prior_object.get_parameter_value(learned_model, "rot_axis.y"),
+                                   self.models_prior_object.get_parameter_value(learned_model, "rot_axis.z"),
+                                   self.models_prior_object.get_parameter_value(learned_model, "rot_axis.w")),
+                                  rospy.Time.now(),
+                                  "/learned_model",
+                                  "/map"
+                                 )
+        else:
+            self.br.sendTransform((self.models_prior_object.get_parameter_value(learned_model, "rigid_position.x"),
+                                   self.models_prior_object.get_parameter_value(learned_model, "rigid_position.y"),
+                                   self.models_prior_object.get_parameter_value(learned_model, "rigid_position.z")),
+                                  (self.models_prior_object.get_parameter_value(learned_model, "rigid_orientation.x"),
+                                   self.models_prior_object.get_parameter_value(learned_model, "rigid_orientation.y"),
+                                   self.models_prior_object.get_parameter_value(learned_model, "rigid_orientation.z"),
+                                   self.models_prior_object.get_parameter_value(learned_model, "rigid_orientation.w")),
+                                  rospy.Time.now(),
+                                  "/learned_model",
+                                  "/map"
+                                 )
 
 
         # decide / ask whether to store model or not
