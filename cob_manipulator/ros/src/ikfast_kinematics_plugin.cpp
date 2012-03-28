@@ -78,9 +78,14 @@ private:
     int numJoints;
 };
 
-
+//Namespace for COB3_2
 namespace cob3_2{
 #include "ikfast_cob3_2.cpp"
+}
+
+//Namespace for lwa_sdh
+namespace lwa_ext{
+#include "ikfast_lwa_ext.cpp"
 }
 
 class IKFastKinematicsPlugin : public kinematics::KinematicsBase
@@ -115,6 +120,10 @@ public:
 	fillFreeParams(cob3_2::getNumFreeParameters(),cob3_2::getFreeParameters());
 	numJoints = cob3_2::getNumJoints();
 	ik_solver = new ikfast_solver<cob3_2::IKSolution>(cob3_2::ik, numJoints);
+      }if(robot == "lwa_sdh"){
+	fillFreeParams(lwa_ext::getNumFreeParameters(),lwa_ext::getFreeParameters());
+	numJoints = lwa_ext::getNumJoints();
+	ik_solver = new ikfast_solver<lwa_ext::IKSolution>(lwa_ext::ik, numJoints);
       }else{
 	ROS_FATAL("Robot '%s' unknown!",robot.c_str());
 	return false;
@@ -284,7 +293,6 @@ public:
 	  ROS_ERROR("Could not find inverse kinematics for desired end-effector pose since the pose may be in collision");
 	  return false;
 	}
-
 	KDL::Frame frame;
 	tf::PoseMsgToKDL(ik_pose,frame);
 
@@ -300,19 +308,26 @@ public:
 		vfree[0] = ik_seed_state[freeParams[0]] + increment*counter;
 
 	    int numsol = ik_solver->solve(frame,vfree);
-	    
+	    ROS_ERROR("Numsol: %i", numsol); //***DEBUG***
+	    ROS_ERROR("I. Mark"); //***DEBUG***
 	    if(numsol > 0){
+		ROS_ERROR("Ist solution_callback == empty: %b", solution_callback.empty()); //***DEBUG***
 		if(solution_callback.empty()){
+		    ROS_ERROR("Nun wird die ClosestSolution gesucht"); //***DEBUG***
 		    ik_solver->getClosestSolution(ik_seed_state,solution);
+		    ROS_ERROR("II. Mark"); //***DEBUG***
 		    error_code = kinematics::SUCCESS;
 		    return true;
+		    ROS_ERROR("III. Mark"); //***DEBUG***
 		}
 
 		for (int s = 0; s < numsol; ++s){
+		    ROS_ERROR("s. Mark"); //***DEBUG***
 		    ik_solver->getSolution(s,sol);
 		    solution_callback(ik_pose,sol,error_code);
 		    
 		    if(error_code == kinematics::SUCCESS){
+		      ROS_ERROR("IV. Mark"); //***DEBUG***
 		      solution = sol;
 		      ROS_ERROR("Solved!");
 		      return true;
@@ -336,6 +351,7 @@ public:
     bool getPositionFK(const std::vector<std::string> &link_names,
                        const std::vector<double> &joint_angles, 
                        std::vector<geometry_msgs::Pose> &poses){
+	ROS_ERROR("getPositionFK"); //Just a mark for entering PositionFK, NO ERROR!!
 	KDL::Frame p_out;
 	KDL::JntArray jnt_pos_in;
 	geometry_msgs::PoseStamped pose;

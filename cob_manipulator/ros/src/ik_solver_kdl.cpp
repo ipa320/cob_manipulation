@@ -24,6 +24,7 @@ void getKDLChainInfo(kinematics_msgs::KinematicSolverInfo &chain_info)
 {
 	unsigned int nj = chain.getNrOfJoints();
 	unsigned int nl = chain.getNrOfSegments();
+
 	
 	ROS_DEBUG("nj: %d", nj);
 	ROS_DEBUG("nl: %d", nl);
@@ -74,7 +75,8 @@ bool ik_solve(kinematics_msgs::GetPositionIK::Request  &req,
          kinematics_msgs::GetPositionIK::Response &res )
 {
 	ROS_INFO("get_ik_service has been called!");
-	
+
+	unsigned int nj = chain.getNrOfJoints();
 	if(req.ik_request.ik_link_name.length() == 0)
 		my_tree.getChain("base_link","arm_7_link", chain);
 	else
@@ -82,7 +84,7 @@ bool ik_solve(kinematics_msgs::GetPositionIK::Request  &req,
 	
 	
 	
-	unsigned int nj = chain.getNrOfJoints();
+	
 	
 	JntArray q_min(nj);
 	JntArray q_max(nj);
@@ -121,13 +123,9 @@ bool ik_solve(kinematics_msgs::GetPositionIK::Request  &req,
 	
 	//res.solution.joint_state.name = req.ik_request.ik_seed_state.joint_state.name;	
 	res.solution.joint_state.name.resize(nj);
-	res.solution.joint_state.name[0]="arm_1_joint";
-	res.solution.joint_state.name[1]="arm_2_joint";
-	res.solution.joint_state.name[2]="arm_3_joint";
-	res.solution.joint_state.name[3]="arm_4_joint";
-	res.solution.joint_state.name[4]="arm_5_joint";
-	res.solution.joint_state.name[5]="arm_6_joint";
-	res.solution.joint_state.name[6]="arm_7_joint";
+	for(unsigned int i = 0; i < nj; i++)
+		res.solution.joint_state.name[i]="arm_%s_joint", i;
+
 	
 	res.solution.joint_state.position.resize(nj);
 	res.solution.joint_state.velocity.resize(nj);
@@ -158,8 +156,8 @@ bool ik_solve(kinematics_msgs::GetPositionIK::Request  &req,
 		}
 	}
 	//std::cout << "q_init\n";
-	ROS_INFO("q_init: %f %f %f %f %f %f %f", q_init(0), q_init(1), q_init(2), q_init(3), q_init(4), q_init(5), q_init(6));
-	ROS_INFO("q_out: %f %f %f %f %f %f %f", q(0), q(1), q(2), q(3), q(4), q(5), q(6));		
+	//ROS_INFO("q_init: %f %f %f %f %f %f %f", q_init(0), q_init(1), q_init(2), q_init(3), q_init(4), q_init(5), q_init(6));
+	//ROS_INFO("q_out: %f %f %f %f %f %f %f", q(0), q(1), q(2), q(3), q(4), q(5), q(6));		
 	//std::cout << "Solved with " << ret << " as return\n";
 	//std::cout << q(0) << " " << q(1) << " " << q(2) << " " << q(3) << " " << q(4) << " " << q(5) << " " << q(6)  << "\n";	
 
@@ -253,7 +251,8 @@ bool fk_solve_TCP(kinematics_msgs::GetPositionFK::Request &req,
         }
         tf::poseStampedTFToMsg(tf_pose,pose);
         res.pose_stamped[0] = pose;
-        res.fk_link_names[0] = "arm_7_link";
+        //res.fk_link_names[0] = "arm_7_link";
+	res.fk_link_names[0] = "arm_%s_link",nj;
         res.error_code.val = res.error_code.SUCCESS;
 	}
 	else
@@ -410,6 +409,8 @@ bool getFKSolverInfo(kinematics_msgs::GetKinematicSolverInfo::Request &req,
 
 int main(int argc, char **argv)
 {
+
+	unsigned int nj = chain.getNrOfJoints();
 	ros::init(argc, argv, "cob_ik_solver");
 	ros::NodeHandle n;
 	ros::NodeHandle node;

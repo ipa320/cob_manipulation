@@ -4,7 +4,7 @@
 	    <include file="$(find cob3_3_arm_navigation)/launch/cob3_3_planning_environment.launch" />
 	    <include file="$(find cob3_3_arm_navigation)/launch/environment_server.launch">
 			<arg name="use_monitor" value="true" />
-			<arg name="use_collision_map" value="true" />
+			<arg name="use_collision_map" value="false" />
 	    </include>
 	    <include file="$(find cob3_3_arm_navigation)/launch/constraint_aware_kinematics.launch" />
 	    <include file="$(find cob3_3_arm_navigation)/launch/ompl_planning.launch" />
