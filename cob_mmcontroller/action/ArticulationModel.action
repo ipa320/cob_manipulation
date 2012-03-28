@@ -1,0 +1,10 @@
+# Define the goal
+uint32 model_id
+articulation_msgs/ModelMsg model
+std_msgs/Duration target_duration
+---
+# Define the result
+uint32 finished
+---
+# Define a feedback message
+float64 time_left

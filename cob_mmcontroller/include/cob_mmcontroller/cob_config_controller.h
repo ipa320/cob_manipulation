@@ -40,6 +40,7 @@ private:
 
 	ros::NodeHandle n;
 	int zeroCounter;
+    int zeroCounter_base;
 	int zeroCounterTwist;
 
 	tf::TransformListener tf_listener_;
