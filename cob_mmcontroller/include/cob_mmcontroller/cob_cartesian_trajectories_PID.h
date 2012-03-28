@@ -7,6 +7,7 @@
 #include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
 #include <tf_conversions/tf_kdl.h>
 #include <tf/transform_broadcaster.h>
+#include <tf/transform_listener.h>
 #include <sensor_msgs/JointState.h>
 #include <cob_srvs/Trigger.h>
 #include <trajectory_msgs/JointTrajectory.h>
@@ -152,6 +153,7 @@ private:
     map<std::string, double> last_rpy_angles;       // stores the last angles for R-P-Y unwrapping function
 
     tf::TransformBroadcaster br;
+    tf::TransformListener listener;
 
     int axis_center;    // axis of F_track_start pointing to the rotational axis of articulation
     double rot_radius;

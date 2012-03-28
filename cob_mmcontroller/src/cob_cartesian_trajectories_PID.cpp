@@ -32,7 +32,8 @@ cob_cartesian_trajectories::cob_cartesian_trajectories() : as_model_(n, "moveMod
     getJointLimits(UpperLimits, LowerLimits);   // get arm joint limits from topic /robot_description
 
     tf::TransformBroadcaster br;
-
+    tf::TransformListener listener;
+        
     //int axis_center;    // axis of F_handle pointing to the rotational axis of articulation
     
     bHandle = false;
@@ -438,12 +439,28 @@ void cob_cartesian_trajectories::getPriTarget(double dt, KDL::Frame &F_target)
 
 void cob_cartesian_trajectories::getPriStart(KDL::Frame &F_handle)
 {
+    int axis_no;
+
     KDL::Frame F_articulation;
 
     map<int, KDL::Vector> handle_rot;
 
     //tf transform
     tf::Transform transform_handle;
+    tf::StampedTransform transform_map_base;
+
+    // lookup transform from map to base_link
+    try
+    {
+        listener.lookupTransform("/map", "/base_link", ros::Time(0), transform_map_base);
+    }
+    catch (tf::TransformException ex)
+    {
+        ROS_ERROR("%s",ex.what());
+    }
+    // convert to KDL::Frame
+    KDL::Frame F_base_link;
+    tf::TransformTFToKDL(transform_map_base, F_base_link);
 
     // set up articulation frame
     F_articulation.p.x(getParamValue("rigid_position.x"));
@@ -464,38 +481,27 @@ void cob_cartesian_trajectories::getPriStart(KDL::Frame &F_handle)
     KDL::Vector prismatic_dir = F_articulation.M*prismatic_dir_ART;
     debug ? (std::cout << "prismatic_dir" << "\n" <<  prismatic_dir << "\n") : (std::cout << ""); //debug
 
-    // transform prismatic_dir in F_EE_start
-    KDL::Vector prismatic_dir_EE = F_EE_start.M.Inverse()*prismatic_dir;
-    debug ? (std::cout << "prismatic_dir_EE" << "\n" <<  prismatic_dir_EE << "\n") : (std::cout << ""); //debug
-
-    if (prismatic_dir_EE.z() < 0.0)
+    // transform prismatic_dir in F_base_link
+    KDL::Vector prismatic_dir_BL = F_base_link.M.Inverse()*prismatic_dir;
+    debug ? (std::cout << "prismatic_dir_BL" << "\n" <<  prismatic_dir_BL << "\n") : (std::cout << ""); //debug
+    Eigen::Vector3d(abs(prismatic_dir_BL[0]), abs(prismatic_dir_BL[1]), abs(prismatic_dir_BL[2])).maxCoeff(&axis_no);
+    if (prismatic_dir_BL[axis_no] < 0.0)
         handle_rot[2] = prismatic_dir * (-1.0);
     else
         handle_rot[2] = prismatic_dir;
     debug ? (std::cout << "prismatic_dir" << "\n" <<  prismatic_dir << "\n") : (std::cout << ""); //debug
     handle_rot[2].Normalize();
-
-    // get axis that is perpendicular to prismatic_dir
-    // and take this one for F_handle
-    // than set up the last missing axis via cross product
-    if (abs(dot(KDL::Vector(1, 0, 0), prismatic_dir_EE)) < abs(dot(KDL::Vector(0, 1, 0), prismatic_dir_EE))) // TODO change/enhance
-    {
-        handle_rot[0] = F_EE_start.M.UnitX();
-        handle_rot[0].Normalize();
-        handle_rot[1] = vector3dEigenToKDL(vector3dKDLToEigen(handle_rot[2]).cross(vector3dKDLToEigen(handle_rot[0])));
-    }
-    else
-    {
-        handle_rot[1] = F_EE_start.M.UnitY();
-        handle_rot[1].Normalize();
-        handle_rot[0] = vector3dEigenToKDL(vector3dKDLToEigen(handle_rot[1]).cross(vector3dKDLToEigen(handle_rot[2])));
-    }
-    handle_rot[0].Normalize();
-    handle_rot[1].Normalize();
-    handle_rot[2].Normalize();
-    std::cout << "rot vector x" << "\n" << handle_rot[0] << "\n"; //debug
-    std::cout << "rot vector y" << "\n" << handle_rot[1] << "\n"; //debug
     std::cout << "rot vector z" << "\n" << handle_rot[2] << "\n"; //debug
+
+    // set up arbitrary vector perpendicular to prismatic_dir as x-axis
+    handle_rot[0] = KDL::Vector(handle_rot[2][1], -handle_rot[2][0], 0.0);
+    handle_rot[0].Normalize();
+    std::cout << "rot vector x" << "\n" << handle_rot[0] << "\n"; //debug
+
+    // than set up the y-axis via cross product
+    handle_rot[1] = vector3dEigenToKDL(vector3dKDLToEigen(handle_rot[2]).cross(vector3dKDLToEigen(handle_rot[0])));
+    handle_rot[1].Normalize();
+    std::cout << "rot vector y" << "\n" << handle_rot[1] << "\n"; //debug
 
     // set up F_handle rotation
     F_handle.M = KDL::Rotation(handle_rot[0], handle_rot[1], handle_rot[2]);
