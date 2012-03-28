@@ -30,6 +30,7 @@ class cob_learn_model_prior:
 
         # tf broadcaster
         self.br = tf.TransformBroadcaster()
+        self.li = tf.TransformListener()
 
     
     def learnModelPriorActionCB(self, goal):
@@ -62,8 +63,14 @@ class cob_learn_model_prior:
 
         # if automatically execution was chosen, request parameters
         if trajectory_generation == 'a':
+            # get transform from /map to /sdh_tip_link
+            try:
+                (trans_sdh_tip, rot_sdh_tip) = listener.lookupTransform('/map', '/sdh_tip_link', rospy.Time(0))
+            except (tf.LookupException, tf.ConnectivityException):
+                continue #TODO
+
             feedback_.message = "trajectory will be generated automatically by cob_cartesian_trajectories_PID"
-            moveModel_goal = self.models_prior_object.query_articulation_parameters()
+            moveModel_goal = self.models_prior_object.query_articulation_parameters(trans_sdh_tip, rot_sdh_tip)
         else:
             feedback_.message = "trajectory will be generated manually"
         self.learnModelPrior_as.publish_feedback(feedback_)
