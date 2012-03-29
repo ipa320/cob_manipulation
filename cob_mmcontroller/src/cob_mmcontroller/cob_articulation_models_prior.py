@@ -148,7 +148,8 @@ class cob_articulation_models_prior(object):
                 try:
                     F_sdh_tip = tf_conversions.posemath.fromTf(self.listener.lookupTransform('/map', '/sdh_tip_link', rospy.Time(0)))
                 except (tf.LookupException, tf.ConnectivityException):
-                    rospy.logerr("COuld not look up transformation") #TODO
+                    rospy.logerr("Could not look up transformation")
+                    raise Exception("Could not look up transformation")
 
                 print "First enter location of articulation with respect to the handle."
                 artic_loc = self.query("Is the articulation on the left side, the right side, above or below?", ['l', 'r', 'a', 'b'])
@@ -212,7 +213,7 @@ class cob_articulation_models_prior(object):
             goal.model.params.append(ParamMsg('rigid_orientation.y', 0.0, 1)) #self.query_parameter('rigid_orientation.y'), 1))
             goal.model.params.append(ParamMsg('rigid_orientation.z', 0.0, 1)) #self.query_parameter('rigid_orientation.z'), 1))
             goal.model.params.append(ParamMsg('rigid_orientation.w', 1.0, 1)) #self.query_parameter('rigid_orientation.w'), 1))
-            print "Enter now the direction in which the prismatic articulation can be moved (in global coordinates)"
+            print "Enter now the direction in which the prismatic articulation can be moved (in base link coordinates)"
             goal.model.params.append(ParamMsg('prismatic_dir.x', self.query_parameter('prismatic_dir.x'), 1))
             goal.model.params.append(ParamMsg('prismatic_dir.y', self.query_parameter('prismatic_dir.y'), 1))
             goal.model.params.append(ParamMsg('prismatic_dir.z', self.query_parameter('prismatic_dir.z'), 1))

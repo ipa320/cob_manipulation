@@ -63,7 +63,12 @@ class cob_learn_model_prior:
         # if automatically execution was chosen, request parameters
         if trajectory_generation == 'a':
             feedback_.message = "trajectory will be generated automatically by cob_cartesian_trajectories_PID"
-            moveModel_goal = self.models_prior_object.query_articulation_parameters()
+            try:
+                moveModel_goal = self.models_prior_object.query_articulation_parameters()
+            except Exception as e:
+                result_.success = False
+                result_.error_message = "Getting articulation parameters failed: %s"%e
+                self.learnModelPrior_as.set_aborted(result_)
         else:
             feedback_.message = "trajectory will be generated manually"
         self.learnModelPrior_as.publish_feedback(feedback_)
@@ -209,7 +214,7 @@ def main():
         cob_learn_model_prior()
         rospy.spin()
 
-    except rospy.ROSInterruptException: pass
+    except rospy.ROSInterruptException as e: rospy.signalShutdown(str(e))
     
 if __name__ == '__main__':
     main()
