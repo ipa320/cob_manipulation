@@ -752,8 +752,12 @@ geometry_msgs::Twist cob_cartesian_trajectories::PIDController(const double dt, 
     double target_roll = 0.0, target_pitch = 0.0, target_yaw = 0.0;
     
     F_target.M.GetRPY(target_roll, target_pitch, target_yaw);
+    target_roll = unwrapRPY("target_roll", target_roll);
+    target_pitch = unwrapRPY("target_pitch", target_pitch);
     target_yaw = unwrapRPY("target_yaw", target_yaw);
     F_current.M.GetRPY(current_roll, current_pitch, current_yaw);
+    current_roll = unwrapRPY("current_roll", current_roll);
+    current_pitch = unwrapRPY("current_pitch", current_pitch);
     current_yaw = unwrapRPY("current_yaw", current_yaw);
         
     Error.vel.x(F_target.p.x() - F_current.p.x());
@@ -802,11 +806,13 @@ geometry_msgs::Twist cob_cartesian_trajectories::PIDController(const double dt, 
     Error_last.rot.y(Error.rot.y());
     Error_last.rot.z(Error.rot.z());
 
+    // broadcast twist
     tf::Transform transform_twist;
     KDL::Frame F_twist;
     F_twist.p.x(twist.linear.x);
     F_twist.p.y(twist.linear.y);
     F_twist.p.z(twist.linear.z);
+    F_twist.M = KDL::Rotation::RPY(twist.angular.x, twist.angular.y, twist.angular.z);
     tf::TransformKDLToTF(F_twist, transform_twist);
     br.sendTransform(tf::StampedTransform(transform_twist, ros::Time::now(), "/sdh_tip_link", "/twist"));
 
