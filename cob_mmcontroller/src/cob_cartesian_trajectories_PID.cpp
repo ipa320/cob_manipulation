@@ -787,8 +787,8 @@ geometry_msgs::Twist cob_cartesian_trajectories::PIDController(const double dt, 
     twist.linear.x = p_gain_*Error.vel.x() + i_gain_*Error_sum.vel.x();
     twist.linear.y = p_gain_*Error.vel.y() + i_gain_*Error_sum.vel.y(); 
     twist.linear.z = p_gain_*Error.vel.z() + i_gain_*Error_sum.vel.z();
-    twist.angular.x = 0.0; //p_gain_*Error.rot.x() + i_gain_*Error_sum.rot.x();
-    twist.angular.y = 0.0; //p_gain_*Error.rot.y() + i_gain_*Error_sum.rot.y();
+    twist.angular.x = p_gain_*Error.rot.x() + i_gain_*Error_sum.rot.x();
+    twist.angular.y = p_gain_*Error.rot.y() + i_gain_*Error_sum.rot.y();
     twist.angular.z = p_gain_*Error.rot.z() + i_gain_*Error_sum.rot.z();
 
     pubTrack(1, ros::Duration(0.5), F_target);
@@ -801,6 +801,14 @@ geometry_msgs::Twist cob_cartesian_trajectories::PIDController(const double dt, 
     Error_last.rot.x(Error.rot.x());
     Error_last.rot.y(Error.rot.y());
     Error_last.rot.z(Error.rot.z());
+
+    tf::Transform transform_twist;
+    KDL::Frame F_twist;
+    F_twist.p.x(twist.linear.x);
+    F_twist.p.y(twist.linear.y);
+    F_twist.p.z(twist.linear.z);
+    tf::TransformKDLToTF(F_twist, transform_twist);
+    br.sendTransform(tf::StampedTransform(transform_twist, ros::Time::now(), "/sdh_tip_link", "/twist"));
 
     return twist;
 }
