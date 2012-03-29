@@ -547,7 +547,7 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
 
     // transformation of trajectory frame into base_link frame ??? map frame
     F_target.p = F_track_start*F_track.p;       // transform F_Track in F_track_start 
-    F_target.M = F_EE_start.M*F_track.M;        // rotation with respect to gripper start frame (F_EE_start)
+    F_target.M = F_track_start.M*F_track.M*F_track_start.M.Inverse()*F_EE_start.M;        // rotation with respect to gripper start frame (F_EE_start)
 
     // tf transform F_track_start
     tf::Transform transform_track_start;
