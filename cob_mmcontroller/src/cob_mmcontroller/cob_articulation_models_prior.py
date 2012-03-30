@@ -143,7 +143,7 @@ class cob_articulation_models_prior(object):
             if self.query("Do you want to enter the parameters in a simple or complex way?", ['s', 'c']) == 's':
                 # initialize F_articulation
                 F_articulation_EE = PyKDL.Frame.Identity()
-                print "It is assumed that the robot is grasping the articulated objects handle right now!"
+                print "It is believed that the robot is grasping the articulated objects handle right now!"
                 # get transform from /map to /sdh_tip_link
                 try:
                     F_sdh_tip = tf_conversions.posemath.fromTf(self.listener.lookupTransform('/map', '/sdh_tip_link', rospy.Time(0)))
@@ -151,33 +151,18 @@ class cob_articulation_models_prior(object):
                     rospy.logerr("Could not look up transformation")
                     raise Exception("Could not look up transformation")
 
-                print "First enter location of articulation with respect to the handle."
-                artic_loc = self.query("Is the articulation on the left side, the right side, above or below?", ['l', 'r', 'a', 'b'])
-                print "Now enter the distance between the handle and the rotational axis:"
-                radius = self.query_parameter('radius')
+                print "Please enter the distance between the handle and the rotational axis in x- and y-direction (in sdh_tip_link coordinates):"
+                dist_x = self.query_parameter('distance in x', 'm')
+                dist_y = self.query_parameter('distance in y', 'm')
                 handle_orient = self.query("Is the handle parallel or orthogonal to the rotational axis?", ['p', 'o'])
 
-                if handle_orient == 'p':
-                    if artic_loc == 'l' or artic_loc == 'b':
-                        F_articulation_EE.p.x(-radius)
-                    elif artic_loc == 'r' or artic_loc == 'a':
-                        F_articulation_EE.p.x(radius)
-                else:
-                    if artic_loc == 'l' or artic_loc == 'a':
-                        F_articulation_EE.p.y(-radius)
-                    elif artic_loc == 'r' or artic_loc == 'b':
-                        F_articulation_EE.p.y(radius)
+                F_articulation_EE.p.x(dist_x)
+                F_articulation_EE.p.y(dist_y)
 
-                if artic_loc == 'a' or artic_loc == 'b':
-                    if handle_orient == 'p':
-                        F_articulation_EE.M = PyKDL.Rotation.Quaternion(0.7071, 0, 0, -0.7071)
-                    else:
-                        F_articulation_EE.M = PyKDL.Rotation.Quaternion(0, 0.7071, 0, 0.7071)
+                if handle_orient == 'p':
+                    F_articulation_EE.M = PyKDL.Rotation.Quaternion(0.7071, 0, 0, 0.7071)
                 else:
-                    if handle_orient == 'p':
-                        F_articulation_EE.M = PyKDL.Rotation.Quaternion(0.7071, 0, 0, 0.7071)
-                    else:
-                        F_articulation_EE.M = PyKDL.Rotation.Quaternion(0, 0.7071, 0, 0.7071)
+                    F_articulation_EE.M = PyKDL.Rotation.Quaternion(0, 0.7071, 0, 0.7071)
 
 
                 F_articulation = F_sdh_tip*F_articulation_EE
@@ -200,12 +185,12 @@ class cob_articulation_models_prior(object):
                 goal.model.params.append(ParamMsg('rot_axis.z', self.query_parameter('rot_axis.z'), 1))
                 goal.model.params.append(ParamMsg('rot_axis.w', self.query_parameter('rot_axis.w'), 1))
 
-            goal.model.params.append(ParamMsg('action', self.query_parameter('angle'), 1))
-            goal.target_duration.secs = self.query_parameter('target_duration')
+            goal.model.params.append(ParamMsg('action', self.query_parameter('angle', 'rad'), 1))
+            goal.target_duration.secs = self.query_parameter('target_duration', 'sec')
         else:
             print "It is assumed that the robot is grasping the articulated objects handle right now!"
             goal.model.name = 'prismatic'
-            goal.model.params.append(ParamMsg('action', self.query_parameter('opening length'), 1))
+            goal.model.params.append(ParamMsg('action', self.query_parameter('opening length', 'm'), 1))
             goal.model.params.append(ParamMsg('rigid_position.x', 0.0, 1)) #self.query_parameter('rigid_position.x'), 1))
             goal.model.params.append(ParamMsg('rigid_position.y', 0.0, 1)) #self.query_parameter('rigid_position.y'), 1))
             goal.model.params.append(ParamMsg('rigid_position.z', 0.0, 1)) #self.query_parameter('rigid_position.z'), 1))
@@ -213,7 +198,7 @@ class cob_articulation_models_prior(object):
             goal.model.params.append(ParamMsg('rigid_orientation.y', 0.0, 1)) #self.query_parameter('rigid_orientation.y'), 1))
             goal.model.params.append(ParamMsg('rigid_orientation.z', 0.0, 1)) #self.query_parameter('rigid_orientation.z'), 1))
             goal.model.params.append(ParamMsg('rigid_orientation.w', 1.0, 1)) #self.query_parameter('rigid_orientation.w'), 1))
-            print "Enter now the direction in which the prismatic articulation can be moved (in base link coordinates)"
+            print "Enter now the direction in which the prismatic articulation can be moved (in global coordinates)"
             goal.model.params.append(ParamMsg('prismatic_dir.x', self.query_parameter('prismatic_dir.x'), 1))
             goal.model.params.append(ParamMsg('prismatic_dir.y', self.query_parameter('prismatic_dir.y'), 1))
             goal.model.params.append(ParamMsg('prismatic_dir.z', self.query_parameter('prismatic_dir.z'), 1))
@@ -222,8 +207,11 @@ class cob_articulation_models_prior(object):
         return goal
 
 
-    def query_parameter(self, param_name):
-        param_value = float(raw_input("Enter float value for parameter '%s': "%param_name))
+    def query_parameter(self, param_name, param_unit=""):
+        prompt = "Enter float value for parameter '%s': "%param_name
+        if param_unit != "":
+            prompt = "Enter float value for parameter '%s' in [%s]: "%(param_name, param_unit)
+        param_value = float(raw_input(prompt))
         return param_value
 
 
