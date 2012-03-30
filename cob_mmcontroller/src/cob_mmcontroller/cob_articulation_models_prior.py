@@ -151,9 +151,9 @@ class cob_articulation_models_prior(object):
                     rospy.logerr("Could not look up transformation")
                     raise Exception("Could not look up transformation")
 
-                print "Please enter the distance between the handle and the rotational axis in x- and y-direction:"
-                dist_x = self.query_parameter('distance in x')
-                dist_y = self.query_parameter('distance in y')
+                print "Please enter the distance between the handle and the rotational axis in x- and y-direction (in sdh_tip_link coordinates):"
+                dist_x = self.query_parameter('distance in x', 'm')
+                dist_y = self.query_parameter('distance in y', 'm')
                 handle_orient = self.query("Is the handle parallel or orthogonal to the rotational axis?", ['p', 'o'])
 
                 F_articulation_EE.p.x(dist_x)
@@ -185,12 +185,12 @@ class cob_articulation_models_prior(object):
                 goal.model.params.append(ParamMsg('rot_axis.z', self.query_parameter('rot_axis.z'), 1))
                 goal.model.params.append(ParamMsg('rot_axis.w', self.query_parameter('rot_axis.w'), 1))
 
-            goal.model.params.append(ParamMsg('action', self.query_parameter('angle'), 1))
-            goal.target_duration.secs = self.query_parameter('target_duration')
+            goal.model.params.append(ParamMsg('action', self.query_parameter('angle', 'rad'), 1))
+            goal.target_duration.secs = self.query_parameter('target_duration', 'sec')
         else:
             print "It is assumed that the robot is grasping the articulated objects handle right now!"
             goal.model.name = 'prismatic'
-            goal.model.params.append(ParamMsg('action', self.query_parameter('opening length'), 1))
+            goal.model.params.append(ParamMsg('action', self.query_parameter('opening length', 'm'), 1))
             goal.model.params.append(ParamMsg('rigid_position.x', 0.0, 1)) #self.query_parameter('rigid_position.x'), 1))
             goal.model.params.append(ParamMsg('rigid_position.y', 0.0, 1)) #self.query_parameter('rigid_position.y'), 1))
             goal.model.params.append(ParamMsg('rigid_position.z', 0.0, 1)) #self.query_parameter('rigid_position.z'), 1))
@@ -207,8 +207,11 @@ class cob_articulation_models_prior(object):
         return goal
 
 
-    def query_parameter(self, param_name):
-        param_value = float(raw_input("Enter float value for parameter '%s': "%param_name))
+    def query_parameter(self, param_name, param_unit=""):
+        prompt = "Enter float value for parameter '%s': "%param_name
+        if param_unit != "":
+            prompt = "Enter float value for parameter '%s' in [%s]: "%(param_name, param_unit)
+        param_value = float(raw_input(prompt))
         return param_value
 
 
