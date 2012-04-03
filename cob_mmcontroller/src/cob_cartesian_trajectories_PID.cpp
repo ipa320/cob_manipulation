@@ -749,7 +749,6 @@ geometry_msgs::Twist cob_cartesian_trajectories::PIDController(const double dt, 
 {
     geometry_msgs::Twist twist;
     if (dt < 0.00001)
-        ROS_ERROR("dt too small, sending zero twist");
         return twist;
     double current_roll = 0.0, current_pitch = 0.0, current_yaw = 0.0;
     double target_roll = 0.0, target_pitch = 0.0, target_yaw = 0.0;
