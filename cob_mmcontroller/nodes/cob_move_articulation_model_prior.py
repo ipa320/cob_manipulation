@@ -88,16 +88,15 @@ class cob_move_articulation_model_prior:
             if self.models_prior_object.query("Do you want to save the new prior model in a database", ['y', 'n']) == 'y':
                 self.models_prior_object.store_model_to_prior(learned_model.model)
                 feedback_.message = "New model was stored with ID %d"%learned_model.model.id
-        elif learned_model.model.id != execute_model.model.id:
-            print "Collected model id differs from executed model"
-            self.models_prior_object.print_models_verbose([execute_model.model])
-            self.models_prior_object.print_models_verbose([self.models_prior_object.get_prior_model_by_id(learned_model.model.id), learned_model.model])
+        else: 
+            if learned_model.model.id != execute_model.model.id:
+                print "Collected model id differs from executed model"
+                self.models_prior_object.print_models_verbose([execute_model.model])
+                self.models_prior_object.print_models_verbose([self.models_prior_object.get_prior_model_by_id(learned_model.model.id), learned_model.model])
+            else: 
+                self.models_prior_object.print_models_verbose([execute_model.model, learned_model.model])
+
             if self.models_prior_object.query("Do you want to update the prior model %d"%learned_model.model.id, ['y', 'n']) == 'y':
-                self.models_prior_object.store_model_to_prior(learned_model.model)
-                feedback_.message = "Model %d was updated"%learned_model.model.id
-        else: # depending on evaluation, the model will be updated
-            self.models_prior_object.print_models_verbose([execute_model.model, learned_model.model])
-            if self.models_prior_object.query("Check above which model you want to store: ", ['1', '2']) == '2':
                 self.models_prior_object.store_model_to_prior(learned_model.model)
                 feedback_.message = "Model %d was updated"%execute_model.model.id
             else:
