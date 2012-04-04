@@ -1,3 +1,3 @@
 <launch>
-    <include file="$(find cob3_3_arm_navigation)/launch/move_arm.launch" />
+    <include file="$(find cob_arm_navigation)/launch/move_arm.launch" />
 </launch>
