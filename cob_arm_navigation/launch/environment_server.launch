@@ -6,7 +6,6 @@
   <node pkg="planning_environment" type="environment_server" output="screen" name="environment_server">      
 <!--<remap from="joint_states" to="joint_states_combined" />-->
     <param name="use_monitor" type="bool" value="$(arg use_monitor)"/>
-max_obstacle_height: 8.0
     <param name="use_collision_map" type="bool" value="$(arg use_collision_map)"/>
   </node>
 

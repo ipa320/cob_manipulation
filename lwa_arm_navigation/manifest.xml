@@ -4,8 +4,8 @@
      lwa_arm_navigation
 
   </description>
-  <author></author>
-  <license>BSD</license>
+  <author>Mathias Luedtke</author>
+  <license>LGPL</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/lwa_arm_navigation</url>
   <depend package="planning_environment"/>
@@ -17,7 +17,7 @@
   <!--@ToDo: Find out why needed-->
   <!--Maybe for defining static obstacles in planning-->
   <depend package="tinyxml"/>
-  <depend package="gazebo"/>
+  <!--depend package="gazebo"/-->
   <!--###################-->
   <depend package="mongodb"/>
   <depend package="rviz"/>
