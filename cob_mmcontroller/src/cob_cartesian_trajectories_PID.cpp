@@ -34,8 +34,6 @@ cob_cartesian_trajectories::cob_cartesian_trajectories() : as_model_(n, "moveMod
     tf::TransformBroadcaster br;
     tf::TransformListener listener;
         
-    //int axis_center;    // axis of F_handle pointing to the rotational axis of articulation
-    
     bHandle = false;
     debug = true;
 }
@@ -535,15 +533,10 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
 
     // creating trajectory frame w.r.t. the track_start frame
     // orientation is like sdh_tip_link frame
-    F_track.p[axis_center] = rot_radius*(1-cos(partial_angle)) * opening_side;
-    F_track.p[2] = -rot_radius*sin(partial_angle) * opening_side;
+    F_track.p[0] = rot_radius*(1-cos(partial_angle));
+    F_track.p[2] = rot_radius*sin(partial_angle);
 
-    if (axis_center == 0)
-        F_track.M.DoRotY(-partial_angle);
-    else if (axis_center == 1)
-        F_track.M.DoRotX(partial_angle);
-    else
-        ROS_ERROR("Wrong rotation axis in F_track");
+    F_track.M.DoRotY(partial_angle);
 
     // transformation of trajectory frame into base_link frame ??? map frame
     F_target.p = F_track_start*F_track.p;       // transform F_Track in F_track_start 
@@ -582,6 +575,7 @@ void cob_cartesian_trajectories::getRotStart(KDL::Frame &F_handle)
     Eigen::Vector3d perpendicular;
     Eigen::Vector3d perpendicular_EE;
     Eigen::Vector3d trans_ee_art_EE;
+    Eigen::Vector3d trans_ee_art_BL;
 
     Eigen::Hyperplane<double, 3> handle_plane;
     
@@ -589,7 +583,22 @@ void cob_cartesian_trajectories::getRotStart(KDL::Frame &F_handle)
 
     //tf transform
     tf::Transform transform_handle;
-    
+    tf::StampedTransform transform_map_base;
+
+    // lookup transform from map to base_link
+    try
+    {
+        listener.lookupTransform("/map", "/base_link", ros::Time(0), transform_map_base);
+    }
+    catch (tf::TransformException ex)
+    {
+        ROS_ERROR("%s",ex.what());
+    }
+    // convert to KDL::Frame
+    KDL::Frame F_base_link;
+    tf::TransformTFToKDL(transform_map_base, F_base_link);
+    debug ? (std::cout << "F_base_link" <<  F_base_link << "\n" ) : (std::cout << ""); //debug
+
     // set up articulation frame
     F_articulation.p.x(getParamValue("rot_center.x"));
     F_articulation.p.y(getParamValue("rot_center.y"));
@@ -630,8 +639,8 @@ void cob_cartesian_trajectories::getRotStart(KDL::Frame &F_handle)
     if (perpendicular.norm() < 1e-6)
         ROS_ERROR("Normals are parallel");
 
-    std::cout << "perdendicular norm" << "\n" <<  perpendicular.norm() << "\n"; //debug
-    std::cout << "perpendicular normalized" << "\n" <<  perpendicular/perpendicular.norm() << "\n"; //debug
+    //std::cout << "perdendicular norm" << "\n" <<  perpendicular.norm() << "\n"; //debug
+    //std::cout << "perpendicular normalized" << "\n" <<  perpendicular/perpendicular.norm() << "\n"; //debug
 
     // translation from EE start to articulation in global coord
     KDL::Vector trans_ee_art_KDL = F_articulation.p - F_EE_start.p;
@@ -648,14 +657,25 @@ void cob_cartesian_trajectories::getRotStart(KDL::Frame &F_handle)
     std::cout << "perpendicular_EE" << "\n" <<  perpendicular_EE << "\n"; //debug
 
     // get actual rot_radius
-    rot_radius_actual = abs(dot(trans_ee_art_KDL_EE, perpendicular_EE_KDL));
+    rot_radius_actual = dot(trans_ee_art_KDL_EE, perpendicular_EE_KDL);
     std::cout << "rot_radius_actual" << "\n" <<  rot_radius_actual << "\n"; //debug
+
+    // set direction of perpendicular and set as handle_rot x-axis
+    if (rot_radius_actual < 0.0)
+    {
+        perpendicular *= (-1.0);
+        perpendicular_EE *= (-1.0);
+    }
+    vector3dEigenToKDL(perpendicular, handle_rot[0]);
+        
+    // absolute value
+    rot_radius_actual =  abs(rot_radius_actual);
 
     // normalize trans_ee_art_KDL(_EE)
     trans_ee_art_KDL.Normalize();
     trans_ee_art_KDL_EE.Normalize();
 
-    // get axis pointing on articulation --> use maxCoeff of absolute x and y axes 
+    /*// get axis pointing on articulation --> use maxCoeff of absolute x and y axes 
     vector3dKDLToEigen(trans_ee_art_KDL_EE, trans_ee_art_EE);
     // take only x and y axes 
     Eigen::Vector2d xORy = Eigen::Vector2d(abs(trans_ee_art_EE[0]), abs(trans_ee_art_EE[1]));
@@ -692,7 +712,15 @@ void cob_cartesian_trajectories::getRotStart(KDL::Frame &F_handle)
     if (articulation_Z_KDL_EE[abs(axis_no-1)] < 0.0)
         handle_rot[abs(axis_no-1)] = (-1.0)*articulation_Z_KDL;
     else
-        handle_rot[abs(axis_no-1)] = articulation_Z_KDL;
+        handle_rot[abs(axis_no-1)] = articulation_Z_KDL;*/
+
+    // check direction of articulation_Z and set up second vector of handle_rot (parallel to articulation_Z)
+    KDL::Vector articulation_Z_KDL_BL = F_base_link.M.Inverse()*articulation_Z_KDL;
+    Eigen::Vector3d(abs(articulation_Z_KDL_BL.x()), abs(articulation_Z_KDL_BL.y()), abs(articulation_Z_KDL_BL.z())).maxCoeff(&axis_no);
+    if (articulation_Z_KDL_BL[axis_no] < 0.0)
+        handle_rot[1] = (-1.0)*articulation_Z_KDL;
+    else
+        handle_rot[1] = articulation_Z_KDL;
     
     // calculate cross produkt to get handle_rot z-axis 
     handle_rot[2] = vector3dEigenToKDL(vector3dKDLToEigen(handle_rot[0]).cross(vector3dKDLToEigen(handle_rot[1])));
@@ -724,7 +752,6 @@ void cob_cartesian_trajectories::getRotStart(KDL::Frame &F_handle)
     }
     rot_radius = rot_radius_actual;
 
-    axis_center = axis_no;
     bHandle = false;
 }
 
