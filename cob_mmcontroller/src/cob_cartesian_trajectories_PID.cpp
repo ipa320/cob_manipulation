@@ -573,9 +573,6 @@ void cob_cartesian_trajectories::getRotStart(KDL::Frame &F_handle)
     Eigen::Vector3d articulation_O;
     Eigen::Vector3d handle_O;
     Eigen::Vector3d perpendicular;
-    Eigen::Vector3d perpendicular_EE;
-    Eigen::Vector3d trans_ee_art_EE;
-    Eigen::Vector3d trans_ee_art_BL;
 
     Eigen::Hyperplane<double, 3> handle_plane;
     
@@ -639,9 +636,6 @@ void cob_cartesian_trajectories::getRotStart(KDL::Frame &F_handle)
     if (perpendicular.norm() < 1e-6)
         ROS_ERROR("Normals are parallel");
 
-    //std::cout << "perdendicular norm" << "\n" <<  perpendicular.norm() << "\n"; //debug
-    //std::cout << "perpendicular normalized" << "\n" <<  perpendicular/perpendicular.norm() << "\n"; //debug
-
     // translation from EE start to articulation in global coord
     KDL::Vector trans_ee_art_KDL = F_articulation.p - F_EE_start.p;
     std::cout << "trans_ee_art_KDL" << "\n" <<  trans_ee_art_KDL << "\n"; //debug
@@ -653,8 +647,6 @@ void cob_cartesian_trajectories::getRotStart(KDL::Frame &F_handle)
     // transform perpendicular into EE frame
     KDL::Vector perpendicular_EE_KDL = F_EE_start.M.Inverse()*KDL::Vector(perpendicular[0], perpendicular[1], perpendicular[2]);
     std::cout << "perpendicular_EE_KDL" << "\n" <<  perpendicular_EE_KDL << "\n"; //debug
-    vector3dKDLToEigen(perpendicular_EE_KDL, perpendicular_EE);
-    std::cout << "perpendicular_EE" << "\n" <<  perpendicular_EE << "\n"; //debug
 
     // get actual rot_radius
     rot_radius_actual = dot(trans_ee_art_KDL_EE, perpendicular_EE_KDL);
@@ -662,57 +654,11 @@ void cob_cartesian_trajectories::getRotStart(KDL::Frame &F_handle)
 
     // set direction of perpendicular and set as handle_rot x-axis
     if (rot_radius_actual < 0.0)
-    {
         perpendicular *= (-1.0);
-        perpendicular_EE *= (-1.0);
-    }
     vector3dEigenToKDL(perpendicular, handle_rot[0]);
         
     // absolute value
-    rot_radius_actual =  abs(rot_radius_actual);
-
-    // normalize trans_ee_art_KDL(_EE)
-    trans_ee_art_KDL.Normalize();
-    trans_ee_art_KDL_EE.Normalize();
-
-    /*// get axis pointing on articulation --> use maxCoeff of absolute x and y axes 
-    vector3dKDLToEigen(trans_ee_art_KDL_EE, trans_ee_art_EE);
-    // take only x and y axes 
-    Eigen::Vector2d xORy = Eigen::Vector2d(abs(trans_ee_art_EE[0]), abs(trans_ee_art_EE[1]));
-    xORy.maxCoeff(&axis_no);  // index correlates with axis
-    std::cout << "axis_no" << "\n" << axis_no << "\n"; //debug
-
-    // check if articulation origin is on the right (positive) or left (negative) side w.r.t. the handle frame
-    // meaning the current door is opening on the left or the right side
-    // and check and set direction of perpendicular depending on this
-    if (trans_ee_art_EE[axis_no] > 0.0)
-    {
-        opening_side = 1.0;
-        if (sign(trans_ee_art_EE[axis_no]) != sign(perpendicular_EE[axis_no]))
-            perpendicular *= (-1.0);
-            perpendicular_EE *= (-1.0);
-    }
-    else
-    {
-        opening_side = -1.0;
-        if (sign(trans_ee_art_EE[axis_no]) == sign(perpendicular_EE[axis_no]))
-            perpendicular *= (-1.0);
-            perpendicular_EE *= (-1.0);
-    }
-    std::cout << "opening side" << "\n" <<  opening_side << "\n"; //debug
-    std::cout << "perpendicular" << "\n" <<  perpendicular << "\n"; //debug
-    std::cout << "perpendicular_EE" << "\n" <<  perpendicular_EE << "\n"; //debug
-
-    // collect vectors for F_handle orientation
-    vector3dEigenToKDL(perpendicular, handle_rot[axis_no]);
-
-    // check direction of articulation_Z and set up second vector of handle_rot (parallel to articulation_Z)
-    std::cout << "other axis" << "\n" << abs(axis_no-1) << "\n"; //debug
-    KDL::Vector articulation_Z_KDL_EE = F_EE_start*articulation_Z_KDL;
-    if (articulation_Z_KDL_EE[abs(axis_no-1)] < 0.0)
-        handle_rot[abs(axis_no-1)] = (-1.0)*articulation_Z_KDL;
-    else
-        handle_rot[abs(axis_no-1)] = articulation_Z_KDL;*/
+    rot_radius_actual = abs(rot_radius_actual);
 
     // check direction of articulation_Z and set up second vector of handle_rot (parallel to articulation_Z)
     KDL::Vector articulation_Z_KDL_BL = F_base_link.M.Inverse()*articulation_Z_KDL;
