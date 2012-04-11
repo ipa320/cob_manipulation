@@ -31,6 +31,7 @@ rosbuild_gensrv()
 #rosbuild_add_boost_directories()
 #rosbuild_link_boost(${PROJECT_NAME} thread)
 rosbuild_add_executable(cob_ik_solver_kdl ros/src/ik_solver_kdl.cpp)
+rosbuild_add_executable(test_move_cartesian_planned src/test_move_cartesian_planned.cpp)
 #rosbuild_add_executable(create_robot_manip_dae ros/src/create_robot_manip_dae.cpp)
 
 rosbuild_add_library(cob3_arm_kinematics
