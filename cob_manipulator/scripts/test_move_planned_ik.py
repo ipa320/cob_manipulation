@@ -6,6 +6,7 @@ import rospy
 
 from simple_script_server import *
 from kinematics_msgs.srv import *
+from tf.transformations import *
 
 sss = simple_script_server()
 
@@ -54,10 +55,11 @@ class TestScript:
             fk = True #self.callFK([1]*7)
 	    #print fk
 	    if fk:		
-	        ik, error_code = self.callIK(getPoseStamped(pos,quat))
+	        ik, error_code = sss.calculate_ik(['base_footprint',pos, euler_from_quaternion(quat)])
 	        print error_code,ik
                 if ik:
-                    sss.move_planned('arm',[list(ik)])
+                    pass
+                    #sss.move_planned('arm',[list(ik)])
 		
 if __name__ == "__main__":
         rospy.init_node("TestIK")
