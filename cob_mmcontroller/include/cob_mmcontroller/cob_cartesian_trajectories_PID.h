@@ -6,6 +6,8 @@
 #include <geometry_msgs/Pose.h>
 #include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
 #include <tf_conversions/tf_kdl.h>
+#include <tf/transform_broadcaster.h>
+#include <tf/transform_listener.h>
 #include <sensor_msgs/JointState.h>
 #include <cob_srvs/Trigger.h>
 #include <trajectory_msgs/JointTrajectory.h>
@@ -17,6 +19,7 @@
 #include <visualization_msgs/MarkerArray.h>
 #include <math.h>
 #include <map>
+#include <Eigen/Geometry>
 
 #include <articulation_msgs/ParamMsg.h>
 #include <articulation_msgs/TrackMsg.h>
@@ -31,7 +34,6 @@
 #include <kdl/jntarray.hpp>
 #include <kdl/frames.hpp>
 
-#include <cob_mmcontroller/OpenFridgeAction.h>
 #include <cob_mmcontroller/ArticulationModelAction.h>
 #include <actionlib/server/simple_action_server.h>
 
@@ -45,8 +47,6 @@ public:
 
 private:
     ros::NodeHandle n;
-    actionlib::SimpleActionServer<cob_mmcontroller::OpenFridgeAction> as_;
-    actionlib::SimpleActionServer<cob_mmcontroller::OpenFridgeAction> as2_;
     actionlib::SimpleActionServer<cob_mmcontroller::ArticulationModelAction> as_model_;
     
     void cartStateCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
@@ -56,9 +56,17 @@ private:
     // trajectory generation
     void getTargetPosition(double dt, KDL::Frame &F_target);
     void getPriTarget(double dt, KDL::Frame &F_target);
+    void getPriStart(KDL::Frame &F_track_start);
     void getRotTarget(double dt, KDL::Frame &F_target);
+    void getRotStart(KDL::Frame &F_track_start);
     double getParamValue(std::string param_name);
     double unwrapRPY(std::string axis,  double angle);    
+
+    // tools
+    void vector3dKDLToEigen(const KDL::Vector &from, Eigen::Vector3d &to);
+    Eigen::Vector3d vector3dKDLToEigen(const KDL::Vector &from);
+    void vector3dEigenToKDL(const Eigen::Vector3d &from, KDL::Vector &to);
+    KDL::Vector vector3dEigenToKDL(const Eigen::Vector3d &from);
 
     // controller
     geometry_msgs::Twist PIDController(const double dt, const KDL::Frame &F_target, const KDL::Frame &F_Current);
@@ -74,8 +82,6 @@ private:
     void sendMarkers();
 
     // action callbacks
-    void moveCircActionCB(const cob_mmcontroller::OpenFridgeGoalConstPtr& goal);
-    void moveLinActionCB(const cob_mmcontroller::OpenFridgeGoalConstPtr& goal);
     void moveModelActionCB(const cob_mmcontroller::ArticulationModelGoalConstPtr& goal);
     
     // service callbacks
@@ -94,6 +100,7 @@ private:
     ros::Publisher map_pub_;
     ros::Publisher twist_pub_;
     ros::Publisher track_pub_;
+    ros::Publisher model_pub_;
     ros::ServiceServer serv_prismatic;
     ros::ServiceServer serv_rotational;
     ros::ServiceServer serv_model;
@@ -112,7 +119,8 @@ private:
 
     ros::Time timer;
     ros::Time tstart;
-    KDL::Frame F_start;
+    KDL::Frame F_EE_start;
+    KDL::Frame F_track_start;
     KDL::Twist Error;
     KDL::Twist Error_sum;
     KDL::Twist Error_dot;
@@ -143,5 +151,15 @@ private:
     std::vector<double> jointStates;
 
     map<std::string, double> last_rpy_angles;       // stores the last angles for R-P-Y unwrapping function
+
+    tf::TransformBroadcaster br;
+    tf::TransformListener listener;
+
+    int axis_center;    // axis of F_track_start pointing to the rotational axis of articulation
+    double rot_radius;
+    double opening_side; // +1.0 is legt opening
+
+    bool bHandle;
+    bool debug;
 };
 

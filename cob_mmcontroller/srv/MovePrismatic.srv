@@ -1,5 +1,5 @@
 articulation_msgs/ParamMsg[] params
-std_msgs/Duration target_duration
+duration target_duration
 ---
-std_msgs/Bool success
-std_msgs/String error_message
+bool success
+string error_message

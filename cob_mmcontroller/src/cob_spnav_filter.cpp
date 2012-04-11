@@ -17,63 +17,18 @@ double offset = -11.5;
 
 bool TwistInputTrigger(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response)
 {
-	if(!bRunning)
-	{
-		bRunning = true;
-		ROS_INFO("Starting wrench input");
-	}
-	else
-	{
-		bRunning = false;
-		ROS_INFO("Stopping wrench input");
-	}	
-	return true;
+    if(!bRunning)
+    {
+        bRunning = true;
+        ROS_INFO("Starting wrench input");
+    }
+    else
+    {
+        bRunning = false;
+        ROS_INFO("Stopping wrench input");
+    }    
+    return true;
 } 
-
-void spnavCallback(const geometry_msgs::WrenchStamped::ConstPtr& msg)
-{
-if(bRunning)
-{
-  geometry_msgs::Vector3Stamped force_wrench;
-  force_wrench.header.frame_id = msg->header.frame_id;
-  force_wrench.vector = msg->wrench.force;
-  geometry_msgs::Vector3Stamped force_bl;
-  try{
-    tflistener->transformVector("base_link", force_wrench, force_bl);
-
-  }
-  catch (tf::TransformException ex){
-    ROS_ERROR("%s",ex.what());
-  }
-
-  std::cout << "Force Vector : " << force_bl.vector.x << " " << force_bl.vector.y << " " << force_bl.vector.z << "\n";
-
-  double average_x = 0.0;
-  double average_y = 0.0;
-  double average_z = 0.0;
-  if(num_cache == 0)
-  {
-    x_cache.pop_front();
-    y_cache.pop_front();
-    z_cache.pop_front();
-  }
-  else
-    {
-      num_cache--;
-    }
-
-  x_cache.push_back(force_bl.vector.x);
-  y_cache.push_back(force_bl.vector.y);
-  z_cache.push_back(force_bl.vector.z + offset);
-  for(unsigned int i = 0; i < z_cache.size(); i++)
-    {
-      average_x += x_cache.at(i);
-      average_y += y_cache.at(i);
-      average_z += z_cache.at(i);
-    }
-  average_x /= x_cache.size();
-  average_y /= y_cache.size();
-  average_z /= z_cache.size();
 
 	geometry_msgs::Twist new_twist;
 	
