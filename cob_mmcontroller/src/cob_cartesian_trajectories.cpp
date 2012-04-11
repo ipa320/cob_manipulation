@@ -52,6 +52,7 @@ private:
     ros::Publisher map_pub_;
     ros::ServiceServer serv_linear;
     ros::ServiceServer serv_circular;
+    ros::ServiceServer serv_posHold;
     std::vector<geometry_msgs::Point> trajectory_points;
 
     bool bRun;
