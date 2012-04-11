@@ -1,0 +1,2 @@
+liblapack:
+  ubuntu: liblapack-dev
