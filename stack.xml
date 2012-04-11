@@ -26,5 +26,6 @@
   <depend stack="schunk_modular_robotics" /> <!-- schunk_sdh -->
   <depend stack="visualization" /> <!-- rviz -->
   <depend stack="warehousewg" /> <!-- mongodb -->
+  <depend stack="cob_manipulation_sandbox" /> <!-- articulation_msgs -->
 
 </stack>
