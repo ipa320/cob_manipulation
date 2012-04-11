@@ -19,14 +19,25 @@ namespace KDL
         maxiter(_maxiter)
     {
 		base_is_actived_ = true;
-		base_to_arm_factor_ = 0.1;
+		base_to_arm_factor_ = 1.0;
+                vel_x_ = 0.0;
+                vel_y_ = 0.0;
+                vel_theta_ = 0.0;
     }
 
 	augmented_solver::~augmented_solver()
     {
     }
 
-    void augmented_solver::ManipulabilityTask(const JntArray q_in, Eigen::Matrix<double, 7, 1> &z_in, Eigen::Matrix<double, 7 , 10> &jac_c,  Eigen::Matrix<double, 7, 7>  &W_c)
+    void augmented_solver::setBaseVel(double vel_x, double vel_y, double vel_theta)
+    {
+        vel_x_ = vel_x;
+        vel_y_ = vel_y;
+        vel_theta_ = vel_theta;
+
+    }
+
+    void augmented_solver::ManipulabilityTask(const JntArray q_in, Eigen::Matrix<double, 10, 1> &z_in, Eigen::Matrix<double, 10 , 10> &jac_c,  Eigen::Matrix<double, 10, 10>  &W_c)
     {
          /* ### Definition of Manipulability additional task ###
                 Define z_in, jac_c and W_c for inverse kinematic calculation
@@ -44,19 +55,22 @@ namespace KDL
         
     }
 
-    void augmented_solver::BaseObstacleTask(const JntArray q_in, Eigen::Matrix<double, 7, 1> &z_in, Eigen::Matrix<double, 7 , 10> &jac_c,  Eigen::Matrix<double, 7, 7>  &W_c)
+    void augmented_solver::BaseObstacleTask(const JntArray q_in, Eigen::Matrix<double, 10, 1> &z_in, Eigen::Matrix<double, 10 , 10> &jac_c,  Eigen::Matrix<double, 10, 10>  &W_c)
     {
         /* ### Definition of BaseObstacle additional task ###
                 Define z_in, jac_c and W_c for inverse kinematic calculation
                 Parameters: 
                         ??
         */
-
-        //todo
+        //additional jacobian
+        int i = 7;
+        z_in(i,0) = vel_x_;
+        jac_c(i,i) = 1;
+        W_c(i,i) = 0.01;
     }
     
 
-    void augmented_solver::JLATask(const JntArray q_in, Eigen::Matrix<double, 7, 1> &z_in, Eigen::Matrix<double, 7 , 10> &jac_c,  Eigen::Matrix<double, 7, 7>  &W_c)
+    void augmented_solver::JLATask(const JntArray q_in, Eigen::Matrix<double, 10, 1> &z_in, Eigen::Matrix<double, 10 , 10> &jac_c,  Eigen::Matrix<double, 10, 10>  &W_c)
     {
         /* ### Definition of JLA additional task ###
                 Define z_in, jac_c and W_c for inverse kinematic calculation
@@ -176,16 +190,16 @@ namespace KDL
 
 
         //Matrices for additional tasks
-        Eigen::Matrix<double, 7, 1> z_in;
+        Eigen::Matrix<double, 10, 1> z_in;
         z_in.setZero();
-        Eigen::Matrix<double, 7 , 10> jac_c;
+        Eigen::Matrix<double, 10 , 10> jac_c;
         jac_c.setZero();        
-        Eigen::Matrix<double, 7, 7> W_c;
+        Eigen::Matrix<double, 10, 10> W_c;
         W_c.setZero();
 
-        JLATask(q_in, z_in, jac_c, W_c);
-        ManipulabilityTask(q_in, z_in, jac_c, W_c);
-
+        //JLATask(q_in, z_in, jac_c, W_c);
+        //ManipulabilityTask(q_in, z_in, jac_c, W_c);
+        BaseObstacleTask(q_in, z_in, jac_c, W_c);
 
 
         //Inversion

@@ -88,20 +88,20 @@ if(bRunning)
 	  }
 	/*
 	if(average_y < -2.0)
-	    new_twist.linear.y = -0.02 * average_y;
+	    new_twist.linear.y = 0.02 * average_y;
 	else
 	  {
 	    if(average_y > 2.0)
-	      new_twist.linear.y = -0.02 * average_y;
+	      new_twist.linear.y = 0.02 * average_y;
 	    else
 	      new_twist.linear.y = 0.0;
 	  }
 	if(average_z < -0.2)
-	    new_twist.linear.z = -0.02 * average_z;
+	    new_twist.linear.z = 0.02 * average_z;
 	else
 	  {
 	    if(average_z > 0.2)
-	      new_twist.linear.z = -0.02 * average_z;
+	      new_twist.linear.z = 0.02 * average_z;
 	    else
 	      new_twist.linear.z = 0.0;
 	  }

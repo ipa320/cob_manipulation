@@ -43,6 +43,7 @@ private:
 	void moveLinActionCB(const cob_mmcontroller::OpenFridgeGoalConstPtr& goal);
 	bool moveCircCB(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response);
 	bool moveLinCB(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response);
+	bool posHoldCB(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response);
 	void sendMarkers();
 	bool start();
 	ros::Subscriber cart_state_sub_;
@@ -51,6 +52,7 @@ private:
 	ros::Publisher map_pub_;
 	ros::ServiceServer serv_linear;
 	ros::ServiceServer serv_circular;
+	ros::ServiceServer serv_posHold;
 	std::vector<geometry_msgs::Point> trajectory_points;
 
 	bool bRun;
@@ -75,6 +77,7 @@ cob_cartesian_trajectories::cob_cartesian_trajectories() : as_(n, "moveCirc", bo
 	debug_cart_pub_ = n.advertise<geometry_msgs::PoseArray>("/mm/debug",1);
 	serv_linear = n.advertiseService("/mm/move_lin", &cob_cartesian_trajectories::moveLinCB, this);
 	serv_circular = n.advertiseService("/mm/move_circ", &cob_cartesian_trajectories::moveCircCB, this);
+	serv_posHold = n.advertiseService("/mm/positionHold", &cob_cartesian_trajectories::posHoldCB, this);
 	map_pub_ = n.advertise<visualization_msgs::Marker>("/visualization_marker", 1);
 	bRun = false;
 	as_.start();
@@ -147,6 +150,12 @@ bool cob_cartesian_trajectories::moveCircCB(cob_srvs::Trigger::Request& request,
 bool cob_cartesian_trajectories::moveLinCB(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response)
 {
 	mode = "linear";
+	return start();
+}
+
+bool cob_cartesian_trajectories::posHoldCB(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response)
+{
+	mode = "posHold";
 	return start();
 }
 
@@ -257,6 +266,12 @@ KDL::Twist cob_cartesian_trajectories::getTwist(double dt, Frame F_current)
 	double soll_x, soll_y, soll_angle;
 	if(mode == "linear")
 		getSollLinear(dt, soll_x, soll_y, soll_angle);
+	if(mode == "positionHold")
+	{
+		soll_x = 0.0;
+		soll_y = 0.0;
+		soll_angle = 0.0;
+	}
 	else
 		getSollCircular(dt, soll_x, soll_y, soll_angle);
 

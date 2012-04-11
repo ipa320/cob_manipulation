@@ -32,6 +32,7 @@ private:
 	JntArray parseJointStates(std::vector<std::string> names, std::vector<double> positions);
 	void cartTwistCallback(const geometry_msgs::Twist::ConstPtr& msg);
 	void baseTwistCallback(const nav_msgs::Odometry::ConstPtr& msg);
+	void baseNullSpace(const geometry_msgs::Twist::ConstPtr& msg);
 	bool SyncMMTriggerStart(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response);
 	bool SyncMMTriggerStop(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response);
 	void sendVel(JntArray q_t, JntArray q_dot, JntArray q_dot_base);
@@ -40,6 +41,7 @@ private:
 
 	ros::NodeHandle n;
 	int zeroCounter;
+    int zeroCounter_base;
 	int zeroCounterTwist;
 
 	tf::TransformListener tf_listener_;
@@ -77,6 +79,7 @@ private:
 	ros::Subscriber sub;
 	ros::Subscriber cart_vel_sub;
 	ros::Subscriber plat_odom_sub;
+	ros::Subscriber base_vel_sub;
 
 
 };

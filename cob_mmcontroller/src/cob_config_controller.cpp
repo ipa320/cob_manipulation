@@ -38,6 +38,8 @@ cob_config_controller::cob_config_controller()
 	cart_vel_sub = n.subscribe("/arm_controller/cart_command", 1, &cob_config_controller::cartTwistCallback, this);
 	plat_odom_sub = n.subscribe("/base_controller/odometry", 1, &cob_config_controller::baseTwistCallback, this);
 
+	base_vel_sub = n.subscribe("/base_controller/command_nullspace", 1, &cob_config_controller::baseNullSpace, this);
+
 	ROS_INFO("Creating publishers");
 	arm_pub_ = n.advertise<brics_actuator::JointVelocities>("/arm_controller/command_vel",1);
 	base_pub_ = n.advertise<geometry_msgs::Twist>("/base_controller/command",1);
@@ -49,6 +51,7 @@ cob_config_controller::cob_config_controller()
 
 	ROS_INFO("Running cartesian velocity controller.");
 	zeroCounter = 0;
+    zeroCounter_base = 0;
 	zeroCounterTwist = 0;
 }
 
@@ -84,6 +87,14 @@ JntArray cob_config_controller::parseJointStates(std::vector<std::string> names,
 
 	}
 	return q_temp;
+}
+
+void cob_config_controller::baseNullSpace(const geometry_msgs::Twist::ConstPtr& msg)
+{
+	double vx_cmd_ms = msg->linear.x;
+	double vy_cmd_ms = msg->linear.y;
+	double w_cmd_rads = msg->angular.z;
+	iksolver1v->setBaseVel(vx_cmd_ms, vy_cmd_ms, w_cmd_rads);
 }
 
 void cob_config_controller::cartTwistCallback(const geometry_msgs::Twist::ConstPtr& msg)
@@ -184,14 +195,35 @@ void cob_config_controller::sendVel(JntArray q_t, JntArray q_dot, JntArray q_dot
 	}
 
 	//send to base
-	geometry_msgs::Twist cmd;
+	bool nonzero_base = false;
+    geometry_msgs::Twist cmd;
 	if(q_dot_base(0) != 0.0 || q_dot_base(1) != 0.0 || q_dot_base(2) != 0.0)
 	{
 		cmd.linear.x = q_dot_base(0);
 		cmd.linear.y = q_dot_base(1);
 		cmd.angular.z = q_dot_base(2);
-		base_pub_.publish(cmd);
+		nonzero_base = true;
+        zeroCounter_base = 0;
 	}
+    else
+    {
+		cmd.linear.x = 0.0;
+		cmd.linear.y = 0.0;
+		cmd.angular.z = 0.0;
+    }
+    if(zeroCounter_base <= 4)
+    {
+        zeroCounter_base++;
+        if(!nonzero_base)
+            std::cout << "Sending additional zero twist to base\n";
+        nonzero_base = true;
+    }
+    if(!started)
+        nonzero = true;
+    if(nonzero_base)
+    {
+        base_pub_.publish(cmd);
+    }
 }
 void cob_config_controller::sendCartPose()
 {
@@ -218,8 +250,8 @@ void cob_config_controller::controllerStateCallback(const sensor_msgs::JointStat
 	sendCartPose();
 	if(RunSyncMM)
 	{
-		if(extTwist.vel.x() != 0.0 || extTwist.vel.y() != 0.0 || extTwist.vel.z() != 0.0)
-		{
+		/*if(extTwist.vel.x() != 0.0 || extTwist.vel.y() != 0.0 || extTwist.vel.z() != 0.0)
+		{*/
 			zeroCounterTwist = 0;
 			int ret = iksolver1v->CartToJnt(q, extTwist, q_out, q_dot_base);
 			if(ret >= 0)
@@ -229,7 +261,7 @@ void cob_config_controller::controllerStateCallback(const sensor_msgs::JointStat
 			}	
 			else
 				std::cout << "Something went wrong" << "\n";
-		}
+		/*}
 		else
 		{
 			if(zeroCounterTwist >= 4)
@@ -244,7 +276,7 @@ void cob_config_controller::controllerStateCallback(const sensor_msgs::JointStat
 					std::cout << "Something went wrong" << "\n";
 			}
 			zeroCounterTwist++;
-		}	
+		}*/	
 	}
 }
 
