@@ -4,6 +4,8 @@ import roslib; roslib.load_manifest('cob_mmcontroller')
 import rospy
 import actionlib
 
+import sys
+
 from optparse import OptionParser
 
 from cob_mmcontroller.msg import *
@@ -30,12 +32,12 @@ def main():
     # set up goal
     goal = MoveModelPriorGoal()
     if options.database == "":
-        rospy.errlog("No database is given to load prior models from!")
-        rospy.signal_shutdown("Database is missing!")
+        rospy.logerr("No database is given to load prior models from!")
+        sys.exit("Database is missing! Use -d option")
     goal.database = options.database
     if options.model_id < 0:
-        rospy.errlog("No model ID is given according to which a movement could be executed!")
-        rospy.signal_shutdown("Model ID is missing!")
+        rospy.logerr("No model ID is given according to which a movement could be executed!")
+        sys.exit("Model ID is missing! Use -i option")
     goal.model_id = int(options.model_id)
     goal.action_variable = float(options.action_var)
     goal.duration.secs = float(options.duration)
