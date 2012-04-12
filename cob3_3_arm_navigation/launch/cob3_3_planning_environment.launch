@@ -1,6 +1,0 @@
-<launch>
-	<!--param name="robot_description" textfile="$(find cob_hardware_config)/cob3-3/urdf/cob3-3.urdf" /-->
-	<param name="global_frame" value="/map" />
-	<param name="robot_description" command="$(find xacro)/xacro.py '$(find cob_hardware_config)/$(env ROBOT)/urdf/$(env ROBOT).urdf.xacro'" />
-    <rosparam command="load" ns="robot_description_planning" file="$(find cob3_3_arm_navigation)/config/cob3_3_planning_description.yaml" />
-</launch>

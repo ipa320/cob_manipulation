@@ -11,8 +11,8 @@
   <depend stack="arm_navigation" /> <!-- move_arm, trajectory_filter_server, planning_environment, robot_self_filter, constraint_aware_spline_smoother, arm_kinematics_constraint_aware, kinematics_msgs, kinematics_base, arm_navigation_msgs, ompl_ros_interface -->
   <depend stack="arm_navigation_experimental" /> <!-- collider, move_arm_warehouse -->
   <depend stack="cob_command_tools" /> <!-- cob_script_server -->
-  <depend stack="cob_common" /> <!-- cob_srvs, cob_description, brics_actuator -->
-  <depend stack="common" /> <!-- actionlib -->
+  <depend stack="cob_common" /> <!-- cob_srvs, brics_actuator -->
+  <depend stack="common" /> <!-- actionlib, tinyxml -->
   <depend stack="common_msgs" /> <!-- nav_msgs, actionlib_msgs, trajectory_msgs, geometry_msgs, visualization_msgs -->
   <depend stack="geometry" /> <!-- tf, tf_conversions -->
   <depend stack="object_manipulation" /> <!-- current_state_validator, object_manipulation_msgs -->
