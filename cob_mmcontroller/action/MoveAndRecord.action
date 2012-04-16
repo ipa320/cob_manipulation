@@ -5,7 +5,8 @@ duration target_duration
 # Define the result
 bool success
 string error_message
-geometry_msgs/PoseStamped[] poses
+geometry_msgs/Pose[] poses
+time[] time
 ---
 # Define a feedback message
 string message
