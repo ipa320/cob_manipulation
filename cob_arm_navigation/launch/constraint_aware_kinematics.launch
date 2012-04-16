@@ -8,4 +8,5 @@
         <param name="kinematics_solver" type="string" value="arm_kinematics_constraint_aware/KDLArmKinematicsPlugin" />
         <!--param name="kinematics_solver" type="string" value="cob3_arm_kinematics/IKFastKinematicsPlugin" /-->
     </node>
+    <node pkg="cob_manipulator" type="pose_transform.py" name="cob_pose_transform"/>
 </launch>
