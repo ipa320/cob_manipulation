@@ -1,0 +1,11 @@
+# Define the goal
+geometry_msgs/Twist twist
+duration target_duration
+---
+# Define the result
+bool success
+string error_message
+geometry_msgs/PoseStamped[] poses
+---
+# Define a feedback message
+string message
