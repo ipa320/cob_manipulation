@@ -21,6 +21,12 @@ class PoseTransformer:
         self.srv = rospy.Service('~get_pose_stamped_transformed', GetPoseStampedTransformed, self.handle_transform)
         rospy.loginfo("Started Pose Transformer Service.")
     def handle_transform(self, request):
+	# TODO: handle properly
+	if request.target.orientation.x == 0 and request.target.orientation.y == 0 and request.target.orientation.z == 0 and request.target.orientation.w == 0:
+	    request.target.orientation.w = 1.0
+	if request.origin.orientation.x == 0 and request.origin.orientation.y == 0 and request.origin.orientation.z == 0 and request.origin.orientation.w == 0:
+	    request.origin.orientation.w = 1.0
+	
         t = tf.TransformerROS(True, rospy.Duration(100.0))
         stamp = rospy.Time.now()
         self.listener.waitForTransform(request.tip_name,request.target.header.frame_id,rospy.Time(),rospy.Duration(1.0))
