@@ -6,10 +6,10 @@ import tf
 from cob_manipulator.srv import *
 from geometry_msgs.msg import  *
 
-def addTransform(transformer, target, origin, translation, rotation):
+def addTransform(transformer, target, origin, translation, rotation,time):
     m = geometry_msgs.msg.TransformStamped()
     m.header.frame_id = target
-    m.header.stamp = rospy.Time.now()
+    m.header.stamp =  time
     m.child_frame_id = origin
     m.transform.translation = translation
     m.transform.rotation = rotation
@@ -21,23 +21,23 @@ class PoseTransformer:
         self.srv = rospy.Service('~get_pose_stamped_transformed', GetPoseStampedTransformed, self.handle_transform)
         rospy.loginfo("Started Pose Transformer Service.")
     def handle_transform(self, request):
-        t = tf.TransformerROS(True, rospy.Duration(10.0))
-        
+        t = tf.TransformerROS(True, rospy.Duration(100.0))
+        stamp = rospy.Time.now()
         self.listener.waitForTransform(request.tip_name,request.target.header.frame_id,rospy.Time(),rospy.Duration(1.0))
         lookUp = self.listener.transformPose(request.tip_name,request.target)
-        addTransform(t,"old_tip","new_pose_target",lookUp.pose.position,lookUp.pose.orientation)
+        addTransform(t,"old_tip","new_pose_target",lookUp.pose.position,lookUp.pose.orientation,stamp)
         
         self.listener.waitForTransform(request.tip_name,request.origin.header.frame_id,rospy.Time(),rospy.Duration(1.0))
         lookUp = self.listener.transformPose(request.tip_name,request.origin)
-        addTransform(t,"old_tip","old_origin",lookUp.pose.position,lookUp.pose.orientation)
+        addTransform(t,"old_tip","old_origin",lookUp.pose.position,lookUp.pose.orientation,stamp)
 
-        transform = t.lookupTransform("old_origin","new_pose_target",rospy.Time())
+        transform = t.lookupTransform("old_origin","new_pose_target", stamp)
         #TODO: transform directly, omit additional transformer
         
         res = GetPoseStampedTransformedResponse()
         
         ps = PoseStamped()
-        ps.header.stamp = rospy.Time.now()
+        ps.header.stamp = stamp
         ps.header.frame_id = request.tip_name
         ps.pose.position.x,ps.pose.position.y,ps.pose.position.z = transform[0]
         ps.pose.orientation.x, ps.pose.orientation.y, ps.pose.orientation.z, ps.pose.orientation.w = transform[1]
