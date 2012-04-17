@@ -106,6 +106,7 @@ def parse_data_set(data_set):
         
 def twiddle(model, data, time, tol = 0.001):
     global params
+    params = {'Kp': [1.0, 0.1], 'Ki': [1.0, 0.1], 'Kd': [1.0, 0.1], 'T1': [1.0, 0.1], 'T2': [1.0, 0.1]}
 
     n = 0
     best_error = run_model(params, model, data, time)[0]
