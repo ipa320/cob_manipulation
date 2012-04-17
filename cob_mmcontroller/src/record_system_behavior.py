@@ -14,8 +14,14 @@ import PyKDL
 import matplotlib.pyplot as plt
 
 twist_dur_list = [#[0., 0., 0., 0., 0., 0., 0.],
+                 [-.05, 0., 0., 0., 0., 0., 5.],
+                 [.05, 0., 0., 0., 0., 0., 5.],
+                 [-.1, 0., 0., 0., 0., 0., 5.],
                  [.1, 0., 0., 0., 0., 0., 5.],
-                 [-.1, 0., 0., 0., 0., 0., 5.]#,
+                 [-.2, 0., 0., 0., 0., 0., 5.],
+                 [.2, 0., 0., 0., 0., 0., 5.],
+                 [-.05, 0., 0., 0., 0., 0., 5.],
+                 [.05, 0., 0., 0., 0., 0., 5.],
                  #[0., .1, 0., 0., 0., 0., 5.],
                  #[0., -.1, 0., 0., 0., 0., 5.],
                  #[0., 0., .1, 0., 0., 0., 5.],
@@ -33,7 +39,7 @@ twist_dur_list = [#[0., 0., 0., 0., 0., 0., 0.],
                  #[0., 0., 0., 0., 0., .1, 5.],
                  #[0., 0., 0., 0., 0., -.1, 5.]
                  ]
-
+twist_gain = 0.5
 rootdir = ''
 
 def main():
@@ -67,12 +73,12 @@ def main():
 
 def parse_twist_list(twist):
     goal = MoveAndRecordGoal()
-    goal.twist.linear.x = twist[0]
-    goal.twist.linear.y = twist[1]
-    goal.twist.linear.z = twist[2]
-    goal.twist.angular.x = twist[3]
-    goal.twist.angular.y = twist[4]
-    goal.twist.angular.z = twist[5]
+    goal.twist.linear.x = twist_gain*twist[0]
+    goal.twist.linear.y = twist_gain*twist[1]
+    goal.twist.linear.z = twist_gain*twist[2]
+    goal.twist.angular.x = twist_gain*twist[3]
+    goal.twist.angular.y = twist_gain*twist[4]
+    goal.twist.angular.z = twist_gain*twist[5]
     goal.target_duration = rospy.Duration.from_sec(twist[6])
     
     return goal
@@ -93,20 +99,26 @@ def parse_measurement(record, twist):
     for time in record.time:
         data_set["time"].append(time.to_sec())
         
-
+    pos_x_init = record.poses[0].position.x
+    pos_y_init = record.poses[0].position.y
+    pos_z_init = record.poses[0].position.z
+    temp_rot = PyKDL.Rotation.Quaternion(record.poses[0].orientation.x, record.poses[0].orientation.y,
+                                         record.poses[0].orientation.z, record.poses[0].orientation.w)
+    (rot_x_init, rot_y_init, rot_z_init) = temp_rot.GetRPY()
+    
     for pose in record.poses:
         # parse poses
-        data_set["pos_x"][0].append(pose.position.x)
-        data_set["pos_y"][0].append(pose.position.y) 
-        data_set["pos_z"][0].append(pose.position.z) 
+        data_set["pos_x"][0].append(pose.position.x - pos_x_init)
+        data_set["pos_y"][0].append(pose.position.y - pos_y_init) 
+        data_set["pos_z"][0].append(pose.position.z - pos_z_init) 
 
         #KDL quaternion in r-p-y
         temp_rot = PyKDL.Rotation.Quaternion(pose.orientation.x, pose.orientation.y,
                                              pose.orientation.z, pose.orientation.w)
         (roll, pitch, yaw) = temp_rot.GetRPY()
-        data_set["rot_x"][0].append(roll)
-        data_set["rot_y"][0].append(pitch) 
-        data_set["rot_z"][0].append(yaw)
+        data_set["rot_x"][0].append(roll - rot_x_init)
+        data_set["rot_y"][0].append(pitch - rot_y_init) 
+        data_set["rot_z"][0].append(yaw - rot_z_init)
 
         # calc velocity
         #dt = pose.header.stamp - time_last
@@ -143,7 +155,7 @@ def plot_and_save_data_set(twist, data_set):
                              str(twist.angular.x),
                              str(twist.angular.y),
                              str(twist.angular.z)])
-    path = os.path.join(rootdir, "twist_"+twist_string+str(today))
+    path = os.path.join(rootdir, "twist_"+twist_string+"_"+str(today))
     os.mkdir(path)
 
     time = data_set["time"]
