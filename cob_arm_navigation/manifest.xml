@@ -21,5 +21,6 @@
   <depend package="current_state_validator"/>
   <depend package="move_arm_warehouse"/>
   <depend package="mongodb"/>
+  <depend package="cob_manipulator"/>
 
 </package>
