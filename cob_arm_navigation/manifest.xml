@@ -21,4 +21,5 @@
   <depend package="move_arm_warehouse"/>
   <depend package="mongodb"/>
 
+  <depend package="cob_hardware_config"/> <!-- for URDFs -->
 </package>
