@@ -9,6 +9,7 @@ from ast import literal_eval #to convert string to dict
 current_path = ''
 overall_result = []
 model_counter = {}
+params = {'Kp': [1.0, 0.1], 'Ki': [1.0, 0.1], 'Kd': [1.0, 0.1], 'T1': [1.0, 0.1], 'T2': [1.0, 0.1]}
 model_dict = {#'P': "params['Kp'][0]*u", 
               #y = Kp*u
               #'PT1': "1/(params['T1'][0]/dt + 1) *(params['Kp'][0]*u + params['T1'][0]/dt*y_m1)", 
@@ -79,8 +80,8 @@ def parse_data_set(data_set):
                     twist[name].append([best_error, model_name, params])
                     plt.plot(time, data[0])
                     plt.plot(time[:-1], run_model(params, model, data, time)[1])
-                    plt.text(.8, .15, os.path.basename(current_path)+" "+model_name, fontsize=10)
-                    plt.text(.8, .1, " ".join([("%.3f" %x[0]) for x in params.itervalues()]), fontsize=8)
+                    plt.text(1., .1, os.path.basename(current_path)+" "+model_name, fontsize=10)
+                    plt.text(1., -.1, " ".join([("%.3f" %x[0]) for x in params.itervalues()]), fontsize=8)
                     plt.savefig(os.path.join(current_path, model_name+".pdf"), format="pdf")
                     #print "\nPlot of model %s saved"%model_name
                     plt.clf()
@@ -93,8 +94,8 @@ def parse_data_set(data_set):
                 #plot and save best
                 plt.plot(time, data[0])
                 plt.plot(time[:-1], run_model(twist[name][0][2], model_dict[twist[name][0][1]], data, time)[1])
-                plt.text(.8, .15, os.path.basename(current_path)+" "+twist[name][0][1], fontsize=10)
-                plt.text(.8, .1, " ".join([("%.3f" %x[0]) for x in twist[name][0][2].itervalues()]), fontsize=8)
+                plt.text(1., .1, os.path.basename(current_path)+" "+twist[name][0][1], fontsize=10)
+                plt.text(1., -.1, " ".join([("%.3f" %x[0]) for x in twist[name][0][2].itervalues()]), fontsize=8)
                 plt.savefig(os.path.join(current_path, "best_model_"+twist[name][0][1]+".pdf"), format="pdf")
                 plt.clf()
 
@@ -104,7 +105,7 @@ def parse_data_set(data_set):
         
         
 def twiddle(model, data, time, tol = 0.001):
-    params = {'Kp': [1.0, 0.1], 'Ki': [1.0, 0.1], 'Kd': [1.0, 0.1], 'T1': [1.0, 0.1], 'T2': [1.0, 0.1]}
+    global params
 
     n = 0
     best_error = run_model(params, model, data, time)[0]
