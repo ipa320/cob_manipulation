@@ -30,4 +30,4 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #target_link_libraries(example ${PROJECT_NAME})
 
 # rostest
-# rosbuild_add_roslaunch_check(launch) #broken: https://code.ros.org/trac/ros/ticket/3865
+rosbuild_add_roslaunch_check(launch)
