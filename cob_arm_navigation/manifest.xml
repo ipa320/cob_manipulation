@@ -22,4 +22,5 @@
   <depend package="mongodb"/>
 
   <depend package="cob_hardware_config"/> <!-- for URDFs -->
+  <depend package="cob_manipulator"/> <!-- pose_transform -->
 </package>
