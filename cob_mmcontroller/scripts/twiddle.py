@@ -6,6 +6,7 @@ import glob
 import matplotlib.pyplot as plt
 from ast import literal_eval #to convert string to dict
 
+run_counter = 0
 current_path = ''
 overall_result = []
 model_counter = {}
@@ -18,7 +19,7 @@ model_dict = {#'P': "params['Kp'][0]*u",
               ##y = Ki*u_sum
               #'PI': "params['Kp'][0]*u + params['Ki'][0]*u_sum", 
               ##y = Kp*u + Ki*u_sum
-              #'PIT1': "1/(params['T1'][0]/dt + 1) *(params['Kp'][0]*u + params['Ki'][0]*u_sum + params['T1'][0]/dt*y_m1)", 
+              'PIT1': "1/(params['T1'][0]/dt + 1) *(params['Kp'][0]*u + params['Ki'][0]*u_sum + params['T1'][0]/dt*y_m1)", 
               ##y = 1/(T1/dt + 1) *(Kp*u + Ki*u_sum + T1/dt*y_m1)
               'PIT2': "1/(params['T2'][0]/(dt*dt) + params['T1'][0]/dt + 1) * (params['Kp'][0]*u + params['Ki'][0]*u_sum + (2*params['T2'][0]/(dt*dt) + params['T1'][0]/dt)*y_m1 - params['T2'][0]/(dt*dt)*y_m2)", 
               ##y = 1/(T2/(dt*dt) + T1/dt + 1) * (Kp*u + Ki*u_sum + (2*T2/(dt*dt) + T1/dt)*y_m1 - T2/(dt*dt)*y_m2)
@@ -30,7 +31,7 @@ model_dict = {#'P': "params['Kp'][0]*u",
               ##y = 1/(T2/(dt*dt) + T1/dt + 1) * (Kp*u + Kd*(u - u_m1)/dt + (2*T2/(dt*dt) + T1/dt)*y_m1 - T2/(dt*dt)*y_m2)
               #'PID': "params['Kp'][0]*u + params['Ki'][0]*u_sum + params['Kd'][0]*(u - u_m1)/dt", 
               ##y = Kp*u + Ki*u_sum + Kd*(u - u_m1)/dt
-              #'PIDT1': "1/(params['T1'][0]/dt + 1) *(params['Kp'][0]*u + params['Ki'][0]*u_sum + params['Kd'][0]*(u - u_m1)/dt + params['T1'][0]/dt*y_m1)", 
+              'PIDT1': "1/(params['T1'][0]/dt + 1) *(params['Kp'][0]*u + params['Ki'][0]*u_sum + params['Kd'][0]*(u - u_m1)/dt + params['T1'][0]/dt*y_m1)", 
               ##y = 1/(T1/dt + 1) *(Kp*u + Ki*u_sum + Kd*(u - u_m1)/dt + T1/dt*y_m1)
               'PIDT2': "1/(params['T2'][0]/(dt*dt) + params['T1'][0]/dt + 1) * (params['Kp'][0]*u + params['Ki'][0]*u_sum + params['Kd'][0]*(u - u_m1)/dt + (2*params['T2'][0]/(dt*dt) + params['T1'][0]/dt)*y_m1 - params['T2'][0]/(dt*dt)*y_m2)" 
               #y = 1/(T2/(dt*dt) + T1/dt + 1) * (Kp*u + Ki*u_sum + Kd*(u - u_m1)/dt + (2*T2/(dt*dt) + T1/dt)*y_m1 - T2/(dt*dt)*y_m2)
@@ -66,6 +67,7 @@ def main():
 
 
 def parse_data_set(data_set):
+    global run_counter
     global overall_result
     global model_counter
     time = data_set['time']
@@ -75,13 +77,16 @@ def parse_data_set(data_set):
             if abs(sum(data[2])) > 0.001:
                 twist[name] = []
                 for model_name, model in model_dict.iteritems():
-                    print os.path.basename(current_path), name, model_name
+                    run_counter += 1
+                    print run_counter, os.path.basename(current_path), name, model_name
                     (best_error, params) = twiddle(model, data, time)
                     twist[name].append([best_error, model_name, params])
                     plt.plot(time, data[0])
-                    plt.plot(time[:-1], run_model(params, model, data, time)[1])
-                    plt.text(1., .1, os.path.basename(current_path)+" "+model_name, fontsize=10)
-                    plt.text(1., -.1, " ".join([("%.3f" %x[0]) for x in params.itervalues()]), fontsize=8)
+                    #print len(time), len(run_model(params, model, data, time)[1])
+                    model_output = run_model(params, model, data, time)
+                    plt.plot(time[:len(model_output[1])], model_output[1])
+                    plt.suptitle(os.path.basename(current_path)+" "+model_name, fontsize=10)
+                    plt.title(" ".join([(k + ': ' + "%.3f" %v[0]) for k,y in params.iteritems()]), fontsize=8)
                     plt.savefig(os.path.join(current_path, model_name+".pdf"), format="pdf")
                     #print "\nPlot of model %s saved"%model_name
                     plt.clf()
@@ -91,20 +96,26 @@ def parse_data_set(data_set):
                     model_counter[twist[name][0][1]] = 0
                 model_counter[twist[name][0][1]] += 1
 
-                #plot and save best
-                plt.plot(time, data[0])
-                plt.plot(time[:-1], run_model(twist[name][0][2], model_dict[twist[name][0][1]], data, time)[1])
-                plt.text(1., .1, os.path.basename(current_path)+" "+twist[name][0][1], fontsize=10)
-                plt.text(1., -.1, " ".join([("%.3f" %x[0]) for x in twist[name][0][2].itervalues()]), fontsize=8)
-                plt.savefig(os.path.join(current_path, "best_model_"+twist[name][0][1]+".pdf"), format="pdf")
-                plt.clf()
+                #plot and save best three
+                best_counter = 1
+                for i in range(len(twist[name])):
+                    plt.plot(time, data[0])
+                    model_output = run_model(twist[name][i][2], model_dict[twist[name][i][1]], data, time)
+                    plt.plot(time[:len(model_output[1])], model_output[1])
+                    plt.suptitle(os.path.basename(current_path)+" "+twist[name][i][1], fontsize=10)
+                    plt.title(" ".join([(k + ': ' + "%.3f" %v[0]) for k,y in twist[name][i][2].iteritems()]), fontsize=8)
+                    plt.savefig(os.path.join(current_path, "_".join("best_model", best_counter, twist[name][i][1]+".pdf")), format="pdf")
+                    plt.clf()
+                    if best_counter >= 3:
+                        break
+                    best_counter += 1
 
     return twist
 
             
         
         
-def twiddle(model, data, time, tol = 0.001):
+def twiddle(model, data, time, tol = 0.0001):
     global params
     params = {'Kp': [1.0, 0.1], 'Ki': [1.0, 0.1], 'Kd': [1.0, 0.1], 'T1': [1.0, 0.1], 'T2': [1.0, 0.1]}
 
