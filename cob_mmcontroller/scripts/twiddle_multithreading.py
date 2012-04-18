@@ -3,8 +3,8 @@
 import os
 import sys
 import glob
-import time
-import threading
+import time as t
+import multiprocessing
 import matplotlib.pyplot as plt
 from ast import literal_eval #to convert string to dict
 
@@ -15,7 +15,7 @@ model_dict = {#'P': "params['Kp'][0]*u",
               ##y = 1/(T1/dt + 1) *(Kp*u + T1/dt*y_m1)
               #'I': "params['Ki'][0]*u_sum", 
               ##y = Ki*u_sum
-              'PI': "params['Kp'][0]*u + params['Ki'][0]*u_sum", 
+              #'PI': "params['Kp'][0]*u + params['Ki'][0]*u_sum", 
               ##y = Kp*u + Ki*u_sum
               'PIT1': "1/(params['T1'][0]/dt + 1) *(params['Kp'][0]*u + params['Ki'][0]*u_sum + params['T1'][0]/dt*y_m1)", 
               ##y = 1/(T1/dt + 1) *(Kp*u + Ki*u_sum + T1/dt*y_m1)
@@ -23,9 +23,9 @@ model_dict = {#'P': "params['Kp'][0]*u",
               ##y = 1/(T2/(dt*dt) + T1/dt + 1) * (Kp*u + Ki*u_sum + (2*T2/(dt*dt) + T1/dt)*y_m1 - T2/(dt*dt)*y_m2)
               #'PD': "params['Kp'][0]*u + params['Kd'][0]*(u - u_m1)/dt", 
               ##y = Kp*u + Kd*(u - u_m1)/dt
-              'PDT1': "1/(params['T1'][0]/dt + 1) *(params['Kp'][0]*u + params['Kd'][0]*(u - u_m1)/dt + params['T1'][0]/dt*y_m1)", 
+              #'PDT1': "1/(params['T1'][0]/dt + 1) *(params['Kp'][0]*u + params['Kd'][0]*(u - u_m1)/dt + params['T1'][0]/dt*y_m1)", 
               ##y = 1/(T1/dt + 1) *(Kp*u + Kd*(u - u_m1)/dt + T1/dt*y_m1)
-              'PDT2': "1/(params['T2'][0]/(dt*dt) + params['T1'][0]/dt + 1) * (params['Kp'][0]*u + params['Kd'][0]*(u - u_m1)/dt + (2*params['T2'][0]/(dt*dt) + params['T1'][0]/dt)*y_m1 - params['T2'][0]/(dt*dt)*y_m2)", 
+              #'PDT2': "1/(params['T2'][0]/(dt*dt) + params['T1'][0]/dt + 1) * (params['Kp'][0]*u + params['Kd'][0]*(u - u_m1)/dt + (2*params['T2'][0]/(dt*dt) + params['T1'][0]/dt)*y_m1 - params['T2'][0]/(dt*dt)*y_m2)", 
               ##y = 1/(T2/(dt*dt) + T1/dt + 1) * (Kp*u + Kd*(u - u_m1)/dt + (2*T2/(dt*dt) + T1/dt)*y_m1 - T2/(dt*dt)*y_m2)
               'PID': "params['Kp'][0]*u + params['Ki'][0]*u_sum + params['Kd'][0]*(u - u_m1)/dt", 
               ##y = Kp*u + Ki*u_sum + Kd*(u - u_m1)/dt
@@ -37,7 +37,9 @@ model_dict = {#'P': "params['Kp'][0]*u",
 
 
 def main():
-    threadID = 1
+    ran_counter = 0
+    processID = 1
+    process_list = []
     path = sys.argv[1]
     data_file_dict = {}
 
@@ -63,11 +65,28 @@ def main():
         for data_name in data_list:
             data = data_set[data_name]
             for model_name, model in model_dict.iteritems():
-                while threading.activeCount > 7:
-                    time.sleep(0.01)
-                thread = fittingThread(threadID, "Thread-"+str(threadID))
-                thread.run(os.path.dirname(data_file_path), data, data_name, model, model_name, time)
-                threadID += 1
+                while len(process_list) > multiprocessing.cpu_count()-1:
+                    t.sleep(0.01)
+                    for num, pro in enumerate(process_list):
+                        if not pro.is_alive():
+                            process_list.pop(num)
+                            ran_counter += 1
+                            print "%d processes left to finish"%(len(data_file_dict)*len(model_dict) - ran_counter)
+                #print len(process_list)
+
+                print "%d of %d processes were started"%(processID, len(data_file_dict)*len(model_dict))
+                p = fittingProcess(processID, "Process-"+str(processID), os.path.dirname(data_file_path), data, data_name, model, model_name, time)
+                p.start()
+                processID += 1
+                process_list.append(p)
+
+    while not process_list == []:
+        t.sleep(0.01)
+        for num, pro in enumerate(process_list):
+            if not pro.is_alive():
+                process_list.pop(num)
+                #ran_counter += 1
+                print len(process_list), "processes left to finish"
 
     print "All files processed"
 
@@ -82,35 +101,42 @@ def main():
             error_list = []
             for result in result_list:
                 error_list.append(result[3])
-            best_result_index = result_list.index(min(error_list))
-            with open(os.path.join(result_dir_abs, "best_model_%s"%result_list[best_result_index][2]), 'w') as f_bes_res:
+            best_result_index = error_list.index(min(error_list))
+            with open(os.path.join(result_dir_abs, "best_model_%s"%result_list[best_result_index][2]), 'w') as f_best_res:
                 f_best_res.write(str(result_list[best_result_index]))
 
 
     
-class fittingThread(threading.Thread):
-    def __init__(self, threadID, threadName):
-        self.threadName = threadName
-        self.threadID = threadID
-        print "%s: started"%threadName
-        threading.Thread.__init__(self)
+class fittingProcess(multiprocessing.Process):
+    def __init__(self, processID, processName, dir_path, data, data_name, model, model_name, time):
+        self.processID = processID
+        self.processName = processName
+        self.dir_path = dir_path
+        self.data = data
+        self.data_name = data_name
+        self.model = model
+        self.model_name = model_name
+        self.time = time
+        print "%s: started"%processName
+        multiprocessing.Process.__init__(self)
 
-    def run(self, dir_path, data, data_name, model, model_name, time):
-        print "%s: fitting model %s for %s of twist %s"%(self.threadName, model_name, data_name, os.path.basename(dir_path))
-        (best_error, params) = twiddle(model, data, time)
-        plt.plot(time, data[0])
-        model_output = run_model(params, model, data, time)
-        plt.plot(time[:len(model_output[1])], model_output[1])
-        plt.suptitle(os.path.basename(dir_path)+" "+model_name, fontsize=10)
-        plt.title(" ".join([(k + ': ' + "%.3f" %v[0]) for k,y in params.iteritems()]), fontsize=8)
-        plt.savefig(os.path.join(dir_path, data_name+model_name+".pdf"), format="pdf")
-        plt.clf()
-        print "%s: plot saved into %s.pdf"%(self.threadName, model_name)
+    def run(self):
+        print "%s: fitting model %s for %s of twist %s"%(self.processName, self.model_name, self.data_name, os.path.basename(self.dir_path))
+        (best_error, params) = self.twiddle(self.model, self.data, self.time)
+        plt.figure(self.processID)
+        plt.plot(self.time, self.data[0])
+        model_output = self.run_model(params, self.model, self.data, self.time)
+        plt.plot(self.time[:len(model_output[1])], model_output[1])
+        plt.suptitle(os.path.basename(self.dir_path)+" "+self.model_name, fontsize=10)
+        plt.title(" ".join([(k + ': ' + "%.3f" %v[0]) for k,v in params.iteritems()]), fontsize=8)
+        plt.savefig(os.path.join(self.dir_path, self.data_name+"_"+self.model_name+".pdf"), format="pdf")
+        #plt.clf()
+        print "%s: %s plot saved into pdf"%(self.processName, self.model_name)
 
-        with open(os.path.join(dir_path, "result_%s_%s"%(data_name, model_name)), 'w') as f_res:
-            f_res.write(str([os.path.basename(dir_path), data_name, model_name, best_error, params]))
+        with open(os.path.join(self.dir_path, "result_%s_%s"%(self.data_name, self.model_name)), 'w') as f_res:
+            f_res.write(str([os.path.basename(self.dir_path), self.data_name, self.model_name, best_error, params]))
 
-        print "%s: finshed"%self.threadName
+        print "%s: finshed"%self.processName
         return
 
                 
@@ -121,29 +147,29 @@ class fittingThread(threading.Thread):
         params = {'Kp': [1.0, 0.1], 'Ki': [1.0, 0.1], 'Kd': [1.0, 0.1], 'T1': [1.0, 0.1], 'T2': [1.0, 0.1]}
 
         n = 0
-        best_error = run_model(params, model, data, time)[0]
+        best_error = self.run_model(params, model, data, time)[0]
         while sum([x[1] for x in params.itervalues()]) > tol: 
             if n > 10e9 and sum([x[1] for x in params.itervalues()]) < 10*tol:
                 print "Too many steps"
                 break
             for name in params.iterkeys():
                 params[name][0] += params[name][1]
-                err = run_model(params, model, data, time)[0]
+                err = self.run_model(params, model, data, time)[0]
                 if err < best_error:
                     best_error = err
                     params[name][1] *= 1.1
                 else:
                     params[name][0] -= 2*params[name][1]
-                    err = run_model(params, model, data, time)[0]
+                    err = self.run_model(params, model, data, time)[0]
                     if  err < best_error:
                         best_error = err
                         params[name][1] *= 1.1
                     else:
                         params[name][0] += params[name][1]
                         params[name][1] *= 0.9
-                print "\r", sum([x[1] for x in params.itervalues()]), best_error, [x[0] for x in params.itervalues()], n, "\t\t\t",
+                #print "\r", sum([x[1] for x in params.itervalues()]), best_error, [x[0] for x in params.itervalues()], n, "\t\t\t",
             n += 1
-        print 
+        #print 
         return best_error, params
 
 
