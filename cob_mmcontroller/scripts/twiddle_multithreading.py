@@ -17,6 +17,8 @@ model_dict = {#'P': "params['Kp'][0]*u",
               ##y = Ki*u_sum
               #'PI': "params['Kp'][0]*u + params['Ki'][0]*u_sum", 
               ##y = Kp*u + Ki*u_sum
+              #'PIT': "params['Kp'][0]*u + params['Ki'][0]*u_sum", 
+              ##y = Kp*u(t-T) + Ki*u_sum
               'PIT1': "1/(params['T1'][0]/dt + 1) *(params['Kp'][0]*u + params['Ki'][0]*u_sum + params['T1'][0]/dt*y_m1)", 
               ##y = 1/(T1/dt + 1) *(Kp*u + Ki*u_sum + T1/dt*y_m1)
               'PIT2': "1/(params['T2'][0]/(dt*dt) + params['T1'][0]/dt + 1) * (params['Kp'][0]*u + params['Ki'][0]*u_sum + (2*params['T2'][0]/(dt*dt) + params['T1'][0]/dt)*y_m1 - params['T2'][0]/(dt*dt)*y_m2)", 
@@ -27,7 +29,7 @@ model_dict = {#'P': "params['Kp'][0]*u",
               ##y = 1/(T1/dt + 1) *(Kp*u + Kd*(u - u_m1)/dt + T1/dt*y_m1)
               #'PDT2': "1/(params['T2'][0]/(dt*dt) + params['T1'][0]/dt + 1) * (params['Kp'][0]*u + params['Kd'][0]*(u - u_m1)/dt + (2*params['T2'][0]/(dt*dt) + params['T1'][0]/dt)*y_m1 - params['T2'][0]/(dt*dt)*y_m2)", 
               ##y = 1/(T2/(dt*dt) + T1/dt + 1) * (Kp*u + Kd*(u - u_m1)/dt + (2*T2/(dt*dt) + T1/dt)*y_m1 - T2/(dt*dt)*y_m2)
-              'PID': "params['Kp'][0]*u + params['Ki'][0]*u_sum + params['Kd'][0]*(u - u_m1)/dt", 
+              #'PID': "params['Kp'][0]*u + params['Ki'][0]*u_sum + params['Kd'][0]*(u - u_m1)/dt", 
               ##y = Kp*u + Ki*u_sum + Kd*(u - u_m1)/dt
               'PIDT1': "1/(params['T1'][0]/dt + 1) *(params['Kp'][0]*u + params['Ki'][0]*u_sum + params['Kd'][0]*(u - u_m1)/dt + params['T1'][0]/dt*y_m1)", 
               ##y = 1/(T1/dt + 1) *(Kp*u + Ki*u_sum + Kd*(u - u_m1)/dt + T1/dt*y_m1)
@@ -43,8 +45,8 @@ def main():
     path = sys.argv[1]
     data_file_dict = {}
 
-    print "%d files found"%len(glob.glob(os.path.join(sys.path[0], "..", "data", path, "*", "data_set")))
-    for data_file in glob.glob(os.path.join(sys.path[0], "..", "data", path, "*", "data_set")):
+    print "%d files found"%len(glob.glob(os.path.join(sys.path[0], "..", "data", path, "*", "*", "data_set")))
+    for data_file in glob.glob(os.path.join(sys.path[0], "..", "data", path, "*", "*", "data_set")):
         data_file_abspath = os.path.abspath(data_file)
         with open(data_file_abspath, 'r') as f_in:
             data_set = literal_eval(f_in.read())
@@ -90,20 +92,65 @@ def main():
 
     print "All files processed"
 
-    for result_dir in glob.glob(os.path.join(sys.path[0], "..", "data", path, "*")):
-        result_dir_abs = os.path.abspath(result_dir)
-        if os.path.isdir(result_dir_abs):
-            result_list = []
-            for result_file in glob.glob(os.path.join(result_dir_abs, "result_*")):
-                with open(result_file, 'r') as f_res_in:
-                    result_list.append(literal_eval(f_res_in.read()))
+    for direction_dir in glob.glob(os.path.join(sys.path[0], "..", "data", path, "*")):
+        direction_dir_abs = os.path.abspath(direction_dir)
+        parameter_dict_all = {}
 
-            error_list = []
-            for result in result_list:
-                error_list.append(result[3])
-            best_result_index = error_list.index(min(error_list))
-            with open(os.path.join(result_dir_abs, "best_model_%s"%result_list[best_result_index][2]), 'w') as f_best_res:
-                f_best_res.write(str(result_list[best_result_index]))
+        if os.path.isdir(direction_dir_abs):
+            for twist_dir in glob.glob(os.path.join(direction_dir_abs, "*")):
+                twist_dir_abs = os.path.abspath(twist_dir)
+                if os.path.isdir(twist_dir_abs):
+                    result_list = []
+                    for result_file in glob.glob(os.path.join(twist_dir_abs, "result_*")):
+                        with open(result_file, 'r') as f_res_in:
+                            result_list.append(literal_eval(f_res_in.read()))
+
+                    # get best model
+                    error_list = []
+                    for result in result_list:
+                        error_list.append(result[3])
+                    best_result_index = error_list.index(min(error_list))
+                    with open(os.path.join(twist_dir_abs, "best_model_%s"%result_list[best_result_index][2]), 'w') as f_best_res:
+                        f_best_res.write(str(result_list[best_result_index]))
+
+                    # add parameter
+                    for result in result_list:
+                        if result[2] not in parameter_dict_all:
+                            parameter_dict_all[result[2]] = []
+                        parameter_dict_all[result[2]].append(result[4])
+
+        plot_dict = {}
+        plot_color_list = ['r', 'b', 'g', 'm', 'c', 'y', 'k', 'r', 'b', 'g', 'k', 'y', 'c', 'm', '', '']
+        plot_line_conf = ['o', 's', '^', '*', '+', 'v', 'x', 'd', 'p', 'o', 's', '^', '*', '+', '', '', '', '']
+        model_index = 0
+        model_name_list = []
+        param_name_list = ['Kd', 'Ki', 'Kp', 'T2', 'T1']
+        param_name_abbr_list = ['D', 'I', 'P', '2', 'T']
+        for model_name, parameter_dict_list in parameter_dict_all.iteritems():
+            model_index += 1
+            twist_index = 0
+            model_name_list.append(model_name)
+            print model_name_list
+            for parameter_dict in parameter_dict_list:
+                twist_index += 1
+                param_index = 0
+                for param_name, value_list in parameter_dict.iteritems():
+                    print param_name
+                    param_index += 1
+                    if param_name_abbr_list[param_index-1] in model_name:    
+                        plt.figure(param_index)
+                        if twist_index == 1:
+                            plt.plot(twist_index, value_list[0], plot_color_list[model_index-1]+'*', label=model_name)
+                        else:
+                            plt.plot(twist_index, value_list[0], plot_color_list[model_index-1]+'*')
+
+        for i in range(param_index):
+            plt.figure(i+1)
+            plt.title(param_name_list[i])
+            plt.legend(bbox_to_anchor=(.5, -.15), loc=8, ncol=4, borderaxespad=0.)
+            plt.savefig(os.path.join(direction_dir_abs, "params_"+str(i+1)+".pdf"), format='pdf')
+            plt.clf()    
+
 
 
     
