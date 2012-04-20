@@ -10,7 +10,7 @@
 
 		<!-- self filter Kinect points -->
 	      	<node pkg="robot_self_filter" type="self_filter" respawn="true" name="stereo_self_filter" output="screen">
-			<remap from="cloud_in" to="/cam3d/depth/points" />
+			<remap from="cloud_in" to="/registration/pc_aligned" />
 			<remap from="cloud_out" to="/cam3d/depth/points_filtered2" />
 			<param name="sensor_frame" type="string" value="head_cam3d_link" />
 			<param name="subsample_value" type="double" value=".03"/>
