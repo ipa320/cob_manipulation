@@ -8,8 +8,8 @@
   <license>LGPL</license>  
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_manipulation</url>
-  <depend stack="arm_navigation" /> <!-- move_arm, trajectory_filter_server, kinematics_base, robot_self_filter, constraint_aware_spline_smoother, arm_kinematics_constraint_aware, kinematics_msgs, planning_environment, arm_navigation_msgs, ompl_ros_interface -->
-  <depend stack="arm_navigation_experimental" /> <!-- collider, move_arm_warehouse -->
+  <depend stack="arm_navigation" /> <!-- move_arm, trajectory_filter_server, kinematics_base, robot_self_filter, constraint_aware_spline_smoother, arm_kinematics_constraint_aware, kinematics_msgs, collision_map, planning_environment, arm_navigation_msgs, ompl_ros_interface -->
+  <depend stack="arm_navigation_experimental" /> <!-- move_arm_warehouse -->
   <depend stack="cob_command_tools" /> <!-- cob_script_server -->
   <depend stack="cob_common" /> <!-- cob_srvs, brics_actuator -->
   <depend stack="cob_robots" /> <!-- cob_hardware_config -->
