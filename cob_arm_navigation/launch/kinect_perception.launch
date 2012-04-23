@@ -4,7 +4,7 @@
 		<!-- ToDo: 	make this cob3-X independent -->
 		<!-- 		see cob_bringup (use symbolic names e.g. perception_pc = cob3-3-pc2, navigation_pc = cob3-3-pc1) -->		
 		<!-- start the pipeline on pc2 for better performance -->
-		<machine name="pc2" address="$(env ROBOT)-pc2" default="true"/>
+		<!--<machine name="pc2" address="$(env ROBOT)-pc2" default="true"/>-->
 
 		<include file="$(find cob_arm_navigation)/launch/cob_planning_environment.launch" />
 
@@ -12,11 +12,11 @@
 			<remap from="~input" to="/registration/pc_aligned" />
 			<remap from="~output" to="/registration/pc_aligned_vox" />
 			<rosparam>
-				filter_field_name: z
-				filter_limit_min: -100.0
-				filter_limit_max: 100.0
-				leaf_size: 0.02
-			</rosparam>
+                         filter_field_name: z
+                         filter_limit_min: -100.0
+                         filter_limit_max: 100.0
+                         leaf_size: 0.02
+                         </rosparam>
 		</node>
 
 
