@@ -14,7 +14,7 @@
   <depend package="trajectory_filter_server"/>
   <depend package="constraint_aware_spline_smoother"/>
   <depend package="move_arm"/>
-  <depend package="collision_map"/>
+  <depend package="collider"/>
   <depend package="robot_self_filter"/>
   <depend package="rviz"/>
   <depend package="robot_state_publisher"/>
