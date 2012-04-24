@@ -1,0 +1,23 @@
+<package>
+  <description brief="cob_object_handler">
+
+     cob_object_handler
+
+  </description>
+  <author>Felix Messmer</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cob_object_handler</url>
+  <depend package="roscpp"/>
+  <depend package="actionlib"/>
+  <depend package="pr2_controllers_msgs"/>
+  <depend package="planning_models"/>
+  <depend package="planning_environment"/>
+  <depend package="assimp"/>
+  <depend package="bullet"/>
+  <depend package= "tf"/>
+  <depend package= "gazebo"/>
+
+</package>
+
+

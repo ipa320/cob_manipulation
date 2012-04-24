@@ -1,7 +1,8 @@
 multi_dof_joints:
   - name: world_joint
     type: Floating
-    parent_frame_id: base_footprint
+    #parent_frame_id: base_footprint
+    parent_frame_id: map
     child_frame_id: base_footprint
 groups:
   - name: arm
