@@ -32,13 +32,13 @@
 		<node pkg="collider" type="collider_node" name="collider_node" respawn="true" output="screen">
 			<param name="resolution" type="double" value="0.05" />
 			<param name="max_range" type="double" value="5.0" />
-			<param name="pruning_period" type="int" value="20" />
-			<param name="origin_x" type="double" value="0.0" />
-			<param name="origin_y" type="double" value="0.0" />
-			<param name="origin_z" type="double" value="1.5" />
-			<param name="dimension_x" type="double" value="2.5" />		<!-- -2.5 ... 2.5 -->
-			<param name="dimension_y" type="double" value="2.5" />		<!-- -2.0 ... 2.0 -->
-			<param name="dimension_z" type="double" value="1.5" />		<!--  0.0 ... 3.0 -->
+			<param name="pruning_period" type="int" value="20" /> <!-- UNUSED -->
+			<param name="origin_x" type="double" value="0.0" /> <!-- UNUSED -->
+			<param name="origin_y" type="double" value="0.0" /> <!-- UNUSED -->
+			<param name="origin_z" type="double" value="1.5" /> <!-- UNUSED -->
+			<param name="dimension_x" type="double" value="2.5" />		<!-- -2.5 ... 2.5 -->  <!-- UNUSED -->
+			<param name="dimension_y" type="double" value="2.5" />		<!-- -2.0 ... 2.0 -->  <!-- UNUSED -->
+			<param name="dimension_z" type="double" value="1.5" />		<!--  0.0 ... 3.0 -->  <!-- UNUSED -->
 			<param name="publish_static_over_dynamic_map" value="true" />
 			<param name="sensor_model_hit" value= "0.8" />
 			<param name="sensor_model_miss" value= "0.31" />
