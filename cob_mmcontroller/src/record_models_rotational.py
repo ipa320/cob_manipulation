@@ -46,7 +46,7 @@ if __name__ == '__main__':
 
     goal = ArticulationModelGoal()
     # Fill in the goal here
-    goal.model_id = 1
+    goal.model.id = 1
     goal.model.name = "rotational"
     goal.model.params.append(ParamMsg('angle', float(options.angle), 1))
     goal.model.params.append(ParamMsg('rot_center.x', float(options.rot_center_x), 1)) 

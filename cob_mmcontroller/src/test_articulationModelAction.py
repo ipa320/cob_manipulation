@@ -32,7 +32,7 @@ if __name__ == '__main__':
 
     goal = ArticulationModelGoal()
     # Fill in the goal here
-    goal.model_id = 1
+    goal.model.id = 1
 
     bag = rosbag.Bag(options.bagfilename)
     for topic, msg, t in bag.read_messages(topics='model'):

@@ -137,7 +137,7 @@ class cob_articulation_models_prior(object):
 
     def query_articulation_parameters(self):
         goal = ArticulationModelGoal()
-        goal.model_id = 1
+        goal.model.id = 1
         if self.query("What kind of articulation should be generated? Rotational or prismatic?", ['r', 'p']) == 'r':
             goal.model.name = 'rotational'
             if self.query("Do you want to enter the parameters in a simple or complex way?", ['s', 'c']) == 's':

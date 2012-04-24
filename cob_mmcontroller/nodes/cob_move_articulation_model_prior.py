@@ -45,7 +45,6 @@ class cob_move_articulation_model_prior:
         execute_model.model.params.append(ParamMsg('action', float(goal.action_variable), 1))
         execute_model.target_duration = goal.duration
         execute_model.model.id = int(goal.model_id)
-        execute_model.model_id = int(goal.model_id) 
 
         # start cartcollector
         self.models_prior_object.cartcollector_start()
