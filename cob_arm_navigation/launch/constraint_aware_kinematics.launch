@@ -4,6 +4,9 @@
         <param name="group" type="string" value="arm" />
         <param name="arm/root_name" type="string" value="base_footprint" />
         <param name="arm/tip_name" type="string" value="arm_7_link" />
+        <param name="arm/robot" type="string" value="$(env ROBOT)" />
         <param name="kinematics_solver" type="string" value="arm_kinematics_constraint_aware/KDLArmKinematicsPlugin" />
+        <!--param name="kinematics_solver" type="string" value="cob3_arm_kinematics/IKFastKinematicsPlugin" /-->
     </node>
+    <node pkg="cob_manipulator" type="pose_transform.py" name="cob_pose_transform"/>
 </launch>

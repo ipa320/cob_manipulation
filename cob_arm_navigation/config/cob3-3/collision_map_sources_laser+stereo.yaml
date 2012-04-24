@@ -3,4 +3,7 @@ cloud_sources:
     frame_subsample: 1
     point_subsample: 1
     sensor_frame: head_cam3d_link
+    dynamic_publish: true
+    #static_publish: false
+    #dynamic_until_static_publish: false
 camera_info_topic: /cam3d/camera_info

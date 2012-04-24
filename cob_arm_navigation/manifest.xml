@@ -18,8 +18,9 @@
   <depend package="robot_self_filter"/>
   <depend package="rviz"/>
   <depend package="robot_state_publisher"/>
-  <depend package="current_state_validator"/>
   <depend package="move_arm_warehouse"/>
   <depend package="mongodb"/>
+  <depend package="cob_manipulator"/>
 
+  <depend package="cob_hardware_config"/> <!-- for URDFs -->
 </package>
