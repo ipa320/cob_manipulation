@@ -48,7 +48,7 @@
 			<remap from="collision_map_out" to="collision_map_occ" />
 			<remap from="point_cloud_out" to="octomap_point_cloud" />
 
-			<rosparam command="load" file="$(find cob_arm_navigation)/config/$(env ROBOT)/collision_map_sources_laser+stereo.yaml"/>
+			<rosparam command="load" file="$(find cob_arm_navigation)/config/$(env ROBOT)/collision_map_sources.yaml"/>
 			<!-- self filtering links -->
 			<rosparam command="load" file="$(find cob_arm_navigation)/config/$(env ROBOT)/self_filter.yaml" /> 	  		
 		</node>
