@@ -7,18 +7,17 @@ import time as t
 import multiprocessing
 import matplotlib.pyplot as plt
 from ast import literal_eval #to convert string to dict
+from copy import deepcopy
 
 params = {'Kp': [1.0, 0.1], 'Ki': [1.0, 0.1], 'Kd': [1.0, 0.1], 'T1': [1.0, 0.1], 'T2': [1.0, 0.1]}
 model_dict = {#'P': "params['Kp'][0]*u", 
               #y = Kp*u
               #'PT1': "1/(params['T1'][0]/dt + 1) *(params['Kp'][0]*u + params['T1'][0]/dt*y_m1)", 
               ##y = 1/(T1/dt + 1) *(Kp*u + T1/dt*y_m1)
-              #'I': "params['Ki'][0]*u_sum", 
+              'I': "params['Ki'][0]*u_sum", 
               ##y = Ki*u_sum
-              #'PI': "params['Kp'][0]*u + params['Ki'][0]*u_sum", 
+              'PI': "params['Kp'][0]*u + params['Ki'][0]*u_sum", 
               ##y = Kp*u + Ki*u_sum
-              #'PIT': "params['Kp'][0]*u + params['Ki'][0]*u_sum", 
-              ##y = Kp*u(t-T) + Ki*u_sum
               'PIT1': "1/(params['T1'][0]/dt + 1) *(params['Kp'][0]*u + params['Ki'][0]*u_sum + params['T1'][0]/dt*y_m1)", 
               ##y = 1/(T1/dt + 1) *(Kp*u + Ki*u_sum + T1/dt*y_m1)
               'PIT2': "1/(params['T2'][0]/(dt*dt) + params['T1'][0]/dt + 1) * (params['Kp'][0]*u + params['Ki'][0]*u_sum + (2*params['T2'][0]/(dt*dt) + params['T1'][0]/dt)*y_m1 - params['T2'][0]/(dt*dt)*y_m2)", 
@@ -29,7 +28,7 @@ model_dict = {#'P': "params['Kp'][0]*u",
               ##y = 1/(T1/dt + 1) *(Kp*u + Kd*(u - u_m1)/dt + T1/dt*y_m1)
               #'PDT2': "1/(params['T2'][0]/(dt*dt) + params['T1'][0]/dt + 1) * (params['Kp'][0]*u + params['Kd'][0]*(u - u_m1)/dt + (2*params['T2'][0]/(dt*dt) + params['T1'][0]/dt)*y_m1 - params['T2'][0]/(dt*dt)*y_m2)", 
               ##y = 1/(T2/(dt*dt) + T1/dt + 1) * (Kp*u + Kd*(u - u_m1)/dt + (2*T2/(dt*dt) + T1/dt)*y_m1 - T2/(dt*dt)*y_m2)
-              #'PID': "params['Kp'][0]*u + params['Ki'][0]*u_sum + params['Kd'][0]*(u - u_m1)/dt", 
+              'PID': "params['Kp'][0]*u + params['Ki'][0]*u_sum + params['Kd'][0]*(u - u_m1)/dt", 
               ##y = Kp*u + Ki*u_sum + Kd*(u - u_m1)/dt
               'PIDT1': "1/(params['T1'][0]/dt + 1) *(params['Kp'][0]*u + params['Ki'][0]*u_sum + params['Kd'][0]*(u - u_m1)/dt + params['T1'][0]/dt*y_m1)", 
               ##y = 1/(T1/dt + 1) *(Kp*u + Ki*u_sum + Kd*(u - u_m1)/dt + T1/dt*y_m1)
@@ -124,8 +123,8 @@ def main():
         plot_line_conf = ['o', 's', '^', '*', '+', 'v', 'x', 'd', 'p', 'o', 's', '^', '*', '+', '', '', '', '']
         model_index = 0
         model_name_list = []
-        param_name_list = ['Kd', 'Ki', 'Kp', 'T2', 'T1']
-        param_name_abbr_list = ['D', 'I', 'P', '2', 'T']
+        param_name_list = ['Kd', 'Ki', 'T2', 'T1', 'Kp', 'T']#['Kd', 'Ki', 'Kp', 'T2', 'T1']
+        param_name_abbr_list = ['D', 'I', '2', 'T', 'P', '']#['D', 'I', 'P', '2', 'T']
         for model_name, parameter_dict_list in parameter_dict_all.iteritems():
             model_index += 1
             twist_index = 0
@@ -140,14 +139,14 @@ def main():
                     if param_name_abbr_list[param_index-1] in model_name:    
                         plt.figure(param_index)
                         if twist_index == 1:
-                            plt.plot(twist_index, value_list[0], plot_color_list[model_index-1]+'*', label=model_name)
+                            plt.plot(twist_index+0.05*model_index, value_list[0], plot_color_list[model_index-1]+'*', label=model_name)
                         else:
-                            plt.plot(twist_index, value_list[0], plot_color_list[model_index-1]+'*')
+                            plt.plot(twist_index+0.05*model_index, value_list[0], plot_color_list[model_index-1]+'*')
 
         for i in range(param_index):
             plt.figure(i+1)
             plt.title(param_name_list[i])
-            plt.legend(bbox_to_anchor=(.5, -.15), loc=8, ncol=4, borderaxespad=0.)
+            plt.legend(bbox_to_anchor=(.5, -.12), loc=8, ncol=4, borderaxespad=0.)
             plt.savefig(os.path.join(direction_dir_abs, "params_"+str(i+1)+".pdf"), format='pdf')
             plt.clf()    
 
@@ -169,9 +168,9 @@ class fittingProcess(multiprocessing.Process):
 
     def run(self):
         print "%s: fitting model %s for %s of twist %s"%(self.processName, self.model_name, self.data_name, os.path.basename(self.dir_path))
-        (best_error, params) = self.twiddle(self.model, self.data, self.time)
+        (best_error, params) = self.twiddle_delay(self.model, self.data, self.time)
         plt.figure(self.processID)
-        plt.plot(self.time, self.data[0])
+        plt.plot(self.time, self.data[0], '--')
         model_output = self.run_model(params, self.model, self.data, self.time)
         plt.plot(self.time[:len(model_output[1])], model_output[1])
         plt.suptitle(os.path.basename(self.dir_path)+" "+self.model_name, fontsize=10)
@@ -186,20 +185,58 @@ class fittingProcess(multiprocessing.Process):
         print "%s: finshed"%self.processName
         return
 
+
+
+    def twiddle_delay(self, model, data, time, tol = 0):
+        params = {'Kp': [1.0, 0.1], 'Ki': [1.0, 0.1], 'Kd': [1.0, 0.1], 'T1': [1.0, 0.1], 'T2': [1.0, 0.1], 'T': [1, 1]}
+        change = True
+
+        (best_error, params) = self.twiddle_params(model, data, time, params)
+        while change or params['T'][1] != 0:
+            delay_temp = params['T'][0]
+            change = True
+            params['T'][0] += params['T'][1]
+            (err, new_params) = self.twiddle_params(model, data, time, self.reset_param_deltas(params))
+            if err < best_error:
+                best_error = err
+                #params = new_params
+                params['T'][1] += 1
+                print self.processName, "+"
+            else:
+                if params['T'][0] - params['T'][1] >= 0: params['T'][0] -= params['T'][1]
+                else: params['T'][0] = 0
+                (err, new_params) = self.twiddle_params(model, data, time, self.reset_param_deltas(params))
+                if  err < best_error:
+                    best_error = err
+                    #params = new_params
+                    params['T'][1] += 1
+                    print self.processName, "-"
+                else:
+                    params['T'][0] = delay_temp
+                    if params['T'][1] > 0: params['T'][1] -= 1; print self.processName, "0"
+                    change = False
+                    print self.processName, "0"
+            print self.processName, params['T']
+
+        return best_error, params
+
                 
             
             
-    def twiddle(self, model, data, time, tol = 0.0001):
-        global params
-        params = {'Kp': [1.0, 0.1], 'Ki': [1.0, 0.1], 'Kd': [1.0, 0.1], 'T1': [1.0, 0.1], 'T2': [1.0, 0.1]}
+    def twiddle_params(self, model, data, time, input_params=params, tol = 0.0001):
+        # deepcopy of input_params
+        params = deepcopy(input_params)
 
         n = 0
         best_error = self.run_model(params, model, data, time)[0]
-        while sum([x[1] for x in params.itervalues()]) > tol: 
-            if n > 10e9 and sum([x[1] for x in params.itervalues()]) < 10*tol:
-                print "Too many steps"
-                break
+        while sum([x[1] for k,x in params.iteritems() if k != 'T']) > tol: 
+            #if n > 10e9 and sum([x[1] for x in params.itervalues()[:-1]]) < 10*tol:
+            #    print "Too many steps"
+            #    break
             for name in params.iterkeys():
+                if name == 'T':
+                    continue
+
                 params[name][0] += params[name][1]
                 err = self.run_model(params, model, data, time)[0]
                 if err < best_error:
@@ -216,7 +253,6 @@ class fittingProcess(multiprocessing.Process):
                         params[name][1] *= 0.9
                 #print "\r", sum([x[1] for x in params.itervalues()]), best_error, [x[0] for x in params.itervalues()], n, "\t\t\t",
             n += 1
-        #print 
         return best_error, params
 
 
@@ -237,15 +273,19 @@ class fittingProcess(multiprocessing.Process):
         dt_m1 = 0.0
 
         for i in range(len(data[0])):
+            #if i+params['T'][0] > len(data[0])-1: continue#error_sum += .01; continue
             u = data[2][i]
             u_sum += u
 
             dt = time[i] - dt_m1
             if dt == 0.0: continue
 
-            y = eval(model)
+            if i <= params['T'][0]:
+                y = 0.
+            else:
+                y = eval(model)
             y_list.append(y)
-            error = y - data[0][i]
+            error = y - data[0][i]#[i+params['T'][0]]
             
             y_m2 = y_m1
             y_m1 = y
@@ -255,6 +295,18 @@ class fittingProcess(multiprocessing.Process):
             error_sum += abs(error)
 
         return error_sum, y_list
+
+
+    def reset_param_deltas(self, params):
+        new_params = {}
+        for key, value in params.iteritems():
+            if key != 'T':
+                new_params[key] = [value[0], value[1]+0.01]
+            else:
+                new_params[key] = value
+        
+        return new_params
+
 
 
 if __name__ == '__main__':
