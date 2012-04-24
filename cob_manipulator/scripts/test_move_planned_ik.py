@@ -59,7 +59,7 @@ class TestScript:
 	        print error_code,ik
                 if ik:
                     pass
-                    #sss.move_planned('arm',[list(ik)])
+                    sss.move_planned('arm',[list(ik)])
 		
 if __name__ == "__main__":
         rospy.init_node("TestIK")
