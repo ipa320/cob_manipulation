@@ -37,30 +37,21 @@ class cart_move_and_pose_record:
         start_time = rospy.get_rostime()
         duration = rospy.get_rostime() - start_time
 
-        # record poses
-        current_pose = Pose()
-        current_twist = Twist()
-        current_time = rospy.Time()
-
         # record 1 second before command twist
         while duration <= rospy.Duration.from_sec(1.0):
-            current_time = rospy.Time(duration.to_sec())
-            current_pose = self.current_pose
-            result_.time.append(current_time)
-            result_.poses.append(current_pose)
-            result_.twist.append(Twist())
+            result_.time.append(rospy.Time(duration.to_sec()))
+            result_.poses.append(self.current_pose)
+            result_.twists.append(Twist())
             rospy.sleep(0.01)
             duration = rospy.get_rostime() - start_time
 
         # command cartesian twist
         self.cart_command_pub.publish(goal.twist)
 
-        while duration <= (goal.target_duration + rospy.Duration.from_sec(1.0):
-            current_time = rospy.Time(duration.to_sec())
-            current_pose = self.current_pose
-            result_.time.append(current_time)
-            result_.poses.append(current_pose)
-            result_.twist.append(goal.twist)
+        while duration <= (goal.target_duration + rospy.Duration.from_sec(1.0)):
+            result_.time.append(rospy.Time(duration.to_sec()))
+            result_.poses.append(self.current_pose)
+            result_.twists.append(goal.twist)
             rospy.sleep(0.01)
             duration = rospy.get_rostime() - start_time
 
@@ -69,13 +60,13 @@ class cart_move_and_pose_record:
 
         # record 1 second after stopped movement
         while duration <= (goal.target_duration + rospy.Duration.from_sec(2.0)):
-            current_time = rospy.Time(duration.to_sec())
-            current_pose = self.current_pose
-            result_.time.append(current_time)
-            result_.poses.append(current_pose)
-            result_.twist.append(Twist())
+            result_.time.append(rospy.Time(duration.to_sec()))
+            result_.poses.append(self.current_pose)
+            result_.twists.append(Twist())
             rospy.sleep(0.01)
             duration = rospy.get_rostime() - start_time
+
+        rospy.sleep(0.1)
 
         result_.success = True
         self.moveAndRecord_as.set_succeeded(result_)

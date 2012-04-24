@@ -97,6 +97,7 @@ def main():
             client.wait_for_result(rospy.Duration.from_sec(1.0))
 
         result = client.get_result()
+        rospy.sleep(.2)
         data_set = parse_measurement(result)
         plot_and_save_data_set(goal.twist, data_set)
 
@@ -164,13 +165,13 @@ def parse_measurement(record):
 
 
     # parse twist
-    for twist in record.twists
+    for twist in record.twists:
         data_set["pos_x"][2].append(twist.linear.x)
         data_set["pos_y"][2].append(twist.linear.y) 
         data_set["pos_z"][2].append(twist.linear.z) 
 
-        data_set["rot_x"][2].append(twist.angular.x)
-        data_set["rot_y"][2].append(twist.angular.y) 
+        data_set["rot_x"][2].append(twist.angular.x*-1.)
+        data_set["rot_y"][2].append(twist.angular.y*-1.) 
         data_set["rot_z"][2].append(twist.angular.z)
 
     return data_set
