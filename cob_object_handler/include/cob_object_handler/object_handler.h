@@ -300,6 +300,19 @@ private:
 				
 				m_object_in_map_pub.publish(collision_object);
 				ROS_INFO("Object removed from environment server!");
+				
+				
+				
+				arm_navigation_msgs::SetPlanningSceneDiff::Request set_planning_scene_diff_req;
+				arm_navigation_msgs::SetPlanningSceneDiff::Response set_planning_scene_diff_res;
+				
+				if(!m_set_planning_scene_diff_client.call(set_planning_scene_diff_req, set_planning_scene_diff_res)) 
+				{
+					ROS_ERROR("Can't get planning scene");
+				}
+				ROS_INFO("Got planning_scene!");
+
+
 
 				res.success.data = true;
 				res.error_message.data = "Object removed from environment server!";
@@ -363,6 +376,7 @@ private:
 				
 				m_att_object_in_map_pub.publish(att_object);
 				ROS_INFO("Object attached to robot!");
+				
 				/*
 				arm_navigation_msgs::CollisionObject collision_object;
 				collision_object = get_planning_scene_res.planning_scene.collision_objects[i];
@@ -371,6 +385,19 @@ private:
 				m_att_object_in_map_pub.publish(collision_object);
 				ROS_INFO("Object removed as collision_object!");
 				*/
+				
+				
+				
+				arm_navigation_msgs::SetPlanningSceneDiff::Request set_planning_scene_diff_req;
+				arm_navigation_msgs::SetPlanningSceneDiff::Response set_planning_scene_diff_res;
+				
+				if(!m_set_planning_scene_diff_client.call(set_planning_scene_diff_req, set_planning_scene_diff_res)) 
+				{
+					ROS_ERROR("Can't get planning scene");
+				}
+				ROS_INFO("Got planning_scene!");
+				
+				
 				res.success.data = true;
 				res.error_message.data = "Object attached to robot!";
 				return true;
@@ -412,7 +439,7 @@ private:
 				ROS_INFO("%s found!", object_name.c_str());
 				
 				arm_navigation_msgs::AttachedCollisionObject att_object;
-				att_object.object = get_planning_scene_res.planning_scene.attached_collision_objects[i].object;
+				att_object = get_planning_scene_res.planning_scene.attached_collision_objects[i];
 				att_object.object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::DETACH_AND_ADD_AS_OBJECT;
 				//att_object.object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::REMOVE;
 				
@@ -426,6 +453,18 @@ private:
 				m_att_object_in_map_pub.publish(collision_object);
 				ROS_INFO("Object added as collision_object!");
 				*/
+				
+				
+				arm_navigation_msgs::SetPlanningSceneDiff::Request set_planning_scene_diff_req;
+				arm_navigation_msgs::SetPlanningSceneDiff::Response set_planning_scene_diff_res;
+				
+				if(!m_set_planning_scene_diff_client.call(set_planning_scene_diff_req, set_planning_scene_diff_res)) 
+				{
+					ROS_ERROR("Can't get planning scene");
+				}
+				ROS_INFO("Got planning_scene!");
+				
+				
 				res.success.data = true;
 				res.error_message.data = "Object detached from robot!";
 				return true;
