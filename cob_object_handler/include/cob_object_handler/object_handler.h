@@ -49,6 +49,7 @@
 #include <arm_navigation_msgs/AttachedCollisionObject.h>
 
 #include <arm_navigation_msgs/GetPlanningScene.h>
+#include <arm_navigation_msgs/SetPlanningSceneDiff.h>
 #include <arm_navigation_msgs/Shape.h>
 #include <planning_environment/models/collision_models.h>
 #include <planning_environment/util/construct_object.h>
@@ -56,6 +57,7 @@
 
 
 static const std::string GET_PLANNING_SCENE_NAME = "/environment_server/get_planning_scene";
+static const std::string SET_PLANNING_SCENE_DIFF_NAME = "/environment_server/set_planning_scene_diff";
 const std::string frame_id = "/map";
 
 
@@ -69,6 +71,7 @@ private:
 
 	ros::ServiceClient m_state_client;
 	ros::ServiceClient m_get_planning_scene_client;
+	ros::ServiceClient m_set_planning_scene_diff_client;
 	
 	ros::ServiceServer m_add_object_server;
 	ros::ServiceServer m_remove_object_server;
@@ -84,6 +87,7 @@ public:
 		ROS_WARN("waiting for services...");
 		ros::service::waitForService("/gazebo/get_model_state");
 		ros::service::waitForService(GET_PLANNING_SCENE_NAME);
+		ros::service::waitForService(SET_PLANNING_SCENE_DIFF_NAME);
 		ROS_INFO("...done!");
 		
 		
@@ -95,6 +99,8 @@ public:
 		
 		m_state_client = rh.serviceClient<gazebo::GetModelState>("/gazebo/get_model_state");
 		m_get_planning_scene_client = rh.serviceClient<arm_navigation_msgs::GetPlanningScene>(GET_PLANNING_SCENE_NAME);
+		m_set_planning_scene_diff_client = rh.serviceClient<arm_navigation_msgs::SetPlanningSceneDiff>(SET_PLANNING_SCENE_DIFF_NAME);
+		
 		
 
 		m_add_object_server = rh.advertiseService("/object_handler/add_object", &Object_Handler::add_object, this);
@@ -157,6 +163,7 @@ private:
 		arm_navigation_msgs::CollisionObject collision_object;
 		collision_object.id = model_name + "_object";
 		collision_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ADD;
+		collision_object.padding = 0.0;
 		collision_object.header.frame_id = frame_id;
 		collision_object.header.stamp = ros::Time::now();
 	  
@@ -229,6 +236,33 @@ private:
 
 		m_object_in_map_pub.publish(collision_object);
 		ROS_INFO("Object added to environment server!");
+		
+		
+		
+		arm_navigation_msgs::SetPlanningSceneDiff::Request set_planning_scene_diff_req;
+		arm_navigation_msgs::SetPlanningSceneDiff::Response set_planning_scene_diff_res;
+		
+		arm_navigation_msgs::CollisionOperation coll_op;
+		coll_op.object1="arm";
+		coll_op.object2="objects";
+		coll_op.penetration_distance=0.0;
+		coll_op.operation=1;	//ENABLE
+		set_planning_scene_diff_req.operations.collision_operations.push_back(coll_op);
+		
+		coll_op.object1="sdh";
+		coll_op.object2="objects";
+		coll_op.penetration_distance=0.0;
+		coll_op.operation=1;	//ENABLE
+		set_planning_scene_diff_req.operations.collision_operations.push_back(coll_op);
+		
+		
+		if(!m_set_planning_scene_diff_client.call(set_planning_scene_diff_req, set_planning_scene_diff_res)) 
+		{
+			ROS_ERROR("Can't get planning scene");
+		}
+		ROS_INFO("Got planning_scene!");
+		
+		
 
 		res.success.data = true;
 		res.error_message.data = "Object added to environment server!";
@@ -324,8 +358,8 @@ private:
 				att_object.touch_links.push_back("sdh_thumb_2_link");
 				att_object.touch_links.push_back("sdh_thumb_3_link");
 				
-				//att_object.object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ATTACH_AND_REMOVE_AS_OBJECT;
-				att_object.object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ADD;
+				att_object.object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ATTACH_AND_REMOVE_AS_OBJECT;
+				//att_object.object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ADD;
 				
 				m_att_object_in_map_pub.publish(att_object);
 				ROS_INFO("Object attached to robot!");
@@ -379,8 +413,8 @@ private:
 				
 				arm_navigation_msgs::AttachedCollisionObject att_object;
 				att_object.object = get_planning_scene_res.planning_scene.attached_collision_objects[i].object;
-				//att_object.object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::DETACH_AND_ADD_AS_OBJECT;
-				att_object.object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::REMOVE;
+				att_object.object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::DETACH_AND_ADD_AS_OBJECT;
+				//att_object.object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::REMOVE;
 				
 				m_att_object_in_map_pub.publish(att_object);
 				ROS_INFO("Object detached from robot!");
