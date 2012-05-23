@@ -3,7 +3,7 @@ import roslib
 roslib.load_manifest('cob_manipulator')
 import rospy
 import tf
-from cob_manipulator.srv import *
+from cob_srvs.srv import *
 from geometry_msgs.msg import  *
 
 def addTransform(transformer, target, origin, translation, rotation,time):
