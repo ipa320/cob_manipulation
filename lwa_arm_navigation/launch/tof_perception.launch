@@ -1,8 +1,6 @@
 <?xml version="1.0"?>
 <launch>
 
-  <include file="$(find cob_machine)/sim.machine" /> 
-
   <!-- Selffilter expects PointCloud2 -->
   <include file="$(find lwa_arm_navigation)/launch/self_filter.launch" />
   
