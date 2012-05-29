@@ -319,7 +319,7 @@ int main(int argc, char** argv)
 */
 	}
 	else
-		ROS_WARN("Please call with argument: 1->addPole; 0->removePole");
+		ROS_WARN("Please call with argument: 1->addWorld; 0->removeWorld");
 		
 
 	ros::Duration(2.0).sleep();
