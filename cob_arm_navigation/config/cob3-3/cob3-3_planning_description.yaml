@@ -140,6 +140,15 @@ default_collision_operations:
   - object1: base_link
     object2: tray_link
     operation: disable  # Adjacent in collision
+  - object1: tray_link
+    object2: tray_base_link
+    operation: disable  # Adjacent in collision
+  - object1: tray_base_link
+    object2: tray_left_link
+    operation: disable  # Adjacent in collision
+  - object1: tray_base_link
+    object2: tray_right_link
+    operation: disable  # Adjacent in collision
   - object1: head_cover_link
     object2: head_cam3d_link
     operation: disable  # Default in collision
@@ -219,30 +228,6 @@ default_collision_operations:
     object2: fr_caster_rotation_link
     operation: disable  # Never in collision
   - object1: arm_0_link
-    object2: head_color_camera_r_frame
-    operation: disable  # Never in collision
-  - object1: arm_0_link
-    object2: sdh_finger_13_link
-    operation: disable  # Never in collision
-  - object1: arm_0_link
-    object2: sdh_finger_21_link
-    operation: disable  # Never in collision
-  - object1: arm_0_link
-    object2: sdh_finger_22_link
-    operation: disable  # Never in collision
-  - object1: arm_0_link
-    object2: sdh_finger_23_link
-    operation: disable  # Never in collision
-  - object1: arm_0_link
-    object2: sdh_palm_link
-    operation: disable  # Never in collision
-  - object1: arm_0_link
-    object2: sdh_thumb_1_link
-    operation: disable  # Never in collision
-  - object1: arm_0_link
-    object2: sdh_thumb_3_link
-    operation: disable  # Never in collision
-  - object1: arm_0_link
     object2: torso_pan_link
     operation: disable  # Never in collision
   - object1: arm_0_link
@@ -306,13 +291,7 @@ default_collision_operations:
     object2: sdh_finger_11_link
     operation: disable  # Never in collision
   - object1: arm_1_link
-    object2: sdh_finger_12_link
-    operation: disable  # Never in collision
-  - object1: arm_1_link
     object2: sdh_finger_21_link
-    operation: disable  # Never in collision
-  - object1: arm_1_link
-    object2: sdh_finger_22_link
     operation: disable  # Never in collision
   - object1: arm_1_link
     object2: sdh_palm_link
@@ -390,9 +369,6 @@ default_collision_operations:
     object2: sdh_finger_22_link
     operation: disable  # Never in collision
   - object1: arm_2_link
-    object2: sdh_finger_23_link
-    operation: disable  # Never in collision
-  - object1: arm_2_link
     object2: sdh_palm_link
     operation: disable  # Never in collision
   - object1: arm_2_link
@@ -400,9 +376,6 @@ default_collision_operations:
     operation: disable  # Never in collision
   - object1: arm_2_link
     object2: sdh_thumb_2_link
-    operation: disable  # Never in collision
-  - object1: arm_2_link
-    object2: sdh_thumb_3_link
     operation: disable  # Never in collision
   - object1: arm_2_link
     object2: torso_pan_link
@@ -485,9 +458,6 @@ default_collision_operations:
   - object1: arm_3_link
     object2: torso_pan_link
     operation: disable  # Never in collision
-  - object1: arm_3_link
-    object2: tray_link
-    operation: disable  # Never in collision
   - object1: arm_4_link
     object2: arm_6_link
     operation: disable  # Never in collision
@@ -567,9 +537,6 @@ default_collision_operations:
     object2: base_laser_rear_link
     operation: disable  # Never in collision
   - object1: arm_5_link
-    object2: base_laser_top_link
-    operation: disable  # Never in collision
-  - object1: arm_5_link
     object2: bl_caster_r_wheel_link
     operation: disable  # Never in collision
   - object1: arm_5_link
@@ -600,9 +567,6 @@ default_collision_operations:
     object2: sdh_finger_12_link
     operation: disable  # Never in collision
   - object1: arm_5_link
-    object2: sdh_finger_13_link
-    operation: disable  # Never in collision
-  - object1: arm_5_link
     object2: sdh_finger_21_link
     operation: disable  # Never in collision
   - object1: arm_5_link
@@ -614,12 +578,6 @@ default_collision_operations:
   - object1: arm_5_link
     object2: sdh_thumb_2_link
     operation: disable  # Never in collision
-  - object1: arm_5_link
-    object2: sdh_thumb_3_link
-    operation: disable  # Never in collision
-  - object1: arm_5_link
-    object2: torso_pan_link
-    operation: disable  # Never in collision
   - object1: arm_6_link
     object2: base_footprint
     operation: disable  # Never in collision
@@ -628,9 +586,6 @@ default_collision_operations:
     operation: disable  # Never in collision
   - object1: arm_6_link
     object2: base_laser_rear_link
-    operation: disable  # Never in collision
-  - object1: arm_6_link
-    object2: base_laser_top_link
     operation: disable  # Never in collision
   - object1: arm_6_link
     object2: bl_caster_r_wheel_link
@@ -699,9 +654,6 @@ default_collision_operations:
     object2: base_laser_rear_link
     operation: disable  # Never in collision
   - object1: arm_7_link
-    object2: base_laser_top_link
-    operation: disable  # Never in collision
-  - object1: arm_7_link
     object2: bl_caster_r_wheel_link
     operation: disable  # Never in collision
   - object1: arm_7_link
@@ -724,15 +676,6 @@ default_collision_operations:
     operation: disable  # Never in collision
   - object1: arm_7_link
     object2: fr_caster_rotation_link
-    operation: disable  # Never in collision
-  - object1: arm_7_link
-    object2: head_axis_link
-    operation: disable  # Never in collision
-  - object1: arm_7_link
-    object2: head_color_camera_r_frame
-    operation: disable  # Never in collision
-  - object1: arm_7_link
-    object2: head_color_camera_r_link
     operation: disable  # Never in collision
   - object1: arm_7_link
     object2: sdh_finger_11_link
@@ -834,9 +777,6 @@ default_collision_operations:
     object2: sdh_finger_21_link
     operation: disable  # Never in collision
   - object1: base_footprint
-    object2: sdh_finger_22_link
-    operation: disable  # Never in collision
-  - object1: base_footprint
     object2: sdh_finger_23_link
     operation: disable  # Never in collision
   - object1: base_footprint
@@ -1014,12 +954,6 @@ default_collision_operations:
     object2: sdh_finger_11_link
     operation: disable  # Never in collision
   - object1: base_laser_rear_link
-    object2: sdh_finger_12_link
-    operation: disable  # Never in collision
-  - object1: base_laser_rear_link
-    object2: sdh_finger_13_link
-    operation: disable  # Never in collision
-  - object1: base_laser_rear_link
     object2: sdh_finger_21_link
     operation: disable  # Never in collision
   - object1: base_laser_rear_link
@@ -1101,36 +1035,6 @@ default_collision_operations:
     object2: head_cover_link
     operation: disable  # Never in collision
   - object1: base_laser_top_link
-    object2: sdh_finger_11_link
-    operation: disable  # Never in collision
-  - object1: base_laser_top_link
-    object2: sdh_finger_12_link
-    operation: disable  # Never in collision
-  - object1: base_laser_top_link
-    object2: sdh_finger_13_link
-    operation: disable  # Never in collision
-  - object1: base_laser_top_link
-    object2: sdh_finger_21_link
-    operation: disable  # Never in collision
-  - object1: base_laser_top_link
-    object2: sdh_finger_22_link
-    operation: disable  # Never in collision
-  - object1: base_laser_top_link
-    object2: sdh_finger_23_link
-    operation: disable  # Never in collision
-  - object1: base_laser_top_link
-    object2: sdh_palm_link
-    operation: disable  # Never in collision
-  - object1: base_laser_top_link
-    object2: sdh_thumb_1_link
-    operation: disable  # Never in collision
-  - object1: base_laser_top_link
-    object2: sdh_thumb_2_link
-    operation: disable  # Never in collision
-  - object1: base_laser_top_link
-    object2: sdh_thumb_3_link
-    operation: disable  # Never in collision
-  - object1: base_laser_top_link
     object2: torso_lower_neck_tilt_link
     operation: disable  # Never in collision
   - object1: base_laser_top_link
@@ -1206,16 +1110,10 @@ default_collision_operations:
     object2: sdh_finger_12_link
     operation: disable  # Never in collision
   - object1: bl_caster_r_wheel_link
-    object2: sdh_finger_13_link
-    operation: disable  # Never in collision
-  - object1: bl_caster_r_wheel_link
     object2: sdh_finger_21_link
     operation: disable  # Never in collision
   - object1: bl_caster_r_wheel_link
     object2: sdh_finger_22_link
-    operation: disable  # Never in collision
-  - object1: bl_caster_r_wheel_link
-    object2: sdh_finger_23_link
     operation: disable  # Never in collision
   - object1: bl_caster_r_wheel_link
     object2: sdh_palm_link
@@ -1225,9 +1123,6 @@ default_collision_operations:
     operation: disable  # Never in collision
   - object1: bl_caster_r_wheel_link
     object2: sdh_thumb_2_link
-    operation: disable  # Never in collision
-  - object1: bl_caster_r_wheel_link
-    object2: sdh_thumb_3_link
     operation: disable  # Never in collision
   - object1: bl_caster_r_wheel_link
     object2: torso_lower_neck_tilt_link
@@ -1413,13 +1308,13 @@ default_collision_operations:
     object2: sdh_finger_11_link
     operation: disable  # Never in collision
   - object1: br_caster_rotation_link
+    object2: sdh_finger_12_link
+    operation: disable  # Never in collision
+  - object1: br_caster_rotation_link
     object2: sdh_finger_13_link
     operation: disable  # Never in collision
   - object1: br_caster_rotation_link
     object2: sdh_finger_21_link
-    operation: disable  # Never in collision
-  - object1: br_caster_rotation_link
-    object2: sdh_finger_22_link
     operation: disable  # Never in collision
   - object1: br_caster_rotation_link
     object2: sdh_finger_23_link
@@ -1429,12 +1324,6 @@ default_collision_operations:
     operation: disable  # Never in collision
   - object1: br_caster_rotation_link
     object2: sdh_thumb_1_link
-    operation: disable  # Never in collision
-  - object1: br_caster_rotation_link
-    object2: sdh_thumb_2_link
-    operation: disable  # Never in collision
-  - object1: br_caster_rotation_link
-    object2: sdh_thumb_3_link
     operation: disable  # Never in collision
   - object1: br_caster_rotation_link
     object2: torso_lower_neck_tilt_link
@@ -1617,15 +1506,6 @@ default_collision_operations:
     object2: head_cover_link
     operation: disable  # Never in collision
   - object1: fr_caster_r_wheel_link
-    object2: sdh_finger_11_link
-    operation: disable  # Never in collision
-  - object1: fr_caster_r_wheel_link
-    object2: sdh_finger_21_link
-    operation: disable  # Never in collision
-  - object1: fr_caster_r_wheel_link
-    object2: sdh_palm_link
-    operation: disable  # Never in collision
-  - object1: fr_caster_r_wheel_link
     object2: torso_lower_neck_tilt_link
     operation: disable  # Never in collision
   - object1: fr_caster_r_wheel_link
@@ -1665,9 +1545,6 @@ default_collision_operations:
     object2: sdh_finger_11_link
     operation: disable  # Never in collision
   - object1: fr_caster_rotation_link
-    object2: sdh_finger_12_link
-    operation: disable  # Never in collision
-  - object1: fr_caster_rotation_link
     object2: sdh_finger_13_link
     operation: disable  # Never in collision
   - object1: fr_caster_rotation_link
@@ -1719,21 +1596,6 @@ default_collision_operations:
     object2: head_cover_link
     operation: disable  # Never in collision
   - object1: head_axis_link
-    object2: sdh_finger_11_link
-    operation: disable  # Never in collision
-  - object1: head_axis_link
-    object2: sdh_finger_21_link
-    operation: disable  # Never in collision
-  - object1: head_axis_link
-    object2: sdh_finger_22_link
-    operation: disable  # Never in collision
-  - object1: head_axis_link
-    object2: sdh_finger_23_link
-    operation: disable  # Never in collision
-  - object1: head_axis_link
-    object2: sdh_thumb_3_link
-    operation: disable  # Never in collision
-  - object1: head_axis_link
     object2: torso_pan_link
     operation: disable  # Never in collision
   - object1: head_cam3d_frame
@@ -1747,21 +1609,6 @@ default_collision_operations:
     operation: disable  # Never in collision
   - object1: head_cam3d_frame
     object2: head_color_camera_r_link
-    operation: disable  # Never in collision
-  - object1: head_cam3d_frame
-    object2: sdh_finger_21_link
-    operation: disable  # Never in collision
-  - object1: head_cam3d_frame
-    object2: sdh_finger_23_link
-    operation: disable  # Never in collision
-  - object1: head_cam3d_frame
-    object2: sdh_thumb_1_link
-    operation: disable  # Never in collision
-  - object1: head_cam3d_frame
-    object2: sdh_thumb_2_link
-    operation: disable  # Never in collision
-  - object1: head_cam3d_frame
-    object2: sdh_thumb_3_link
     operation: disable  # Never in collision
   - object1: head_cam3d_frame
     object2: torso_pan_link
@@ -1779,9 +1626,6 @@ default_collision_operations:
     object2: head_color_camera_r_link
     operation: disable  # Never in collision
   - object1: head_cam3d_link
-    object2: sdh_thumb_3_link
-    operation: disable  # Never in collision
-  - object1: head_cam3d_link
     object2: torso_pan_link
     operation: disable  # Never in collision
   - object1: head_color_camera_l_frame
@@ -1794,40 +1638,10 @@ default_collision_operations:
     object2: head_cover_link
     operation: disable  # Never in collision
   - object1: head_color_camera_l_frame
-    object2: sdh_finger_11_link
-    operation: disable  # Never in collision
-  - object1: head_color_camera_l_frame
-    object2: sdh_finger_12_link
-    operation: disable  # Never in collision
-  - object1: head_color_camera_l_frame
-    object2: sdh_finger_13_link
-    operation: disable  # Never in collision
-  - object1: head_color_camera_l_frame
-    object2: sdh_finger_21_link
-    operation: disable  # Never in collision
-  - object1: head_color_camera_l_frame
-    object2: sdh_thumb_2_link
-    operation: disable  # Never in collision
-  - object1: head_color_camera_l_frame
-    object2: sdh_thumb_3_link
-    operation: disable  # Never in collision
-  - object1: head_color_camera_l_frame
     object2: torso_pan_link
     operation: disable  # Never in collision
   - object1: head_color_camera_l_link
     object2: head_color_camera_r_frame
-    operation: disable  # Never in collision
-  - object1: head_color_camera_l_link
-    object2: sdh_finger_11_link
-    operation: disable  # Never in collision
-  - object1: head_color_camera_l_link
-    object2: sdh_finger_12_link
-    operation: disable  # Never in collision
-  - object1: head_color_camera_l_link
-    object2: sdh_finger_13_link
-    operation: disable  # Never in collision
-  - object1: head_color_camera_l_link
-    object2: sdh_finger_21_link
     operation: disable  # Never in collision
   - object1: head_color_camera_l_link
     object2: torso_pan_link
@@ -1836,28 +1650,10 @@ default_collision_operations:
     object2: head_cover_link
     operation: disable  # Never in collision
   - object1: head_color_camera_r_frame
-    object2: sdh_finger_11_link
-    operation: disable  # Never in collision
-  - object1: head_color_camera_r_frame
-    object2: sdh_finger_12_link
-    operation: disable  # Never in collision
-  - object1: head_color_camera_r_frame
-    object2: sdh_finger_13_link
-    operation: disable  # Never in collision
-  - object1: head_color_camera_r_frame
-    object2: sdh_thumb_3_link
-    operation: disable  # Never in collision
-  - object1: head_color_camera_r_frame
     object2: torso_pan_link
     operation: disable  # Never in collision
   - object1: head_color_camera_r_frame
     object2: torso_upper_neck_tilt_link
-    operation: disable  # Never in collision
-  - object1: head_color_camera_r_link
-    object2: sdh_finger_13_link
-    operation: disable  # Never in collision
-  - object1: head_color_camera_r_link
-    object2: sdh_thumb_3_link
     operation: disable  # Never in collision
   - object1: head_color_camera_r_link
     object2: torso_pan_link
@@ -1873,15 +1669,9 @@ default_collision_operations:
     operation: disable  # Never in collision
   - object1: sdh_finger_11_link
     object2: sdh_thumb_1_link
-    operation: disable  # Never in collision
-  - object1: sdh_finger_11_link
-    object2: torso_pan_link
     operation: disable  # Never in collision
   - object1: sdh_finger_12_link
     object2: sdh_palm_link
-    operation: disable  # Never in collision
-  - object1: sdh_finger_12_link
-    object2: torso_pan_link
     operation: disable  # Never in collision
   - object1: sdh_finger_13_link
     object2: torso_pan_link
@@ -1901,17 +1691,11 @@ default_collision_operations:
   - object1: sdh_finger_22_link
     object2: sdh_palm_link
     operation: disable  # Never in collision
-  - object1: sdh_finger_22_link
-    object2: torso_pan_link
-    operation: disable  # Never in collision
   - object1: sdh_palm_link
     object2: sdh_thumb_2_link
     operation: disable  # Never in collision
   - object1: sdh_thumb_1_link
     object2: sdh_thumb_3_link
-    operation: disable  # Never in collision
-  - object1: sdh_thumb_1_link
-    object2: torso_pan_link
     operation: disable  # Never in collision
   - object1: sdh_thumb_3_link
     object2: torso_pan_link
