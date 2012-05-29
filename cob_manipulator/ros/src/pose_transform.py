@@ -22,10 +22,12 @@ class PoseTransformer:
         rospy.loginfo("Started Pose Transformer Service.")
     def handle_transform(self, request):
 	# TODO: handle properly
-	if request.target.orientation.x == 0 and request.target.orientation.y == 0 and request.target.orientation.z == 0 and request.target.orientation.w == 0:
-	    request.target.orientation.w = 1.0
-	if request.origin.orientation.x == 0 and request.origin.orientation.y == 0 and request.origin.orientation.z == 0 and request.origin.orientation.w == 0:
-	    request.origin.orientation.w = 1.0
+	tpo = request.target.pose.orientation
+	if tpo.x == 0 and tpo.y == 0 and tpo.z == 0 and tpo.w == 0:
+	    tpo.w = 1.0
+	opo = request.origin.pose.orientation
+	if opo.x == 0 and opo.y == 0 and opo.z == 0 and opo.w == 0:
+	    opo.w = 1.0
 	
         t = tf.TransformerROS(True, rospy.Duration(100.0))
         stamp = rospy.Time.now()
