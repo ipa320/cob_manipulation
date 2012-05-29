@@ -1,5 +1,5 @@
 cloud_sources:
-  - name: /registration/pc_aligned_vox
+  - name: /registration/pc_aligned
     frame_subsample: 1
     point_subsample: 1
     sensor_frame: head_cam3d_link
