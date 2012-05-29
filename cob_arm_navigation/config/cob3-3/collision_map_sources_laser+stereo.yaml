@@ -1,5 +1,5 @@
 cloud_sources:
-  - name: /cam3d/depth/points_filtered2
+  - name: /registration/pc_aligned_vox
     frame_subsample: 1
     point_subsample: 1
     sensor_frame: head_cam3d_link
