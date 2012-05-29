@@ -1,7 +1,5 @@
 <?xml version="1.0"?>
 <launch>
-
-  <include file="$(find cob_machine)/sim.machine" />
   
   <node machine="pc1" pkg="collision_map" type="collision_map_self_occ_node" name="collision_map_self_occ_node" respawn="true" output="screen">
     
