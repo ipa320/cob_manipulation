@@ -372,22 +372,10 @@ private:
 				att_object.touch_links.push_back("sdh_thumb_3_link");
 				
 				att_object.object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ATTACH_AND_REMOVE_AS_OBJECT;
-				//att_object.object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ADD;
 				
 				m_att_object_in_map_pub.publish(att_object);
 				ROS_INFO("Object attached to robot!");
-				
-				/*
-				arm_navigation_msgs::CollisionObject collision_object;
-				collision_object = get_planning_scene_res.planning_scene.collision_objects[i];
-				collision_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::REMOVE;
 
-				m_att_object_in_map_pub.publish(collision_object);
-				ROS_INFO("Object removed as collision_object!");
-				*/
-				
-				
-				
 				arm_navigation_msgs::SetPlanningSceneDiff::Request set_planning_scene_diff_req;
 				arm_navigation_msgs::SetPlanningSceneDiff::Response set_planning_scene_diff_res;
 				
@@ -441,20 +429,10 @@ private:
 				arm_navigation_msgs::AttachedCollisionObject att_object;
 				att_object = get_planning_scene_res.planning_scene.attached_collision_objects[i];
 				att_object.object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::DETACH_AND_ADD_AS_OBJECT;
-				//att_object.object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::REMOVE;
 				
 				m_att_object_in_map_pub.publish(att_object);
 				ROS_INFO("Object detached from robot!");
-				/*
-				arm_navigation_msgs::CollisionObject collision_object;
-				collision_object = get_planning_scene_res.planning_scene.attached_collision_objects[i].object;
-				collision_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ADD;
 
-				m_att_object_in_map_pub.publish(collision_object);
-				ROS_INFO("Object added as collision_object!");
-				*/
-				
-				
 				arm_navigation_msgs::SetPlanningSceneDiff::Request set_planning_scene_diff_req;
 				arm_navigation_msgs::SetPlanningSceneDiff::Response set_planning_scene_diff_res;
 				
