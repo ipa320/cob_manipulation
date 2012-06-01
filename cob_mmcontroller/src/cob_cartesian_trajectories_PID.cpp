@@ -36,6 +36,7 @@ cob_cartesian_trajectories::cob_cartesian_trajectories() : as_model_(n, "moveMod
         
     bHandle = false;
     debug = true;
+
 }
 
 
@@ -326,6 +327,15 @@ void cob_cartesian_trajectories::stopTrajectory()
     Error = Twist::Zero();
     Error_sum = Twist::Zero();
     Error_dot = Twist::Zero();
+
+    //print error vector
+    std::cout << "error vector:" << "\n";
+    for(std::vector<KDL::Twist>::iterator it = vec_err_p.begin(); it != vec_err_p.end(); ++it) {
+        std::cout << *it << ", ";
+    }
+    sleep(2);
+    std::cout << "\n\n\n\n\n\n\n\n";
+
 }
 
 geometry_msgs::Twist cob_cartesian_trajectories::getTwist(double dt, Frame F_current)
@@ -780,6 +790,9 @@ geometry_msgs::Twist cob_cartesian_trajectories::PIDController(const double dt, 
     Error_last.rot.x(Error.rot.x());
     Error_last.rot.y(Error.rot.y());
     Error_last.rot.z(Error.rot.z());
+
+    // add error to vector
+    vec_err_p.push_back(Error);
 
     // broadcast twist
     tf::Transform transform_twist;
