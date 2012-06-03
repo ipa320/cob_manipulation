@@ -419,7 +419,7 @@ void cob_cartesian_trajectories::getPriTarget(double dt, KDL::Frame &F_target)
     
     length = getParamValue("action");
     
-    partial_length = length * (dt/targetDuration);
+    partial_length = length * (1 - cos(PI*(dt/targetDuration)));
     
     // calculate F_track
     F_track.p.z(partial_length);
@@ -539,7 +539,7 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
     angle = getParamValue("action");
 
     // calculating partial_angle
-    partial_angle = angle * (dt/targetDuration);
+    partial_angle = angle * (1 - cos(PI*(dt/targetDuration)));
 
     // creating trajectory frame w.r.t. the track_start frame
     // orientation is like sdh_tip_link frame
