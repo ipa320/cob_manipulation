@@ -59,12 +59,12 @@ class cart_move_and_pose_record:
         self.cart_command_pub.publish(Twist())
 
         # record 1 second after stopped movement
-        while duration <= (goal.target_duration + rospy.Duration.from_sec(2.0)):
-            result_.time.append(rospy.Time(duration.to_sec()))
-            result_.poses.append(self.current_pose)
-            result_.twists.append(Twist())
-            rospy.sleep(0.01)
-            duration = rospy.get_rostime() - start_time
+        #while duration <= (goal.target_duration + rospy.Duration.from_sec(2.0)):
+        #    result_.time.append(rospy.Time(duration.to_sec()))
+        #    result_.poses.append(self.current_pose)
+        #    result_.twists.append(Twist())
+        #    rospy.sleep(0.01)
+        #    duration = rospy.get_rostime() - start_time
 
         rospy.sleep(0.1)
 
