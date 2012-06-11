@@ -159,5 +159,8 @@ private:
 
     bool bHandle;
     bool debug;
+
+    // error vector
+    std::vector<KDL::Twist> vec_err_p;
 };
 

@@ -135,7 +135,7 @@ def parse_twist_list(twist):
 
 
 def parse_measurement(record):
-    data_set = {"time": [], "pos_x": [[], [], []], "pos_y": [[], [], []], "pos_z": [[], [], []], "rot_x": [[], [], []], "rot_y": [[], [], []], "rot_z": [[], [], []]}
+    data_set = {"time": [], "pos_x": [[], [], [], []], "pos_y": [[], [], [], []], "pos_z": [[], [], [], []], "rot_x": [[], [], [], []], "rot_y": [[], [], [], []], "rot_z": [[], [], [], []]}
 
     time_last = rospy.Time.from_sec(0.0)
     pos_x_last = 0.0
@@ -170,6 +170,26 @@ def parse_measurement(record):
         data_set["rot_y"][0].append(pitch - rot_y_init) 
         data_set["rot_z"][0].append(yaw - rot_z_init)
 
+    pos_x_init = record.poses_cb[0].position.x
+    pos_y_init = record.poses_cb[0].position.y
+    pos_z_init = record.poses_cb[0].position.z
+    temp_rot = PyKDL.Rotation.Quaternion(record.poses_cb[0].orientation.x, record.poses_cb[0].orientation.y,
+                                         record.poses_cb[0].orientation.z, record.poses_cb[0].orientation.w)
+    (rot_x_init, rot_y_init, rot_z_init) = temp_rot.GetRPY()
+    
+    for pose in record.poses_cb:
+        # parse poses
+        data_set["pos_x"][3].append(pose.position.x - pos_x_init)
+        data_set["pos_y"][3].append(pose.position.y - pos_y_init) 
+        data_set["pos_z"][3].append(pose.position.z - pos_z_init) 
+
+        #KDL quaternion in r-p-y
+        temp_rot = PyKDL.Rotation.Quaternion(pose.orientation.x, pose.orientation.y,
+                                             pose.orientation.z, pose.orientation.w)
+        (roll, pitch, yaw) = temp_rot.GetRPY()
+        data_set["rot_x"][3].append(roll - rot_x_init)
+        data_set["rot_y"][3].append(pitch - rot_y_init) 
+        data_set["rot_z"][3].append(yaw - rot_z_init)
         # calc velocity
         #dt = pose.header.stamp - time_last
         #dt = dt.to_sec()

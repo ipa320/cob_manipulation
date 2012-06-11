@@ -14,13 +14,17 @@ model_dict = {#'P': "params['Kp'][0]*u",
               #y = Kp*u
               #'PT1': "1/(params['T1'][0]/dt + 1) *(params['Kp'][0]*u + params['T1'][0]/dt*y_m1)", 
               ##y = 1/(T1/dt + 1) *(Kp*u + T1/dt*y_m1)
-              'I': "params['Ki'][0]*u_sum", 
+              #'I': "params['Ki'][0]*u_sum", 
+              'IT1': "1/(params['T1'][0]/dt + 1) *(params['Ki'][0]*u_sum + params['T1'][0]/dt*y_m1)", 
+              #'IT2': "1/(params['T2'][0]/(dt*dt) + params['T1'][0]/dt + 1) * (params['Ki'][0]*u_sum + (2*params['T2'][0]/(dt*dt) + params['T1'][0]/dt)*y_m1 - params['T2'][0]/(dt*dt)*y_m2)", 
+              #####'IT2': "params['Ki'][0]*u_sum - 2*params['T1'][0]/dt*params['T2'][0]/dt*y_m1 - (params['T2'][0]*params['T2'][0])/(dt*dt)",
               ##y = Ki*u_sum
-              'PI': "params['Kp'][0]*u + params['Ki'][0]*u_sum", 
+              #'PI': "params['Kp'][0]*u + params['Ki'][0]*u_sum", 
               ##y = Kp*u + Ki*u_sum
-              'PIT1': "1/(params['T1'][0]/dt + 1) *(params['Kp'][0]*u + params['Ki'][0]*u_sum + params['T1'][0]/dt*y_m1)", 
+              #'PIT1': "1/(params['T1'][0]/dt + 1) *(params['Kp'][0]*u + params['Ki'][0]*u_sum + params['T1'][0]/dt*y_m1)", 
               ##y = 1/(T1/dt + 1) *(Kp*u + Ki*u_sum + T1/dt*y_m1)
-              'PIT2': "1/(params['T2'][0]/(dt*dt) + params['T1'][0]/dt + 1) * (params['Kp'][0]*u + params['Ki'][0]*u_sum + (2*params['T2'][0]/(dt*dt) + params['T1'][0]/dt)*y_m1 - params['T2'][0]/(dt*dt)*y_m2)", 
+              #'PIT2': "1/(params['T2'][0]/(dt*dt) + params['T1'][0]/dt + 1) * (params['Kp'][0]*u + params['Ki'][0]*u_sum + (2*params['T2'][0]/(dt*dt) + params['T1'][0]/dt)*y_m1 - params['T2'][0]/(dt*dt)*y_m2)", 
+              #####'PIT2': "params['Kp'][0]*u + params['Ki'][0]*u_sum - 2*params['T1'][0]/dt*params['T2'][0]/dt*y_m1 - (params['T2'][0]*params['T2'][0])/(dt*dt)",
               ##y = 1/(T2/(dt*dt) + T1/dt + 1) * (Kp*u + Ki*u_sum + (2*T2/(dt*dt) + T1/dt)*y_m1 - T2/(dt*dt)*y_m2)
               #'PD': "params['Kp'][0]*u + params['Kd'][0]*(u - u_m1)/dt", 
               ##y = Kp*u + Kd*(u - u_m1)/dt
@@ -28,11 +32,11 @@ model_dict = {#'P': "params['Kp'][0]*u",
               ##y = 1/(T1/dt + 1) *(Kp*u + Kd*(u - u_m1)/dt + T1/dt*y_m1)
               #'PDT2': "1/(params['T2'][0]/(dt*dt) + params['T1'][0]/dt + 1) * (params['Kp'][0]*u + params['Kd'][0]*(u - u_m1)/dt + (2*params['T2'][0]/(dt*dt) + params['T1'][0]/dt)*y_m1 - params['T2'][0]/(dt*dt)*y_m2)", 
               ##y = 1/(T2/(dt*dt) + T1/dt + 1) * (Kp*u + Kd*(u - u_m1)/dt + (2*T2/(dt*dt) + T1/dt)*y_m1 - T2/(dt*dt)*y_m2)
-              'PID': "params['Kp'][0]*u + params['Ki'][0]*u_sum + params['Kd'][0]*(u - u_m1)/dt", 
+              #'PID': "params['Kp'][0]*u + params['Ki'][0]*u_sum + params['Kd'][0]*(u - u_m1)/dt", 
               ##y = Kp*u + Ki*u_sum + Kd*(u - u_m1)/dt
-              'PIDT1': "1/(params['T1'][0]/dt + 1) *(params['Kp'][0]*u + params['Ki'][0]*u_sum + params['Kd'][0]*(u - u_m1)/dt + params['T1'][0]/dt*y_m1)", 
+              #'PIDT1': "1/(params['T1'][0]/dt + 1) *(params['Kp'][0]*u + params['Ki'][0]*u_sum + params['Kd'][0]*(u - u_m1)/dt + params['T1'][0]/dt*y_m1)", 
               ##y = 1/(T1/dt + 1) *(Kp*u + Ki*u_sum + Kd*(u - u_m1)/dt + T1/dt*y_m1)
-              'PIDT2': "1/(params['T2'][0]/(dt*dt) + params['T1'][0]/dt + 1) * (params['Kp'][0]*u + params['Ki'][0]*u_sum + params['Kd'][0]*(u - u_m1)/dt + (2*params['T2'][0]/(dt*dt) + params['T1'][0]/dt)*y_m1 - params['T2'][0]/(dt*dt)*y_m2)" 
+              #'PIDT2': "1/(params['T2'][0]/(dt*dt) + params['T1'][0]/dt + 1) * (params['Kp'][0]*u + params['Ki'][0]*u_sum + params['Kd'][0]*(u - u_m1)/dt + (2*params['T2'][0]/(dt*dt) + params['T1'][0]/dt)*y_m1 - params['T2'][0]/(dt*dt)*y_m2)" 
               #y = 1/(T2/(dt*dt) + T1/dt + 1) * (Kp*u + Ki*u_sum + Kd*(u - u_m1)/dt + (2*T2/(dt*dt) + T1/dt)*y_m1 - T2/(dt*dt)*y_m2)
               }
 
@@ -180,7 +184,7 @@ class fittingProcess(multiprocessing.Process):
         print "%s: %s plot saved into pdf"%(self.processName, self.model_name)
 
         with open(os.path.join(self.dir_path, "result_%s_%s"%(self.data_name, self.model_name)), 'w') as f_res:
-            f_res.write(str([os.path.basename(self.dir_path), self.data_name, self.model_name, best_error, params]))
+            f_res.write(str([os.path.basename(self.dir_path), self.data_name, self.model_name, best_error, params, model_output[1]]))
 
         print "%s: finshed"%self.processName
         return
@@ -188,7 +192,7 @@ class fittingProcess(multiprocessing.Process):
 
 
     def twiddle_delay(self, model, data, time, tol = 0):
-        params = {'Kp': [1.0, 0.1], 'Ki': [1.0, 0.1], 'Kd': [1.0, 0.1], 'T1': [1.0, 0.1], 'T2': [1.0, 0.1], 'T': [1, 1]}
+        params = {'Kp': [1.0, 0.1], 'Ki': [1.0, 0.1], 'Kd': [1.0, 0.1], 'T1': [1.0, 0.1], 'T2': [1.0, 0.1], 'T': [10, 2]}
         change = True
 
         (best_error, params) = self.twiddle_params(model, data, time, params)
@@ -196,24 +200,26 @@ class fittingProcess(multiprocessing.Process):
             delay_temp = params['T'][0]
             change = True
             params['T'][0] += params['T'][1]
+            #print self.processName, params['T']
             (err, new_params) = self.twiddle_params(model, data, time, self.reset_param_deltas(params))
             if err < best_error:
                 best_error = err
                 #params = new_params
                 params['T'][1] += 1
-                print self.processName, "+"
+                print self.processName, "+"#, params['T']
             else:
-                if params['T'][0] - params['T'][1] >= 0: params['T'][0] -= params['T'][1]
+                if params['T'][0] - 2*params['T'][1] >= 0: params['T'][0] -= 2*params['T'][1]
                 else: params['T'][0] = 0
+                #print self.processName, params['T']
                 (err, new_params) = self.twiddle_params(model, data, time, self.reset_param_deltas(params))
                 if  err < best_error:
                     best_error = err
                     #params = new_params
                     params['T'][1] += 1
-                    print self.processName, "-"
+                    print self.processName, "-"#, params['T']
                 else:
                     params['T'][0] = delay_temp
-                    if params['T'][1] > 0: params['T'][1] -= 1; print self.processName, "0"
+                    if params['T'][1] > 0: params['T'][1] -= 1#; print self.processName, "0"
                     change = False
                     print self.processName, "0"
             print self.processName, params['T']
@@ -259,6 +265,7 @@ class fittingProcess(multiprocessing.Process):
 
                     
     def run_model(self, params, model, data, time):
+        twist_start_index = -1
         y_list = []
 
         error = 0.0 
@@ -273,19 +280,23 @@ class fittingProcess(multiprocessing.Process):
         dt_m1 = 0.0
 
         for i in range(len(data[0])):
-            #if i+params['T'][0] > len(data[0])-1: continue#error_sum += .01; continue
-            u = data[2][i]
-            u_sum += u
 
             dt = time[i] - dt_m1
             if dt == 0.0: continue
 
-            if i <= params['T'][0]:
+            if data[2][i] == 0. and twist_start_index < 0:
+                u = 0.
                 y = 0.
             else:
-                y = eval(model)
+                if twist_start_index < 0: twist_start_index = i
+                if i < twist_start_index+params['T'][0]:
+                    u = 0.
+                else:
+                    u = data[2][i-params['T'][0]]
+            u_sum += u
+            y = eval(model)
             y_list.append(y)
-            error = y - data[0][i]#[i+params['T'][0]]
+            error = y - data[0][i]
             
             y_m2 = y_m1
             y_m1 = y

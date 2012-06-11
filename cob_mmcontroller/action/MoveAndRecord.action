@@ -6,6 +6,7 @@ duration target_duration
 bool success
 string error_message
 geometry_msgs/Pose[] poses
+geometry_msgs/Pose[] poses_cb
 geometry_msgs/Twist[] twists
 time[] time
 ---
