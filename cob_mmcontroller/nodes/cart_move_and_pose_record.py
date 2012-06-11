@@ -10,6 +10,7 @@ from cob_mmcontroller.msg import *
 
 class cart_move_and_pose_record:
     def __init__(self):
+        self.Bstarted = False
 
         # publisher
         self.cart_command_pub = rospy.Publisher('/arm_controller/cart_command', Twist)
@@ -21,20 +22,21 @@ class cart_move_and_pose_record:
         self.moveAndRecord_as = actionlib.SimpleActionServer('move_and_record', MoveAndRecordAction, self.moveAndRecordActionCB, False)
         self.moveAndRecord_as.start()
 
+
+    def cartStateCB(self, pose):
+        self.current_pose = pose.pose
+        #if not self.Bstarted:
+        #    self.poses_cb = []
+        #if self.Bstarted:
+        #    self.poses_cb.append(pose.pose)
+    
+
+    def moveAndRecordActionCB(self, goal):
         # set up and initialize action feedback and result
         self.result_ = MoveAndRecordResult()
         self.feedback_ = MoveAndRecordFeedback()
         self.result_.success = False
 
-        self.Bstarted = False
-
-    def cartStateCB(self, pose):
-        self.current_pose = pose.pose
-        if self.Bstarted:
-            self.result_.poses_cb.append(pose.pose)
-    
-
-    def moveAndRecordActionCB(self, goal):
         self.Bstarted = True
 
         self.feedback_.message = "started"
@@ -59,7 +61,7 @@ class cart_move_and_pose_record:
             self.result_.time.append(rospy.Time(duration.to_sec()))
             self.result_.poses.append(self.current_pose)
             self.result_.twists.append(goal.twist)
-            rospy.sleep(0.01)
+            rospy.sleep(0.02)
             duration = rospy.get_rostime() - start_time
 
         # command zero twist
@@ -72,10 +74,14 @@ class cart_move_and_pose_record:
         #    result_.twists.append(Twist())
         #    rospy.sleep(0.01)
         #    duration = rospy.get_rostime() - start_time
+        
 
-        rospy.sleep(0.1)
+        #self.result_.poses_cb = self.poses_cb
+
+        rospy.sleep(0.8)
 
         self.result_.success = True
+        rospy.sleep(0.5)
         self.moveAndRecord_as.set_succeeded(self.result_)
 
 

@@ -13,13 +13,13 @@ import datetime
 import PyKDL
 import matplotlib.pyplot as plt
 
-twist_dur_list = [[0., 0., 0., 0., 0., 0., 0.],
-                 [-.01, 0., 0., 0., 0., 0., 5.],
-                 [.01, 0., 0., 0., 0., 0., 5.],
-                 [-.025, 0., 0., 0., 0., 0., 5.],
-                 [.025, 0., 0., 0., 0., 0., 5.],
-                 [-.05, 0., 0., 0., 0., 0., 5.],
-                 [.05, 0., 0., 0., 0., 0., 5.],
+twist_dur_list = [#[0., 0., 0., 0., 0., 0., 0.],
+                 #[-.01, 0., 0., 0., 0., 0., 5.],
+                 #[.01, 0., 0., 0., 0., 0., 5.],
+                 #[-.025, 0., 0., 0., 0., 0., 5.],
+                 #[.025, 0., 0., 0., 0., 0., 5.],
+                 #[-.05, 0., 0., 0., 0., 0., 5.],
+                 #[.05, 0., 0., 0., 0., 0., 5.],
                  #[-.075, 0., 0., 0., 0., 0., 5.],
                  #[.075, 0., 0., 0., 0., 0., 5.],
                  #[.01, 0., 0., 0., 0., 0., 5.],
@@ -29,12 +29,12 @@ twist_dur_list = [[0., 0., 0., 0., 0., 0., 0.],
                  #[.05, 0., 0., 0., 0., 0., 5.],
                  #[-.05, 0., 0., 0., 0., 0., 5.],
 
-                 #[0., -.01, 0., 0., 0., 0., 5.],
-                 #[0., .01, 0., 0., 0., 0., 5.],
-                 #[0., -.025, 0., 0., 0., 0., 5.],
-                 #[0., .025, 0., 0., 0., 0., 5.],
-                 #[0., -.05, 0., 0., 0., 0., 5.],
-                 #[0., .05, 0., 0., 0., 0., 5.],
+                 [0., -.01, 0., 0., 0., 0., 5.],
+                 [0., .01, 0., 0., 0., 0., 5.],
+                 [0., -.025, 0., 0., 0., 0., 5.],
+                 [0., .025, 0., 0., 0., 0., 5.],
+                 [0., -.05, 0., 0., 0., 0., 5.],
+                 [0., .05, 0., 0., 0., 0., 5.],
                  #[0., .01, 0., 0., 0., 0., 5.],
                  #[0., -.01, 0., 0., 0., 0., 5.],
                  #[0., .025, 0., 0., 0., 0., 5.],
@@ -115,6 +115,8 @@ def main():
         while client.get_state() == 0 or client.get_state() == 1:
             client.wait_for_result(rospy.Duration.from_sec(1.0))
 
+	
+        rospy.sleep(.2)
         result = client.get_result()
         rospy.sleep(.2)
         data_set = parse_measurement(result)
@@ -170,26 +172,26 @@ def parse_measurement(record):
         data_set["rot_y"][0].append(pitch - rot_y_init) 
         data_set["rot_z"][0].append(yaw - rot_z_init)
 
-    pos_x_init = record.poses_cb[0].position.x
-    pos_y_init = record.poses_cb[0].position.y
-    pos_z_init = record.poses_cb[0].position.z
-    temp_rot = PyKDL.Rotation.Quaternion(record.poses_cb[0].orientation.x, record.poses_cb[0].orientation.y,
-                                         record.poses_cb[0].orientation.z, record.poses_cb[0].orientation.w)
-    (rot_x_init, rot_y_init, rot_z_init) = temp_rot.GetRPY()
-    
-    for pose in record.poses_cb:
-        # parse poses
-        data_set["pos_x"][3].append(pose.position.x - pos_x_init)
-        data_set["pos_y"][3].append(pose.position.y - pos_y_init) 
-        data_set["pos_z"][3].append(pose.position.z - pos_z_init) 
-
-        #KDL quaternion in r-p-y
-        temp_rot = PyKDL.Rotation.Quaternion(pose.orientation.x, pose.orientation.y,
-                                             pose.orientation.z, pose.orientation.w)
-        (roll, pitch, yaw) = temp_rot.GetRPY()
-        data_set["rot_x"][3].append(roll - rot_x_init)
-        data_set["rot_y"][3].append(pitch - rot_y_init) 
-        data_set["rot_z"][3].append(yaw - rot_z_init)
+#    pos_x_init = record.poses_cb[0].position.x
+#    pos_y_init = record.poses_cb[0].position.y
+#    pos_z_init = record.poses_cb[0].position.z
+#    temp_rot = PyKDL.Rotation.Quaternion(record.poses_cb[0].orientation.x, record.poses_cb[0].orientation.y,
+#                                         record.poses_cb[0].orientation.z, record.poses_cb[0].orientation.w)
+#    (rot_x_init, rot_y_init, rot_z_init) = temp_rot.GetRPY()
+#    
+#    for pose in record.poses_cb:
+#        # parse poses
+#        data_set["pos_x"][3].append(pose.position.x - pos_x_init)
+#        data_set["pos_y"][3].append(pose.position.y - pos_y_init) 
+#        data_set["pos_z"][3].append(pose.position.z - pos_z_init) 
+#
+#        #KDL quaternion in r-p-y
+#        temp_rot = PyKDL.Rotation.Quaternion(pose.orientation.x, pose.orientation.y,
+#                                             pose.orientation.z, pose.orientation.w)
+#        (roll, pitch, yaw) = temp_rot.GetRPY()
+#        data_set["rot_x"][3].append(roll - rot_x_init)
+#        data_set["rot_y"][3].append(pitch - rot_y_init) 
+#        data_set["rot_z"][3].append(yaw - rot_z_init)
         # calc velocity
         #dt = pose.header.stamp - time_last
         #dt = dt.to_sec()
