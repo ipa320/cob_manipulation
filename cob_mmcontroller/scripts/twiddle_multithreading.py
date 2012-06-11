@@ -14,16 +14,16 @@ model_dict = {#'P': "params['Kp'][0]*u",
               #y = Kp*u
               #'PT1': "1/(params['T1'][0]/dt + 1) *(params['Kp'][0]*u + params['T1'][0]/dt*y_m1)", 
               ##y = 1/(T1/dt + 1) *(Kp*u + T1/dt*y_m1)
-              'I': "params['Ki'][0]*u_sum", 
+              #'I': "params['Ki'][0]*u_sum", 
               'IT1': "1/(params['T1'][0]/dt + 1) *(params['Ki'][0]*u_sum + params['T1'][0]/dt*y_m1)", 
-              'IT2': "1/(params['T2'][0]/(dt*dt) + params['T1'][0]/dt + 1) * (params['Ki'][0]*u_sum + (2*params['T2'][0]/(dt*dt) + params['T1'][0]/dt)*y_m1 - params['T2'][0]/(dt*dt)*y_m2)", 
+              #'IT2': "1/(params['T2'][0]/(dt*dt) + params['T1'][0]/dt + 1) * (params['Ki'][0]*u_sum + (2*params['T2'][0]/(dt*dt) + params['T1'][0]/dt)*y_m1 - params['T2'][0]/(dt*dt)*y_m2)", 
               #####'IT2': "params['Ki'][0]*u_sum - 2*params['T1'][0]/dt*params['T2'][0]/dt*y_m1 - (params['T2'][0]*params['T2'][0])/(dt*dt)",
               ##y = Ki*u_sum
-              'PI': "params['Kp'][0]*u + params['Ki'][0]*u_sum", 
+              #'PI': "params['Kp'][0]*u + params['Ki'][0]*u_sum", 
               ##y = Kp*u + Ki*u_sum
-              'PIT1': "1/(params['T1'][0]/dt + 1) *(params['Kp'][0]*u + params['Ki'][0]*u_sum + params['T1'][0]/dt*y_m1)", 
+              #'PIT1': "1/(params['T1'][0]/dt + 1) *(params['Kp'][0]*u + params['Ki'][0]*u_sum + params['T1'][0]/dt*y_m1)", 
               ##y = 1/(T1/dt + 1) *(Kp*u + Ki*u_sum + T1/dt*y_m1)
-              'PIT2': "1/(params['T2'][0]/(dt*dt) + params['T1'][0]/dt + 1) * (params['Kp'][0]*u + params['Ki'][0]*u_sum + (2*params['T2'][0]/(dt*dt) + params['T1'][0]/dt)*y_m1 - params['T2'][0]/(dt*dt)*y_m2)", 
+              #'PIT2': "1/(params['T2'][0]/(dt*dt) + params['T1'][0]/dt + 1) * (params['Kp'][0]*u + params['Ki'][0]*u_sum + (2*params['T2'][0]/(dt*dt) + params['T1'][0]/dt)*y_m1 - params['T2'][0]/(dt*dt)*y_m2)", 
               #####'PIT2': "params['Kp'][0]*u + params['Ki'][0]*u_sum - 2*params['T1'][0]/dt*params['T2'][0]/dt*y_m1 - (params['T2'][0]*params['T2'][0])/(dt*dt)",
               ##y = 1/(T2/(dt*dt) + T1/dt + 1) * (Kp*u + Ki*u_sum + (2*T2/(dt*dt) + T1/dt)*y_m1 - T2/(dt*dt)*y_m2)
               #'PD': "params['Kp'][0]*u + params['Kd'][0]*(u - u_m1)/dt", 
