@@ -51,7 +51,7 @@ class cart_move_and_pose_record:
             self.result_.time.append(rospy.Time(duration.to_sec()))
             self.result_.poses.append(self.current_pose)
             self.result_.twists.append(Twist())
-            rospy.sleep(0.01)
+            rospy.sleep(0.005)
             duration = rospy.get_rostime() - start_time
 
         # command cartesian twist
@@ -61,7 +61,7 @@ class cart_move_and_pose_record:
             self.result_.time.append(rospy.Time(duration.to_sec()))
             self.result_.poses.append(self.current_pose)
             self.result_.twists.append(goal.twist)
-            rospy.sleep(0.02)
+            rospy.sleep(0.005)
             duration = rospy.get_rostime() - start_time
 
         # command zero twist
