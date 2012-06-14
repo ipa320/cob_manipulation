@@ -1,0 +1,16 @@
+<package>
+  <description brief="cob_tray_monitor">
+
+     cob_tray_monitor
+
+  </description>
+  <author>Florian Weisshardt</author>
+  <license>LGPL</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cob_tray_monitor</url>
+
+  <depend package="rospy"/>
+  <depend package="sensor_msgs"/>
+  <depend package="cob_srvs"/>
+
+</package>
