@@ -40,7 +40,7 @@ cob_config_controller::cob_config_controller()
 
 	ROS_INFO("Creating publishers");
 	arm_pub_ = n.advertise<brics_actuator::JointVelocities>("/arm_controller/command_vel",1);
-	base_pub_ = n.advertise<geometry_msgs::Twist>("/base_controller/command",1);
+	base_pub_ = n.advertise<geometry_msgs::Twist>("/base_controller/command_direct",1);
 	debug_cart_pub_ = n.advertise<geometry_msgs::PoseArray>("/arm_controller/debug/cart",1);
 	cart_position_pub_ = n.advertise<geometry_msgs::PoseStamped>("/arm_controller/cart_state",1);
 
