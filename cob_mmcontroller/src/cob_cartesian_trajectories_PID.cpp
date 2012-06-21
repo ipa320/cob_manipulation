@@ -336,6 +336,13 @@ void cob_cartesian_trajectories::stopTrajectory()
     sleep(2);
     std::cout << "\n\n\n\n\n\n\n\n";
 
+    //print error vector
+    std::cout << "tb error vector:" << "\n";
+    for(std::vector<KDL::Twist>::iterator it = vec_err_tb.begin(); it != vec_err_tb.end(); ++it) {
+        std::cout << *it << ", ";
+    }
+    sleep(2);
+    std::cout << "\n\n\n\n\n\n\n\n";
 }
 
 geometry_msgs::Twist cob_cartesian_trajectories::getTwist(double dt, Frame F_current)
@@ -419,8 +426,10 @@ void cob_cartesian_trajectories::getPriTarget(double dt, KDL::Frame &F_target)
     
     length = getParamValue("action");
     
-    //partial_length = length * (1 - cos(PI*(dt/targetDuration)));
-    partial_length = length * (dt/targetDuration);
+    partial_length = length * (1 - cos(PI*(dt/targetDuration)))/2;
+    //partial_length = length * (dt/targetDuration);
+    
+    std::cout << "partial length: " << partial_length << "\n";
     
     // calculate F_track
     F_track.p.z(partial_length);
@@ -540,8 +549,8 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
     angle = getParamValue("action");
 
     // calculating partial_angle
-    //partial_angle = angle * (1 - cos(PI*(dt/targetDuration)));
-    partial_angle = angle * (dt/targetDuration);
+    partial_angle = angle * (1 - cos(PI*(dt/targetDuration)))/2;
+    //partial_angle = angle * (dt/targetDuration);
 
     // creating trajectory frame w.r.t. the track_start frame
     // orientation is like sdh_tip_link frame
@@ -792,6 +801,12 @@ geometry_msgs::Twist cob_cartesian_trajectories::PIDController(const double dt, 
     Error_last.rot.x(Error.rot.x());
     Error_last.rot.y(Error.rot.y());
     Error_last.rot.z(Error.rot.z());
+
+    vec_frames.push_back(F_target);
+    if((int)vec_frames.size() > 80){
+        vec_err_tb.push_back(KDL::diff(*vec_frames.begin(), F_current));
+        vec_frames.erase(vec_frames.begin());
+    }
 
     // add error to vector
     vec_err_p.push_back(Error);
