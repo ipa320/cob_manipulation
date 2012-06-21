@@ -162,5 +162,7 @@ private:
 
     // error vector
     std::vector<KDL::Twist> vec_err_p;
+    std::vector<KDL::Twist> vec_err_tb;
+    std::vector<KDL::Frame> vec_frames;
 };
 
