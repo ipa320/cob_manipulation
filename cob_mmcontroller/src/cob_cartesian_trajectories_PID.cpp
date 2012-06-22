@@ -9,6 +9,7 @@ cob_cartesian_trajectories::cob_cartesian_trajectories() : as_model_(n, "moveMod
     ROS_INFO("Starting PID controller with P: %e, I: %e, D: %e", p_gain_, i_gain_, d_gain_);
     
     cart_state_sub_ = n.subscribe("/arm_controller/cart_state", 1, &cob_cartesian_trajectories::cartStateCallback, this);
+    cart_twist_state_sub_ = n.subscribe("/arm_controller/cart_twist_state", 1, &cob_cartesian_trajectories::cartTwistStateCallback, this);
     joint_state_sub_ = n.subscribe("/joint_states", 1, &cob_cartesian_trajectories::jointStateCallback, this);
     cart_command_pub = n.advertise<geometry_msgs::Twist>("/arm_controller/cart_command",1);
     debug_cart_pub_ = n.advertise<geometry_msgs::PoseArray>("/mm/debug",1);
@@ -268,6 +269,17 @@ bool cob_cartesian_trajectories::start() //TODO request->model.params // start
     }    
 }
 
+void cob_cartesian_trajectories::cartTwistStateCallback(const geometry_msgs::Twist::ConstPtr& msg)
+{
+    geometry_msgs::Twist aux_twist;
+    aux_twist.linear = msg->linear;
+    aux_twist.angular = msg->angular;
+    KDL::Twist aux_twist_KDL;
+    tf::TwistMsgToKDL(aux_twist, aux_twist_KDL);
+    vec_vel_ist.push_back(aux_twist_KDL);
+}
+
+
 //Pose is global pose with odometry
 void cob_cartesian_trajectories::cartStateCallback(const geometry_msgs::PoseStamped::ConstPtr& msg)
 {
@@ -333,16 +345,48 @@ void cob_cartesian_trajectories::stopTrajectory()
     for(std::vector<KDL::Twist>::iterator it = vec_err_p.begin(); it != vec_err_p.end(); ++it) {
         std::cout << *it << ", ";
     }
-    sleep(2);
     std::cout << "\n\n\n\n\n\n\n\n";
+    sleep(2);
 
     //print error vector
     std::cout << "tb error vector:" << "\n";
     for(std::vector<KDL::Twist>::iterator it = vec_err_tb.begin(); it != vec_err_tb.end(); ++it) {
         std::cout << *it << ", ";
     }
-    sleep(2);
     std::cout << "\n\n\n\n\n\n\n\n";
+    sleep(2);
+
+    //print error vector
+    std::cout << "vel ist vector:" << "\n";
+    for(std::vector<KDL::Twist>::iterator it = vec_vel_ist.begin(); it != vec_vel_ist.end(); ++it) {
+        std::cout << *it << ", ";
+    }
+    std::cout << "\n\n\n\n\n\n\n\n";
+    sleep(2);
+
+    ////print error vector
+    //std::cout << "vel ist vector:" << "\n";
+    //for(std::vector<KDL::Twist>::iterator it = vec_vel_ist.begin(); it != vec_vel_ist.end(); ++it) {
+    //    std::cout << *it << ", ";
+    //}
+    //std::cout << "\n\n\n\n\n\n\n\n";
+    //sleep(2);
+
+    //print error vector
+    std::cout << "pos ist vector:" << "\n";
+    for(std::vector<KDL::Vector>::iterator it = vec_pos_ist.begin(); it != vec_pos_ist.end(); ++it) {
+        std::cout << *it << ", ";
+    }
+    std::cout << "\n\n\n\n\n\n\n\n";
+    sleep(2);
+
+    //print error vector
+    std::cout << "pos soll vector:" << "\n";
+    for(std::vector<KDL::Vector>::iterator it = vec_pos_soll.begin(); it != vec_pos_soll.end(); ++it) {
+        std::cout << *it << ", ";
+    }
+    std::cout << "\n\n\n\n\n\n\n\n";
+    sleep(2);
 }
 
 geometry_msgs::Twist cob_cartesian_trajectories::getTwist(double dt, Frame F_current)
@@ -357,6 +401,8 @@ geometry_msgs::Twist cob_cartesian_trajectories::getTwist(double dt, Frame F_cur
     if(!bStarted)
     {
         F_EE_start = F_current;
+        F_last_ist = F_current;
+        F_last_soll = F_current;
         F_EE_start.M.GetRPY(last_rpy_angles["target_roll"], last_rpy_angles["target_pitch"], last_rpy_angles["target_yaw"]);
         F_EE_start.M.GetRPY(last_rpy_angles["current_roll"], last_rpy_angles["current_pitch"], last_rpy_angles["current_yaw"]);
         bStarted = true;
@@ -426,7 +472,10 @@ void cob_cartesian_trajectories::getPriTarget(double dt, KDL::Frame &F_target)
     
     length = getParamValue("action");
     
-    partial_length = length * (1 - cos(PI*(dt/targetDuration)))/2;
+    partial_length = length * (1 - cos(PI*(dt/(targetDuration-1.))))/2;
+    if (dt > (targetDuration-1.))
+            partial_length = length;
+
     //partial_length = length * (dt/targetDuration);
     
     std::cout << "partial length: " << partial_length << "\n";
@@ -549,7 +598,9 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
     angle = getParamValue("action");
 
     // calculating partial_angle
-    partial_angle = angle * (1 - cos(PI*(dt/targetDuration)))/2;
+    partial_angle = angle * (1 - cos(PI*(dt/(targetDuration-1.))))/2;
+    if (dt > (targetDuration-1.))
+            partial_angle = angle;
     //partial_angle = angle * (dt/targetDuration);
 
     // creating trajectory frame w.r.t. the track_start frame
@@ -803,10 +854,20 @@ geometry_msgs::Twist cob_cartesian_trajectories::PIDController(const double dt, 
     Error_last.rot.z(Error.rot.z());
 
     vec_frames.push_back(F_target);
-    if((int)vec_frames.size() > 80){
-        vec_err_tb.push_back(KDL::diff(*vec_frames.begin(), F_current));
+    if((int)vec_frames.size() > 30){
+        vec_err_tb.push_back(KDL::diff(*vec_frames.begin(), F_current, 1.));
         vec_frames.erase(vec_frames.begin());
     }
+
+    // target and current position vector
+    vec_pos_ist.push_back(F_current.p);
+    vec_pos_soll.push_back(F_target.p);
+
+    // vector of velocities
+    //vec_vel_ist.push_back(KDL::diff(F_current, F_last_ist, dt));
+    //vec_vel_soll.push_back(KDL::diff(F_target, F_last_soll, dt));
+    //F_last_ist = F_current;
+    //F_last_soll = F_target;
 
     // add error to vector
     vec_err_p.push_back(Error);

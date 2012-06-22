@@ -50,6 +50,7 @@ private:
     actionlib::SimpleActionServer<cob_mmcontroller::ArticulationModelAction> as_model_;
     
     void cartStateCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
+    void cartTwistStateCallback(const geometry_msgs::Twist::ConstPtr& msg);
     void stopTrajectory();
     geometry_msgs::Twist getTwist(double dt, Frame F_current);
 
@@ -94,6 +95,7 @@ private:
     bool start();
     
     ros::Subscriber cart_state_sub_;
+    ros::Subscriber cart_twist_state_sub_;
     ros::Subscriber joint_state_sub_;
     ros::Publisher cart_command_pub;
     ros::Publisher debug_cart_pub_;
@@ -164,5 +166,12 @@ private:
     std::vector<KDL::Twist> vec_err_p;
     std::vector<KDL::Twist> vec_err_tb;
     std::vector<KDL::Frame> vec_frames;
+    std::vector<KDL::Twist> vec_vel_soll;
+    std::vector<KDL::Twist> vec_vel_ist;
+    std::vector<KDL::Vector> vec_pos_ist;
+    std::vector<KDL::Vector> vec_pos_soll;
+
+    KDL::Frame F_last_soll;
+    KDL::Frame F_last_ist;
 };
 
