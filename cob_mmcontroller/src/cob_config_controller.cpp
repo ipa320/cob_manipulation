@@ -30,6 +30,7 @@ cob_config_controller::cob_config_controller()
 	//Initializing configuration control solver
 	iksolver1v = new augmented_solver(arm_base_chain);//Inverse velocity solver
 	fksolver1 = new ChainFkSolverPos_recursive(arm_base_chain);
+	fksolver1_vel = new ChainFkSolverVel_recursive(arm_base_chain);
 	iksolver1v->setBaseToArmFactor(base_to_arm_ratio_);
 
 	//Initializing communication
@@ -43,6 +44,7 @@ cob_config_controller::cob_config_controller()
 	base_pub_ = n.advertise<geometry_msgs::Twist>("/base_controller/command_direct",1);
 	debug_cart_pub_ = n.advertise<geometry_msgs::PoseArray>("/arm_controller/debug/cart",1);
 	cart_position_pub_ = n.advertise<geometry_msgs::PoseStamped>("/arm_controller/cart_state",1);
+	cart_twist_pub_ = n.advertise<geometry_msgs::Twist>("/arm_controller/cart_twist_state",1);
 
 	serv_start = n.advertiseService("/mm/start", &cob_config_controller::SyncMMTriggerStart, this);
 	serv_stop = n.advertiseService("/mm/stop", &cob_config_controller::SyncMMTriggerStop, this);
@@ -54,9 +56,10 @@ cob_config_controller::cob_config_controller()
 }
 
 
-JntArray cob_config_controller::parseJointStates(std::vector<std::string> names, std::vector<double> positions)
+JntArray cob_config_controller::parseJointStates(std::vector<std::string> names, std::vector<double> positions, std::vector<double> velocities, JntArray& q, JntArray& q_dot)
 {
 	JntArray q_temp(7);
+	JntArray q_dot_temp(7);
 	int count = 0;
 	bool parsed = false;
 	for(unsigned int i = 0; i < names.size(); i++)
@@ -64,6 +67,7 @@ JntArray cob_config_controller::parseJointStates(std::vector<std::string> names,
 			if(strncmp(names[i].c_str(), "arm_", 4) == 0)
 			{
 				q_temp(count) = positions[i];
+				q_dot_temp(count) = velocities[i];
 				count++;
 				parsed = true;
 			}
@@ -84,6 +88,8 @@ JntArray cob_config_controller::parseJointStates(std::vector<std::string> names,
 		std::cout << VirtualQ(0) << "\n";
 
 	}
+	q = q_temp;
+	q_dot = q_dot_temp;
 	return q_temp;
 }
 
@@ -101,6 +107,7 @@ void cob_config_controller::cartTwistCallback(const geometry_msgs::Twist::ConstP
 void cob_config_controller::baseTwistCallback(const nav_msgs::Odometry::ConstPtr& msg)
 {
 	tf::PoseMsgToKDL(msg->pose.pose, base_odom_);
+	tf::TwistMsgToKDL(msg->twist.twist, base_twist_);
 }
 
 
@@ -218,7 +225,13 @@ void cob_config_controller::sendCartPose()
 	//F_current.p.y(arm_pose_.p.y() + base_odom_.p.y());
 	geometry_msgs::PoseStamped pose;
 	tf::PoseKDLToMsg(F_current, pose.pose);
+	pose.header.stamp = ros::Time::now();
 	cart_position_pub_.publish(pose);
+
+	geometry_msgs::Twist twist;
+	KDL::Twist twist_sum = arm_vel_.GetTwist() + base_twist_;
+	tf::TwistKDLToMsg(twist_sum, twist);
+	cart_twist_pub_.publish(twist);
 }
 
 void cob_config_controller::controllerStateCallback(const sensor_msgs::JointState::ConstPtr& msg)
@@ -227,12 +240,15 @@ void cob_config_controller::controllerStateCallback(const sensor_msgs::JointStat
 	JntArray q_dot_base(3);
 	std::vector<std::string> names = msg->name;
 	std::vector<double> positions = msg->position;
-	q = parseJointStates(names,positions);
+	std::vector<double> velocities = msg->velocity;
+	q = parseJointStates(names,positions,velocities,q,q_dot);
 	fksolver1->JntToCart(q, arm_pose_);
+	KDL::JntArrayVel q_dot_array(q,q_dot);
+	fksolver1_vel->JntToCart(q_dot_array, arm_vel_); 
 	sendCartPose();
 	if(RunSyncMM)
 	{
-		if(extTwist.vel.x() != 0.0 || extTwist.vel.y() != 0.0 || extTwist.vel.z() != 0.0)
+		if(extTwist.vel.x() != 0.0 || extTwist.vel.y() != 0.0 || extTwist.vel.z() != 0.0 || extTwist.rot.x() != 0.0 || extTwist.rot.y() != 0.0 || extTwist.rot.z() != 0.0)
 		{
 			zeroCounterTwist = 0;
 			int ret = iksolver1v->CartToJnt(q, extTwist, q_out, q_dot_base);
