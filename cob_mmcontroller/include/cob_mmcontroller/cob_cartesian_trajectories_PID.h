@@ -127,6 +127,7 @@ private:
     KDL::Twist Error_sum;
     KDL::Twist Error_dot;
     KDL::Twist Error_last;
+    KDL::Twist Error_last2;
 
     // action
     bool success;                       // status of finished action
