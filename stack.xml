@@ -16,6 +16,7 @@
   <depend stack="common" /> <!-- actionlib, tinyxml -->
   <depend stack="common_msgs" /> <!-- nav_msgs, actionlib_msgs, trajectory_msgs, sensor_msgs, geometry_msgs, visualization_msgs -->
   <depend stack="geometry" /> <!-- tf, tf_conversions -->
+  <depend stack="nodelet_core" /> <!-- nodelet -->
   <depend stack="object_manipulation" /> <!-- object_manipulation_msgs -->
   <depend stack="orocos_kinematics_dynamics" /> <!-- kdl -->
   <depend stack="pluginlib" /> <!-- pluginlib -->
