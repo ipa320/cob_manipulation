@@ -90,7 +90,6 @@ public:
 		ros::service::waitForService(SET_PLANNING_SCENE_DIFF_NAME);
 		ROS_INFO("...done!");
 		
-		
 		m_object_in_map_pub  = rh.advertise<arm_navigation_msgs::CollisionObject>("collision_object", 1);
 		m_att_object_in_map_pub  = rh.advertise<arm_navigation_msgs::AttachedCollisionObject>("attached_collision_object", 1);
 
@@ -163,7 +162,7 @@ private:
 		arm_navigation_msgs::CollisionObject collision_object;
 		collision_object.id = model_name + "_object";
 		collision_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ADD;
-		collision_object.padding = 0.0;
+		collision_object.padding = 5.0;
 		collision_object.header.frame_id = frame_id;
 		collision_object.header.stamp = ros::Time::now();
 	  
