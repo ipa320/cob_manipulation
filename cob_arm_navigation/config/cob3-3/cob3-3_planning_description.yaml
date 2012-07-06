@@ -1,30 +1,15 @@
 multi_dof_joints:
   - name: world_joint
     type: Floating
-<<<<<<< HEAD
-    #parent_frame_id: base_footprint
-=======
->>>>>>> c3aee411bf721ad316ce9be6d9bf56c54f051bb6
     parent_frame_id: map
+    #parent_frame_id: base_footprint
     child_frame_id: base_footprint
+
 groups:
   - name: arm
     base_link: base_footprint
     tip_link: arm_7_link
-  - name: sdh
-    joints:
-      - sdh_palm_joint
-      - sdh_finger_21_joint
-      - sdh_finger_22_joint
-      - sdh_finger_23_joint
-      - sdh_grasp_joint
-      - sdh_knuckle_joint
-      - sdh_finger_12_joint
-      - sdh_finger_13_joint
-      - sdh_thumb_1_joint
-      - sdh_thumb_2_joint
-      - sdh_thumb_3_joint
-      - sdh_tip_joint
+
 default_collision_operations:
   - object1: base_footprint
     object2: base_link
@@ -159,6 +144,9 @@ default_collision_operations:
     object2: tray_link
     operation: disable  # Adjacent in collision
   - object1: tray_link
+    object2: tray_base_link
+    operation: disable  # Adjacent in collision
+  - object1: torso_lower_neck_tilt_link
     object2: tray_base_link
     operation: disable  # Adjacent in collision
   - object1: tray_base_link
