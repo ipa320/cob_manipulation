@@ -92,6 +92,7 @@ int main(int argc, char** argv)
 			//add the cylinder into the collision space
 			arm_navigation_msgs::CollisionObject cylinder_object;
 			cylinder_object.id = "pole";
+			cylinder_object.padding = 10.0;
 			cylinder_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ADD;
 			//cylinder_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::REMOVE;
 			cylinder_object.header.frame_id = "/map";
