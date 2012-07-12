@@ -43,6 +43,8 @@ rosbuild_add_library(cob3_arm_kinematics
 target_link_libraries(cob3_arm_kinematics lapack)
 #target_link_libraries(example ${PROJECT_NAME})
 
+rosbuild_add_executable(kinematics_node ros/src/kinematics_node.cpp)
+
 # rostest
 rosbuild_add_roslaunch_check(ros/launch/kdl_solver.launch ROBOT=cob3-1)
 rosbuild_add_roslaunch_check(ros/launch/kdl_solver.launch ROBOT=cob3-2)
