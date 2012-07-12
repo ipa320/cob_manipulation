@@ -598,7 +598,7 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
     angle = getParamValue("action");
 
     // calculating partial_angle
-    partial_angle = angle * (1 - cos(PI*(dt/(targetDuration-1.))))/2;
+    partial_angle = angle * (1 - cos(PI*((dt)/(targetDuration))))/2;
     if (dt > (targetDuration-1.))
             partial_angle = angle;
     //partial_angle = angle * (dt/targetDuration);
@@ -835,11 +835,11 @@ geometry_msgs::Twist cob_cartesian_trajectories::PIDController(const double dt, 
     cout << "Error_dot twist: " << "\n" << Error_dot << "\n";
     
     // create twist
-    p_gain_ = 10.;
+    p_gain_ = 1.;
     twist.linear.x = p_gain_*Error.vel.x() + i_gain_*Error_sum.vel.x() + d_gain_*Error_dot.vel.x();
-    p_gain_ = 2.;
+    p_gain_ = 1.;
     twist.linear.y = p_gain_*Error.vel.y() + i_gain_*Error_sum.vel.y() + d_gain_*Error_dot.vel.y(); 
-    p_gain_ = 2.;
+    p_gain_ = 1.;
     twist.linear.z = p_gain_*Error.vel.z() + i_gain_*Error_sum.vel.z() + d_gain_*Error_dot.vel.z();
     p_gain_ = 1.;
     twist.angular.x = -(p_gain_*Error.rot.x() + i_gain_*Error_sum.rot.x() + d_gain_*Error_dot.rot.x());
