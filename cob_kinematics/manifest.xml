@@ -1,0 +1,12 @@
+<package>
+  <description brief="cob_kinematics">
+      IK solvers and utilities for Care-O-bot
+  </description>
+  <author>Mathias Lüdtke</author>
+  <license>LGPL</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cob_kinematics</url>
+
+</package>
+
+
