@@ -7,6 +7,16 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_kinematics</url>
 
+  <depend package="roscpp"/>
+  <depend package="arm_navigation_msgs"/>
+  <depend package="kinematics_msgs"/>
+  <depend package="sensor_msgs"/>
+  <depend package="geometry_msgs"/>
+  <depend package="kdl"/>
+  <depend package="kdl_parser"/>  
+  <depend package="urdf"/>  
+  <depend package="urdf_parser"/>  
+  <depend package="tf_conversions"/>  
 </package>
 
 
