@@ -135,8 +135,8 @@ public:
                      kinematics_msgs::GetPositionIK::Response &response){
     if(!active_)
     {
-        ROS_ERROR("FK service not active");
-        return true;
+        ROS_ERROR("IK service not active");
+        return false;
     }
     geometry_msgs::PoseStamped pose_msg_out;
     
@@ -148,7 +148,7 @@ public:
     if(request.ik_request.ik_seed_state.joint_state.position.size() == 0){
         ROS_ERROR("Invalid robot state in IK request");
         response.error_code.val = response.error_code.INVALID_ROBOT_STATE;
-        return false;
+        return true;
     }
     
     int kinematics_error_code;
@@ -178,13 +178,12 @@ public:
     if(!active_)
     {
         ROS_ERROR("FK service not active");
-        return true;
+        return false;
     }
 
     response.pose_stamped.resize(request.fk_link_names.size());
     response.fk_link_names.resize(request.fk_link_names.size());
 
-    bool valid = true;
     std::vector<geometry_msgs::Pose> solutions;
     solutions.resize(request.fk_link_names.size());
     if(kinematics_solver_->getPositionFK(request.fk_link_names,request.robot_state.joint_state.position,solutions) >=0)
@@ -196,25 +195,20 @@ public:
             pose_stamped.header.frame_id = root_name_;
             pose_stamped.header.stamp = ros::Time();
             
-            if(request.header.frame_id != root_name_) {
+            if(!convertPoseToRootFrame(pose_stamped, response.pose_stamped[i], request.header.frame_id, tf_listener_)) {
                 response.error_code.val = response.error_code.FRAME_TRANSFORM_FAILURE;
-                valid = false;
                 break;
-            }else{
-                pose_stamped.pose = solutions[i];
-                response.pose_stamped[i] = pose_stamped;
-                response.fk_link_names[i] = request.fk_link_names[i];
-                response.error_code.val = response.error_code.SUCCESS;
             }
+            response.fk_link_names[i] = request.fk_link_names[i];
+            response.error_code.val = response.error_code.SUCCESS;
         }
     }
     else
     {
         ROS_ERROR("Could not compute FK");
         response.error_code.val = response.error_code.NO_FK_SOLUTION;
-        valid = false;
     }
-    return valid;
+    return true;
   }
   
 };
