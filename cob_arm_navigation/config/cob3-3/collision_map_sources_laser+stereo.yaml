@@ -1,5 +1,5 @@
 cloud_sources:
-  - name: /registration/pc_aligned
+  - name: /cam3d/depth/points_filtered2
     frame_subsample: 1
     point_subsample: 1
     sensor_frame: head_cam3d_link
