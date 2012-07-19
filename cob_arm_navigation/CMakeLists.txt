@@ -29,5 +29,9 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #rosbuild_add_executable(example examples/example.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
 
+rosbuild_add_executable(cob_environment_server src/cob_environment_server.cpp)
+rosbuild_link_boost(cob_environment_server thread)
+target_link_libraries(cob_environment_server planning_environment)
+
 # rostest
 rosbuild_add_roslaunch_check(launch ROBOT=cob3-3)
