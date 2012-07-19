@@ -15,7 +15,7 @@
     <arg name="use_monitor" value="false" />
     <arg name="use_collision_map" value="false" />
   </include>
-  <include file="$(find cob_arm_navigation)/launch/constraint_aware_kinematics.launch" />
+  <include file="$(find cob_arm_navigation)/config/$(env ROBOT)/constraint_aware_kinematics.launch" />
   <include file="$(find cob_arm_navigation)/launch/ompl_planning.launch" />
   <include file="$(find cob_arm_navigation)/launch/trajectory_filter_server.launch" />
   <node pkg="robot_state_publisher" type="state_publisher" name="rob_st_pub" />
