@@ -88,25 +88,36 @@ public:
 	nh.param<std::string>("prefetch_tips", prefetch_tips, "");
 	
 	std::vector<std::string> root_names;
-	boost::split(root_names,link_names, boost::is_any_of(" ,"), boost::token_compress_on);
+	if(!root_names.empty())
+	    boost::split(root_names,link_names, boost::is_any_of(" ,"), boost::token_compress_on);
 
 	std::vector<std::string> tip_names;
-	boost::split(tip_names,prefetch_tips, boost::is_any_of(" ,"), boost::token_compress_on);
+	if(!prefetch_tips.empty())
+	    boost::split(tip_names,prefetch_tips, boost::is_any_of(" ,"), boost::token_compress_on);
 
 	std::cout << ik_name << std::endl;
 	get_ik_client = ros::service::createClient<kinematics_msgs::GetPositionIK>(ik_name);    
 	get_constraint_aware_ik_client = ros::service::createClient<kinematics_msgs::GetConstraintAwarePositionIK>(contraint_ik_name);    
 	get_fk_client = ros::service::createClient<kinematics_msgs::GetPositionFK>(fk_name);
-	
-	get_ik_client.waitForExistence(ros::Duration(5.0));
+
+	bool okay;
+	for(int i=0; i<20; ++i){
+	    okay = true;
+	    if (get_ik_client.exists()) break;
+	    if (get_constraint_aware_ik_client.exists()) break;
+	    if (get_fk_client.exists()) break;
+	    ros::Duration(1.0).sleep();
+	    okay = false;
+	}
 
 	kinematics_msgs::GetKinematicSolverInfo::Request info_request;
 	kinematics_msgs::GetKinematicSolverInfo::Response info_response;
-	ros::service::call(info_name, info_request, info_response);
+	if(!ros::service::call(info_name, info_request, info_response))
+	    ROS_WARN("Info service not available!");
 	
 	root_names.insert(root_names.end(), info_response.kinematic_solver_info.link_names.begin(), info_response.kinematic_solver_info.link_names.end());
 
-	if(!root_names.empty()){
+	if(!root_names.empty() && okay){
 	    urdf::Model model;
 	    model.initParam("robot_description");
 	    wrapper.reset(new IKWrapper(model, root_names, tip_names));
