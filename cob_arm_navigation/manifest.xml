@@ -21,8 +21,8 @@
   <depend package="robot_state_publisher"/>
   <depend package="move_arm_warehouse"/>
   <depend package="mongodb"/>
-  <depend package="cob_manipulator"/>
 
   <depend package="cob_hardware_config"/> <!-- for URDFs -->
   <depend package="cob_manipulator"/> <!-- pose_transform -->
+  <depend package="cob_kinematics"/>
 </package>
