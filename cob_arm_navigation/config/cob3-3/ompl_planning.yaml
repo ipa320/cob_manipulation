@@ -13,7 +13,7 @@ arm:
     - LBKPIECEkConfig1
   projection_evaluator: joint_state
 arm_cartesian:
-  parent_frame: base_footprint
+  parent_frame: arm_0_link
   physical_group: arm
   planner_type: RPYIKTaskSpacePlanner
   state_spaces:
@@ -45,8 +45,7 @@ arm_cartesian:
     - SBLkConfig1
     - LBKPIECEkConfig1
   kinematics_solver: cob3_arm_kinematics/KDLArmKinematicsPlugin
-  #tip_name: sdh_palm_link
   tip_name: arm_7_link
-  root_name: base_footprint
+  root_name: arm_0_link
   projection_evaluator: joint_state
   longest_valid_segment_fraction: 0.001

@@ -1,0 +1,9 @@
+<launch>
+    <node pkg="arm_kinematics_constraint_aware" type="arm_kinematics_constraint_aware" name="cob_arm_kinematics">
+        <param name="group" type="string" value="arm" />
+        <param name="arm/root_name" type="string" value="arm_0_link" />
+        <param name="arm/tip_name" type="string" value="arm_7_link" />
+        <param name="kinematics_solver" type="string" value="cob3_arm_kinematics/KDLArmKinematicsPlugin" />
+    </node>
+    <node pkg="cob_kinematics" type="ik_wrapper_node" name="cob_ik_wrapper"/>
+</launch>
