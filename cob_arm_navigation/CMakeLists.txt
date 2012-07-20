@@ -33,5 +33,8 @@ rosbuild_add_executable(cob_environment_server src/cob_environment_server.cpp)
 rosbuild_link_boost(cob_environment_server thread)
 target_link_libraries(cob_environment_server planning_environment)
 
+rosbuild_add_executable(planning_description_generator src/planning_description_generator.cpp)
+target_link_libraries(planning_description_generator planning_environment)
+
 # rostest
 rosbuild_add_roslaunch_check(launch ROBOT=cob3-3)
