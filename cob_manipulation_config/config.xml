@@ -1,0 +1,4 @@
+<launch>
+    <include file="$(find cob_manipulation_config)/defaults/config.xml" />
+    <include file="$(find cob_manipulation_config)/$(env ROBOT)/config.xml" />
+</launch>
