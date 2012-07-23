@@ -37,4 +37,8 @@ rosbuild_add_executable(planning_description_generator src/planning_description_
 target_link_libraries(planning_description_generator planning_environment)
 
 # rostest
+rosbuild_add_roslaunch_check(launch ROBOT=cob3-1)
+rosbuild_add_roslaunch_check(launch ROBOT=cob3-2)
 rosbuild_add_roslaunch_check(launch ROBOT=cob3-3)
+rosbuild_add_roslaunch_check(launch ROBOT=cob3-4)
+rosbuild_add_roslaunch_check(launch ROBOT=cob3-6)
