@@ -11,7 +11,7 @@
   <node name="planning_scene_warehouse_viewer" pkg="move_arm_warehouse" type="planning_scene_warehouse_viewer"/>
 
 
-  <node pkg="rviz" type="rviz" name='rviz_warehouse_viewer' args="-d $(find cob_arm_navigation)/config/planning_scene_warehouse_viewer.vcg" />
+  <node pkg="rviz" type="rviz" name='rviz_warehouse_viewer' args="-d $(find cob_manipulation_config)/common/planning_scene_warehouse_viewer.vcg" />
   
   <!-- Called when left arm executes trajectory using controllers -->
   <param name="execute_left_trajectory" value="arm_controller/follow_joint_trajectory" />

@@ -1,8 +1,0 @@
-<launch>
-    <arg name="cob_kinematics_plugin" default="cob3_arm_kinematics/KDLArmKinematicsPlugin"/>
-    <arg name="cob_kinematics_group" default="arm"/>
-    <arg name="cob_kinematics_rootname" default="arm_0_link"/>
-    <arg name="cob_kinematics_tipname" default="arm_7_link"/>
-
-    <arg name="cob_planning_description_file" default="$(find cob_manipulation_config)/$(env ROBOT)/planning_description.yaml"/>
-</launch>

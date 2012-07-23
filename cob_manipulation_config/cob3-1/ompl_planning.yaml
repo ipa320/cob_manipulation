@@ -3,6 +3,7 @@ planner_configs:
     type: kinematic::SBL
   LBKPIECEkConfig1:
     type: kinematic::LBKPIECE
+default_planner_config: SBLkConfig1    
 groups:
   - arm
   - arm_cartesian

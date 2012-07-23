@@ -1,0 +1,4 @@
+<launch>
+    <!-- <param name="global_frame" value="/map" /> TODO: check if necessary -->
+    <rosparam command="load" ns="robot_description_planning" file="$(find cob_manipulation_config)/$(env ROBOT)/planning_description.yaml" />
+</launch>
