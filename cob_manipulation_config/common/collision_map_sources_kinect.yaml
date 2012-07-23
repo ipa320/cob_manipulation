@@ -1,3 +1,4 @@
+# THIS IS A SHARED CONFIG, DO NOT EDIT! CREATE AN OVERLAY INSTEAD!
 cloud_sources:
   - name: /cam3d/depth/points_filtered2
     frame_subsample: 1
