@@ -1,4 +1,1 @@
-group: arm
-arm: {root_name: arm_0_link, tip_link: arm_7_link}
-kinematics_solver: cob3_arm_kinematics/KDLArmKinematicsPlugin
-controller_action_name: /arm_controller/follow_joint_trajectory
+../common/kinematics.yaml
