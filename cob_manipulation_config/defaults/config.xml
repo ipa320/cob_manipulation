@@ -4,5 +4,5 @@
     <arg name="cob_kinematics_rootname" default="arm_0_link"/>
     <arg name="cob_kinematics_tipname" default="arm_7_link"/>
 
-    <arg name="cob_planning_description_file" default="$(find cob_manipulation_config)/defaults/planning_description.yaml"/>
+    <arg name="cob_planning_description_file" default="$(find cob_manipulation_config)/$(env ROBOT)/planning_description.yaml"/>
 </launch>
