@@ -1,7 +1,7 @@
 multi_dof_joints:
   - name: world_joint
-    type: Fixed
-    parent_frame_id: base_footprint
+    type: Floating
+    parent_frame_id: odom_combined
     child_frame_id: base_footprint
 groups:
   - name: arm
@@ -373,9 +373,6 @@ default_collision_operations:
     operation: disable  # Never in collision
   - object1: arm_wrist_3_link
     object2: bl_caster_r_wheel_link
-    operation: disable  # Never in collision
-  - object1: arm_wrist_3_link
-    object2: bl_caster_rotation_link
     operation: disable  # Never in collision
   - object1: arm_wrist_3_link
     object2: br_caster_r_wheel_link
