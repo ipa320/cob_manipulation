@@ -106,11 +106,9 @@ int main(int argc, char **argv){
 		xml = sstream.str();
     } else xml = exec((string("rosrun xacro xacro.py ")+file_in).c_str());
     
-    bool urdf_ok = urdf_->initString(xml);
-
-    if(!urdf_ok)
+    if(!urdf_->initString(xml))
     {
-		ROS_ERROR_STREAM("Urdf not ok");
+		ROS_ERROR_STREAM("Parsing URDF failed!");
 		return -1;
     }
       
