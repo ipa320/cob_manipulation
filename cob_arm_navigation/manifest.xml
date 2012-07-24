@@ -26,4 +26,7 @@
   <depend package="cob_manipulator"/> <!-- pose_transform -->
   <depend package="cob_kinematics"/>
   <depend package="cob_manipulation_config"/>
+  
+  <depend package="common_rosdeps" />
+  <rosdep name="yaml-cpp" />  
 </package>

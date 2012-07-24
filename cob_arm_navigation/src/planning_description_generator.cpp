@@ -4,6 +4,8 @@
 #include <collision_space/environmentODE.h>
 #include <planning_environment/util/collision_operations_generator.h>
 #include <algorithm>
+#include <yaml-cpp/yaml.h>
+
 
 using namespace std;
 using namespace planning_environment;
@@ -26,7 +28,7 @@ std::string exec(const char* cmd) {
 int main(int argc, char **argv){
     
     srand(time(NULL));
-    ros::init(argc, argv, "planning_description_generator");
+    ros::init(argc, argv, "planning_description_generator",ros::init_options::AnonymousName);
 
     boost::shared_ptr<urdf::Model> urdf_(new urdf::Model);
     planning_models::KinematicModel* kmodel_ = 0;
@@ -58,11 +60,39 @@ int main(int argc, char **argv){
 			++i;
 		}
         if(i > argc){
-        	ROS_ERROR("planning_description_generator [--input PATH] [--output PATH] [--type TYPE] ARM_NAME ARM_ROOT ARM_TIP [...]");
+        	ROS_ERROR("planning_description_generator [--input PATH] [--output PATH] [--type TYPE] [ARM_NAME ARM_ROOT ARM_TIP] [...]");
         	return -1;
         }
     }
 
+    // read arm from output file if possible
+    if(!file_out.empty()){
+        std::ifstream fin(file_out.c_str());
+        try {
+            YAML::Parser parser(fin);
+            YAML::Node doc;
+            if(parser.GetNextDocument(doc)) {
+                const YAML::Node &groups = doc["groups"];
+                 for(YAML::Iterator it=groups.begin();it!=groups.end();++it) {
+                    try {
+                        string group, tip, root;
+                        (*it)["name"] >>  group;
+                        (*it)["tip_link"] >>  tip;
+                        (*it)["base_link"] >>  root;
+                         arms.insert(make_pair(group,make_pair(root,tip)));
+                    }catch(YAML::ParserException& e) {
+                        continue;
+                    }            
+                }
+            }
+        }catch(YAML::ParserException& e) { /* nothing do to */ }            
+    }
+    
+    if(arms.empty()){
+        ROS_ERROR("No kinematic chains specified!");
+        return -1;
+    }
+    
     // load model
 
     string xml;
@@ -75,7 +105,7 @@ int main(int argc, char **argv){
 		}
 		xml = sstream.str();
     } else xml = exec((string("rosrun xacro xacro.py ")+file_in).c_str());
-
+    
     bool urdf_ok = urdf_->initString(xml);
 
     if(!urdf_ok)
@@ -89,8 +119,8 @@ int main(int argc, char **argv){
     const urdf::Link *root = urdf_->getRoot().get();
 
     //now this should work with an n=on-identity transform
-    world_joint_config_.type = "Fixed";
-    world_joint_config_.parent_frame_id = root->name;
+    world_joint_config_.type = "Floating";
+    world_joint_config_.parent_frame_id = "odom_combined";
     world_joint_config_.child_frame_id = root->name;
     multi_dof_configs.push_back(world_joint_config_);
 
@@ -113,7 +143,9 @@ int main(int argc, char **argv){
     ops_gen_ = new CollisionOperationsGenerator(cm_);
     
     // get arms
+    
     for(map<string,pair<string,string> >::iterator it=arms.begin(); it != arms.end(); ++it){
+                ROS_INFO_STREAM("Chain: " << it->first);
 		KinematicModel::GroupConfig arm_gc(it->first, it->second.first, it->second.second);
 		kmodel_->addModelGroup(arm_gc);
     }
@@ -161,6 +193,8 @@ int main(int argc, char **argv){
 
 
     // generate collision operations
+    
+    ROS_INFO("Starting..");
 
     if(type.empty()) ops_gen_->setSafety(CollisionOperationsGenerator::Normal);
     else if(type == "VerySafe") ops_gen_->setSafety(CollisionOperationsGenerator::VerySafe);
