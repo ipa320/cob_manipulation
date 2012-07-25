@@ -185,6 +185,7 @@ int main(int argc, char **argv){
 		for(map<string, pair<double, double> >::const_iterator it = joint_bounds.begin(); it != joint_bounds.end(); it++)
 		{
 		  cdof_map[it->first] = consider_dof[xind++];
+                  ROS_INFO_STREAM(it->first << " " << it->second.first << " " << it->second.second);
 		}
     }
     ops_gen_->generateSamplingStructures(cdof_map);
@@ -208,6 +209,7 @@ int main(int argc, char **argv){
     vector<CollisionOperationsGenerator::StringPair> adj_links; 
     ops_gen_->generateAdjacentInCollisionPairs(adj_links);
     ops_gen_->disablePairCollisionChecking(adj_links);
+    disable_map_[CollisionOperationsGenerator::ADJACENT] = adj_links;
 
     vector<CollisionOperationsGenerator::StringPair> always_in_collision;
     vector<CollisionOperationsGenerator::CollidingJointValues> in_collision_joint_values;
