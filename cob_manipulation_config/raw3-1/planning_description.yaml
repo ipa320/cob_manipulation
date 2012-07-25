@@ -183,9 +183,6 @@ default_collision_operations:
     object2: torso_tilt_link
     operation: disable  # Never in collision
   - object1: arm_forearm_link
-    object2: arm_shoulder_link
-    operation: disable  # Never in collision
-  - object1: arm_forearm_link
     object2: arm_wrist_2_link
     operation: disable  # Never in collision
   - object1: arm_forearm_link
@@ -201,37 +198,10 @@ default_collision_operations:
     object2: bl_caster_rotation_link
     operation: disable  # Never in collision
   - object1: arm_forearm_link
-    object2: br_caster_r_wheel_link
-    operation: disable  # Never in collision
-  - object1: arm_forearm_link
     object2: br_caster_rotation_link
-    operation: disable  # Never in collision
-  - object1: arm_forearm_link
-    object2: fl_caster_r_wheel_link
-    operation: disable  # Never in collision
-  - object1: arm_forearm_link
-    object2: fr_caster_r_wheel_link
-    operation: disable  # Never in collision
-  - object1: arm_forearm_link
-    object2: head_color_camera_l_link
-    operation: disable  # Never in collision
-  - object1: arm_forearm_link
-    object2: head_color_camera_r_link
-    operation: disable  # Never in collision
-  - object1: arm_forearm_link
-    object2: torso_0_link
-    operation: disable  # Never in collision
-  - object1: arm_forearm_link
-    object2: torso_tilt_link
     operation: disable  # Never in collision
   - object1: arm_shoulder_link
     object2: arm_wrist_1_link
-    operation: disable  # Never in collision
-  - object1: arm_shoulder_link
-    object2: arm_wrist_2_link
-    operation: disable  # Never in collision
-  - object1: arm_shoulder_link
-    object2: arm_wrist_3_link
     operation: disable  # Never in collision
   - object1: arm_shoulder_link
     object2: base_cam3d_frame
@@ -350,27 +320,6 @@ default_collision_operations:
   - object1: arm_upper_arm_link
     object2: fr_caster_rotation_link
     operation: disable  # Never in collision
-  - object1: arm_upper_arm_link
-    object2: head_axis_link
-    operation: disable  # Never in collision
-  - object1: arm_upper_arm_link
-    object2: head_cam3d_frame
-    operation: disable  # Never in collision
-  - object1: arm_upper_arm_link
-    object2: head_color_camera_l_link
-    operation: disable  # Never in collision
-  - object1: arm_upper_arm_link
-    object2: head_color_camera_r_frame
-    operation: disable  # Never in collision
-  - object1: arm_upper_arm_link
-    object2: head_color_camera_r_link
-    operation: disable  # Never in collision
-  - object1: arm_upper_arm_link
-    object2: torso_0_link
-    operation: disable  # Never in collision
-  - object1: arm_upper_arm_link
-    object2: torso_tilt_link
-    operation: disable  # Never in collision
   - object1: arm_wrist_1_link
     object2: arm_wrist_3_link
     operation: disable  # Never in collision
@@ -384,85 +333,19 @@ default_collision_operations:
     object2: bl_caster_rotation_link
     operation: disable  # Never in collision
   - object1: arm_wrist_1_link
-    object2: br_caster_r_wheel_link
-    operation: disable  # Never in collision
-  - object1: arm_wrist_1_link
     object2: br_caster_rotation_link
-    operation: disable  # Never in collision
-  - object1: arm_wrist_1_link
-    object2: fl_caster_r_wheel_link
-    operation: disable  # Never in collision
-  - object1: arm_wrist_1_link
-    object2: fr_caster_r_wheel_link
-    operation: disable  # Never in collision
-  - object1: arm_wrist_1_link
-    object2: head_color_camera_l_link
-    operation: disable  # Never in collision
-  - object1: arm_wrist_1_link
-    object2: head_color_camera_r_link
-    operation: disable  # Never in collision
-  - object1: arm_wrist_1_link
-    object2: torso_0_link
-    operation: disable  # Never in collision
-  - object1: arm_wrist_1_link
-    object2: torso_tilt_link
     operation: disable  # Never in collision
   - object1: arm_wrist_2_link
     object2: base_laser_rear_link
-    operation: disable  # Never in collision
-  - object1: arm_wrist_2_link
-    object2: bl_caster_r_wheel_link
     operation: disable  # Never in collision
   - object1: arm_wrist_2_link
     object2: bl_caster_rotation_link
     operation: disable  # Never in collision
-  - object1: arm_wrist_2_link
-    object2: br_caster_r_wheel_link
-    operation: disable  # Never in collision
-  - object1: arm_wrist_2_link
-    object2: fl_caster_r_wheel_link
-    operation: disable  # Never in collision
-  - object1: arm_wrist_2_link
-    object2: fr_caster_r_wheel_link
-    operation: disable  # Never in collision
-  - object1: arm_wrist_2_link
-    object2: head_color_camera_l_link
-    operation: disable  # Never in collision
-  - object1: arm_wrist_2_link
-    object2: head_color_camera_r_link
-    operation: disable  # Never in collision
-  - object1: arm_wrist_2_link
-    object2: torso_0_link
-    operation: disable  # Never in collision
-  - object1: arm_wrist_2_link
-    object2: torso_tilt_link
-    operation: disable  # Never in collision
   - object1: arm_wrist_3_link
     object2: base_laser_rear_link
     operation: disable  # Never in collision
   - object1: arm_wrist_3_link
-    object2: bl_caster_r_wheel_link
-    operation: disable  # Never in collision
-  - object1: arm_wrist_3_link
-    object2: br_caster_r_wheel_link
-    operation: disable  # Never in collision
-  - object1: arm_wrist_3_link
-    object2: fl_caster_r_wheel_link
-    operation: disable  # Never in collision
-  - object1: arm_wrist_3_link
-    object2: fr_caster_r_wheel_link
-    operation: disable  # Never in collision
-  - object1: arm_wrist_3_link
-    object2: head_color_camera_l_link
-    operation: disable  # Never in collision
-  - object1: arm_wrist_3_link
-    object2: head_color_camera_r_link
-    operation: disable  # Never in collision
-  - object1: arm_wrist_3_link
-    object2: torso_0_link
-    operation: disable  # Never in collision
-  - object1: arm_wrist_3_link
-    object2: torso_tilt_link
+    object2: bl_caster_rotation_link
     operation: disable  # Never in collision
   - object1: base_cam3d_frame
     object2: base_footprint
