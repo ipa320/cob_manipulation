@@ -4,7 +4,7 @@ then
     echo "Usage: update_planning_description ROBOT"
     echo "It may take hours to finish!"
     exit 0
-elif [ $1 -eq "ALL" ]
+elif [ "$1" == "ALL" ]
 then
     robots=""
     for d in `rospack find cob_manipulation_config`/*/planning_description.yaml; do robots="$robots $(basename $(dirname $d))"; done    
