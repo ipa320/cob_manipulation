@@ -13,11 +13,12 @@ else
 fi
 trap "kill 0" SIGINT SIGTERM EXIT
 roscore&
+disown $!
 for r in $robots
 do
     echo $r
-    rosrun cob_arm_navigation planning_description_generator --input "$(rospack find cob_hardware_config)/$r/urdf/$r.urdf.xacro" --type VerySafe --output "$(rospack find cob_manipulation_config)/$r/planning_description.yaml"
+    nice rosrun cob_arm_navigation planning_description_generator --input "$(rospack find cob_hardware_config)/$r/urdf/$r.urdf.xacro" --type VerySafe --output "$(rospack find cob_manipulation_config)/$r/planning_description.yaml"&
 done
-
+wait
 
     
