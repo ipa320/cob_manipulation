@@ -195,16 +195,19 @@ int main(int argc, char **argv){
     
     ROS_INFO("Starting..");
 
-    if(type.empty()) ops_gen_->setSafety(CollisionOperationsGenerator::Normal);
-    else if(type == "VerySafe") ops_gen_->setSafety(CollisionOperationsGenerator::VerySafe);
-    else if(type == "Safe") ops_gen_->setSafety(CollisionOperationsGenerator::Safe);
-    else if(type == "Normal") ops_gen_->setSafety(CollisionOperationsGenerator::Normal);
-    else if(type == "Fast") ops_gen_->setSafety(CollisionOperationsGenerator::Fast);
-    else if(type == "VeryFast") ops_gen_->setSafety(CollisionOperationsGenerator::VeryFast);
+    CollisionOperationsGenerator::SamplingSafety safety;
+    if(type.empty()) safety = CollisionOperationsGenerator::Normal;
+    else if(type == "VerySafe") safety = CollisionOperationsGenerator::VerySafe;
+    else if(type == "Safe") safety =  CollisionOperationsGenerator::Safe;
+    else if(type == "Normal") safety = CollisionOperationsGenerator::Normal;
+    else if(type == "Fast") safety = CollisionOperationsGenerator::Fast;
+    else if(type == "VeryFast") safety = CollisionOperationsGenerator::VeryFast;
     else{
     	ROS_ERROR("Supported types are (case sensitive): VerySafe Safe Normal(=default) Fast VeryFast");
     	return -1;
     }
+
+    ops_gen_->setSafety(safety);
 
     vector<CollisionOperationsGenerator::StringPair> adj_links; 
     ops_gen_->generateAdjacentInCollisionPairs(adj_links);
@@ -229,14 +232,29 @@ int main(int argc, char **argv){
     ops_gen_->disablePairCollisionChecking(often_in_collision);
     disable_map_[CollisionOperationsGenerator::OFTEN] = often_in_collision;
     
-    vector<CollisionOperationsGenerator::StringPair> in_collision;
     vector<CollisionOperationsGenerator::StringPair> not_in_collision;
+    vector<CollisionOperationsGenerator::StringPair> fast_collisions;
 
+    ops_gen_->setSafety(CollisionOperationsGenerator::Fast);
+    ops_gen_->generateOccasionallyAndNeverInCollisionPairs(fast_collisions, not_in_collision, percentages,
+							 in_collision_joint_values);
+    ops_gen_->disablePairCollisionChecking(fast_collisions);
+    ops_gen_->setSafety(safety);
+
+    vector<CollisionOperationsGenerator::StringPair> in_collision;
     ops_gen_->generateOccasionallyAndNeverInCollisionPairs(in_collision, not_in_collision, percentages,
 							 in_collision_joint_values);
     disable_map_[CollisionOperationsGenerator::NEVER] = not_in_collision;
-    ops_gen_->disablePairCollisionChecking(not_in_collision);
     
+	list<CollisionOperationsGenerator::StringPair> never(not_in_collision.begin(),not_in_collision.end());
+	for(std::vector<CollisionOperationsGenerator::StringPair>::iterator it = fast_collisions.begin(); it != fast_collisions.end(); ++it)
+	{
+		never.remove(*it);
+		never.remove(make_pair(it->second, it->first));
+	}
+	disable_map_[CollisionOperationsGenerator::NEVER].assign(never.begin(),never.end());
+
+
     // output planning description
     YAML::Emitter *emitter_ = new YAML::Emitter;
     (*emitter_) << YAML::BeginMap;
