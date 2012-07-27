@@ -101,7 +101,7 @@ int main(int argc, char **argv){
 					try {
 						string name;
 						(*it)["name"] >>  name;
-				        planning_models::KinematicModel::MultiDofConfig joint_config("name");
+				        planning_models::KinematicModel::MultiDofConfig joint_config(name);
 						(*it)["type"] >>  joint_config.type;
 						(*it)["parent_frame_id"] >>  joint_config.parent_frame_id;
 						(*it)["child_frame_id"] >>  joint_config.child_frame_id;
