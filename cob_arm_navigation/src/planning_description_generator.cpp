@@ -25,6 +25,18 @@ std::string exec(const char* cmd) {
     return result;
 }
 
+template <class T> void sort_pairs(const T &input, vector<CollisionOperationsGenerator::StringPair> &target){
+	set<CollisionOperationsGenerator::StringPair> vset;
+	for(typename T::const_iterator it = input.begin();it != input.end(); ++it){
+		if (it->first < it->second){
+			vset.insert(*it);
+		}else{
+			vset.insert(make_pair(it->second, it->first));
+		}
+	}
+	target.assign(vset.begin(),vset.end());
+}
+
 int main(int argc, char **argv){
     
     srand(time(NULL));
@@ -36,8 +48,8 @@ int main(int argc, char **argv){
     planning_environment::CollisionOperationsGenerator* ops_gen_ = 0;
     collision_space::EnvironmentModel* ode_collision_model_ = 0;
     planning_models::KinematicModel::MultiDofConfig world_joint_config_("world_joint");
-    std::map<planning_environment::CollisionOperationsGenerator::DisableType, 
-	   std::vector<planning_environment::CollisionOperationsGenerator::StringPair> > disable_map_;
+    map<CollisionOperationsGenerator::DisableType,
+	   vector<CollisionOperationsGenerator::StringPair> > disable_map_;
 
     // parse params
 
@@ -212,25 +224,29 @@ int main(int argc, char **argv){
     vector<CollisionOperationsGenerator::StringPair> adj_links; 
     ops_gen_->generateAdjacentInCollisionPairs(adj_links);
     ops_gen_->disablePairCollisionChecking(adj_links);
-    disable_map_[CollisionOperationsGenerator::ADJACENT] = adj_links;
+    //disable_map_[CollisionOperationsGenerator::ADJACENT] = adj_links;
+    sort_pairs(adj_links, disable_map_[CollisionOperationsGenerator::ADJACENT]);
 
     vector<CollisionOperationsGenerator::StringPair> always_in_collision;
     vector<CollisionOperationsGenerator::CollidingJointValues> in_collision_joint_values;
     ops_gen_->generateAlwaysInCollisionPairs(always_in_collision, in_collision_joint_values);
     
     ops_gen_->disablePairCollisionChecking(always_in_collision);
-    disable_map_[CollisionOperationsGenerator::ALWAYS] = always_in_collision;
+    //disable_map_[CollisionOperationsGenerator::ALWAYS] = always_in_collision;
+    sort_pairs(always_in_collision, disable_map_[CollisionOperationsGenerator::ALWAYS]);
   
     vector<CollisionOperationsGenerator::StringPair> default_in_collision;
     ops_gen_->generateDefaultInCollisionPairs(default_in_collision, in_collision_joint_values);
     ops_gen_->disablePairCollisionChecking(default_in_collision);
-    disable_map_[CollisionOperationsGenerator::DEFAULT] = default_in_collision;
+    //disable_map_[CollisionOperationsGenerator::DEFAULT] = default_in_collision;
+    sort_pairs(default_in_collision, disable_map_[CollisionOperationsGenerator::DEFAULT]);
     
     vector<CollisionOperationsGenerator::StringPair> often_in_collision;
     vector<double> percentages;
     ops_gen_->generateOftenInCollisionPairs(often_in_collision, percentages, in_collision_joint_values);
     ops_gen_->disablePairCollisionChecking(often_in_collision);
-    disable_map_[CollisionOperationsGenerator::OFTEN] = often_in_collision;
+    //disable_map_[CollisionOperationsGenerator::OFTEN] = often_in_collision;
+    sort_pairs(often_in_collision, disable_map_[CollisionOperationsGenerator::OFTEN]);
     
     vector<CollisionOperationsGenerator::StringPair> not_in_collision;
     vector<CollisionOperationsGenerator::StringPair> fast_collisions;
@@ -244,7 +260,7 @@ int main(int argc, char **argv){
     vector<CollisionOperationsGenerator::StringPair> in_collision;
     ops_gen_->generateOccasionallyAndNeverInCollisionPairs(in_collision, not_in_collision, percentages,
 							 in_collision_joint_values);
-    disable_map_[CollisionOperationsGenerator::NEVER] = not_in_collision;
+    //disable_map_[CollisionOperationsGenerator::NEVER] = not_in_collision;
     
 	list<CollisionOperationsGenerator::StringPair> never(not_in_collision.begin(),not_in_collision.end());
 	for(std::vector<CollisionOperationsGenerator::StringPair>::iterator it = fast_collisions.begin(); it != fast_collisions.end(); ++it)
@@ -252,7 +268,8 @@ int main(int argc, char **argv){
 		never.remove(*it);
 		never.remove(make_pair(it->second, it->first));
 	}
-	disable_map_[CollisionOperationsGenerator::NEVER].assign(never.begin(),never.end());
+	//disable_map_[CollisionOperationsGenerator::NEVER].assign(never.begin(),never.end());
+    sort_pairs(never, disable_map_[CollisionOperationsGenerator::NEVER]);
 
 
     // output planning description
