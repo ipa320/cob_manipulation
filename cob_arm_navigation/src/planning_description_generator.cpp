@@ -106,12 +106,12 @@ int main(int argc, char **argv){
 						(*it)["parent_frame_id"] >>  joint_config.parent_frame_id;
 						(*it)["child_frame_id"] >>  joint_config.child_frame_id;
 					    multi_dof_configs.push_back(joint_config);
-					}catch(...) {
+					}catch(YAML::Exception &e) {
 						continue;
 					}
                 }
             }
-        }catch(...) { /* nothing do to */ }
+        }catch(YAML::Exception &e) { /* nothing do to */ }
     }
     
     if(arms.empty()){
