@@ -37,6 +37,65 @@ template <class T> void sort_pairs(const T &input, vector<CollisionOperationsGen
 	target.assign(vset.begin(),vset.end());
 }
 
+void emit_config_yaml(YAML::Emitter *emitter_, const vector<KinematicModel::MultiDofConfig> &multi_dof_configs, const map<string, KinematicModel::GroupConfig> &group_config_map){
+	(*emitter_) << YAML::BeginMap;
+
+	(*emitter_) << YAML::Key << "multi_dof_joints";
+	(*emitter_) << YAML::Value << YAML::BeginSeq;
+	for(vector<KinematicModel::MultiDofConfig>::const_iterator it = multi_dof_configs.begin();  it != multi_dof_configs.end(); ++it){
+		(*emitter_) << YAML::BeginMap;
+		(*emitter_) << YAML::Key << "name" << YAML::Value << it->name;
+		(*emitter_) << YAML::Key << "type" << YAML::Value << it->type;
+		(*emitter_) << YAML::Key << "parent_frame_id" << YAML::Value << it->parent_frame_id;
+		(*emitter_) << YAML::Key << "child_frame_id" << YAML::Value << it->child_frame_id;
+		(*emitter_) << YAML::EndMap;
+	}
+	(*emitter_) << YAML::EndSeq;
+
+  (*emitter_) << YAML::Key << "groups";
+  (*emitter_) << YAML::Value << YAML::BeginSeq;
+
+
+  for(map<string, KinematicModel::GroupConfig>::const_iterator it = group_config_map.begin(); it
+		!= group_config_map.end(); it++)
+  {
+	(*emitter_) << YAML::BeginMap;
+	(*emitter_) << YAML::Key << "name" << YAML::Value << it->first;
+	if(!it->second.base_link_.empty())
+	{
+	  (*emitter_) << YAML::Key << "base_link" << YAML::Value << it->second.base_link_;
+	  (*emitter_) << YAML::Key << "tip_link" << YAML::Value << it->second.tip_link_;
+	}
+	else
+	{
+	  if(!it->second.subgroups_.empty())
+	  {
+		(*emitter_) << YAML::Key << "subgroups";
+		(*emitter_) << YAML::Value << YAML::BeginSeq;
+		for(unsigned int i = 0; i < it->second.subgroups_.size(); i++)
+		{
+		  (*emitter_) << it->second.subgroups_[i];
+		}
+		(*emitter_) << YAML::EndSeq;
+	  }
+	  if(!it->second.joints_.empty())
+	  {
+		(*emitter_) << YAML::Key << "joints";
+		(*emitter_) << YAML::Value << YAML::BeginSeq;
+		for(unsigned int i = 0; i < it->second.joints_.size(); i++)
+		{
+		  (*emitter_) << it->second.joints_[i];
+		}
+		(*emitter_) << YAML::EndSeq;
+	  }
+	}
+	(*emitter_) << YAML::EndMap;
+  }
+  (*emitter_) << YAML::EndSeq;
+
+  (*emitter_) << YAML::EndMap;
+}
+
 int main(int argc, char **argv){
     
     srand(time(NULL));
@@ -53,19 +112,24 @@ int main(int argc, char **argv){
 
     // parse params
 
-    string file_in, file_out, type;
+    string file_urdf, file_config, file_collisions, type;
+    bool write_config = false;
+    bool shrink_mode = false;
 
     map<string,pair<string,string> > arms;
 
     {	int i = 1;
     	while(i < argc){
-			if(strcmp(argv[i],"--input") == 0)
-				file_in = argv[++i];
+			if(strcmp(argv[i],"--urdf") == 0)
+				file_urdf = argv[++i];
 			else if(strcmp(argv[i],"--output") == 0)
-				file_out = argv[++i];
-			else if(strcmp(argv[i],"--type") == 0)
+				file_collisions = argv[++i];
+			else if(strcmp(argv[i],"--config") == 0)
+				file_config = argv[++i];
+			else if(strcmp(argv[i],"--safety") == 0)
 				type = argv[++i];
 			else{
+				write_config = true;
 				arms.insert(make_pair(string(argv[i]),make_pair(string(argv[i+1]),string(argv[i+2]))));
 				i+=2;
 			}
@@ -78,8 +142,8 @@ int main(int argc, char **argv){
     }
 
     // read arm from output file if possible
-    if(!file_out.empty()){
-        std::ifstream fin(file_out.c_str());
+    if(!file_config.empty()){
+        std::ifstream fin(file_config.c_str());
         try {
             YAML::Parser parser(fin);
             YAML::Node doc;
@@ -111,7 +175,7 @@ int main(int argc, char **argv){
 					}
                 }
             }
-        }catch(YAML::Exception &e) { /* nothing do to */ }
+        }catch(YAML::Exception &e) { write_config = true;}
     }
     
     if(arms.empty()){
@@ -123,14 +187,14 @@ int main(int argc, char **argv){
 
     string xml;
 
-    if(file_in.empty()){
+    if(file_urdf.empty()){
 		stringstream sstream;
 		string line;
 		while( getline(cin, line)) {
 			sstream << line << endl;
 		}
 		xml = sstream.str();
-    } else xml = exec((string("rosrun xacro xacro.py ")+file_in).c_str());
+    } else xml = exec((string("rosrun xacro xacro.py ")+file_urdf).c_str());
     
     if(!urdf_->initString(xml))
     {
@@ -141,13 +205,13 @@ int main(int argc, char **argv){
     vector<KinematicModel::GroupConfig> gcs;
     const urdf::Link *root = urdf_->getRoot().get();
 
-    //now this should work with an n=on-identity transform
     if(multi_dof_configs.empty()){
         planning_models::KinematicModel::MultiDofConfig world_joint_config_("world_joint");
 		world_joint_config_.type = "Floating";
 		world_joint_config_.parent_frame_id = "odom_combined";
 		world_joint_config_.child_frame_id = root->name;
 	    multi_dof_configs.push_back(world_joint_config_);
+	    write_config = true;
     }
 
     kmodel_ = new KinematicModel(*urdf_, gcs, multi_dof_configs);
@@ -288,76 +352,34 @@ int main(int argc, char **argv){
     sort_pairs(never, disable_map_[CollisionOperationsGenerator::NEVER]);
 
 
-    // output planning description
-    YAML::Emitter *emitter_ = new YAML::Emitter;
-    (*emitter_) << YAML::BeginMap;
-
-    (*emitter_) << YAML::Key << "multi_dof_joints";
-    (*emitter_) << YAML::Value << YAML::BeginSeq;
-    for(vector<KinematicModel::MultiDofConfig>::iterator it = multi_dof_configs.begin();  it != multi_dof_configs.end(); ++it){
-		(*emitter_) << YAML::BeginMap;
-		(*emitter_) << YAML::Key << "name" << YAML::Value << it->name;
-		(*emitter_) << YAML::Key << "type" << YAML::Value << it->type;
-		(*emitter_) << YAML::Key << "parent_frame_id" << YAML::Value << it->parent_frame_id;
-		(*emitter_) << YAML::Key << "child_frame_id" << YAML::Value << it->child_frame_id;
-	    (*emitter_) << YAML::EndMap;
+    // output planning config
+    if(write_config){
+		YAML::Emitter *emitter_ = new YAML::Emitter;
+		const map<string, KinematicModel::GroupConfig>& group_config_map = kmodel_->getJointModelGroupConfigMap();
+		emit_config_yaml(emitter_, multi_dof_configs, group_config_map);
+		if(file_config.empty())
+			cout << emitter_->c_str();
+		else{
+			ofstream of(file_config.c_str());
+			of <<  emitter_->c_str();
+		}
+	  delete emitter_;
     }
-    (*emitter_) << YAML::EndSeq;
 
-  (*emitter_) << YAML::Key << "groups";
-  (*emitter_) << YAML::Value << YAML::BeginSeq;
-
-  const map<string, KinematicModel::GroupConfig>& group_config_map = kmodel_->getJointModelGroupConfigMap();
-
-  for(map<string, KinematicModel::GroupConfig>::const_iterator it = group_config_map.begin(); it
-        != group_config_map.end(); it++)
-  {
-    (*emitter_) << YAML::BeginMap;
-    (*emitter_) << YAML::Key << "name" << YAML::Value << it->first;
-    if(!it->second.base_link_.empty())
-    {
-      (*emitter_) << YAML::Key << "base_link" << YAML::Value << it->second.base_link_;
-      (*emitter_) << YAML::Key << "tip_link" << YAML::Value << it->second.tip_link_;
-    }
-    else
-    {
-      if(!it->second.subgroups_.empty())
-      {
-        (*emitter_) << YAML::Key << "subgroups";
-        (*emitter_) << YAML::Value << YAML::BeginSeq;
-        for(unsigned int i = 0; i < it->second.subgroups_.size(); i++)
-        {
-          (*emitter_) << it->second.subgroups_[i];
-        }
-        (*emitter_) << YAML::EndSeq;
-      }
-      if(!it->second.joints_.empty())
-      {
-        (*emitter_) << YAML::Key << "joints";
-        (*emitter_) << YAML::Value << YAML::BeginSeq;
-        for(unsigned int i = 0; i < it->second.joints_.size(); i++)
-        {
-          (*emitter_) << it->second.joints_[i];
-        }
-        (*emitter_) << YAML::EndSeq;
-      }
-    }
-    (*emitter_) << YAML::EndMap;
-  }
-  (*emitter_) << YAML::EndSeq;
-
-
-    //ops_gen_->performanceTestSavedResults(disable_map_);
+  //ops_gen_->performanceTestSavedResults(disable_map_);
+	YAML::Emitter *emitter_ = new YAML::Emitter;
+	(*emitter_) << YAML::BeginMap;
     ops_gen_->outputYamlStringOfSavedResults((*emitter_), disable_map_);
     //end map
     (*emitter_) << YAML::EndMap;
 
-    if(file_out.empty())
+    if(file_collisions.empty())
     	cout << emitter_->c_str();
     else{
-    	ofstream of(file_out.c_str());
+    	ofstream of(file_collisions.c_str());
     	of <<  emitter_->c_str();
     }
+    delete emitter_;
     
     return 0;
 }
