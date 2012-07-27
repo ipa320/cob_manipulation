@@ -1,7 +1,7 @@
 #!/bin/bash
 if [ $# -lt 1 ]
 then
-    echo "Usage: update_planning_description ROBOT"
+    echo "Usage: update_planning_description ROBOT/ALL [SAFETY] [--shrink]"
     echo "It may take hours to finish!"
     exit 0
 elif [ "$1" == "ALL" ]
@@ -11,13 +11,19 @@ then
 else
     robots=$1
 fi
-if [ $# -eq 2 ]
+if [ $# -eq 2 -a "$2" -ne "--shrink" ]
 then
     safety=$2
 else
     safety=VerySafe
 fi
 
+if [[ $* == *"--shrink"* ]]
+then
+    shrink=--shrink
+else
+    shrink=
+fi
 trap "kill 0" SIGINT SIGTERM EXIT
 roscore&
 disown $!
@@ -27,7 +33,7 @@ do
     config=$(rospack find cob_manipulation_config)/$r/planning_description.yaml
     urdf=$(rospack find cob_hardware_config)/$r/urdf/$r.urdf.xacro
     output=$(rospack find cob_manipulation_config)/$r/default_collision_operations.yaml
-    nice rosrun cob_arm_navigation planning_description_generator --urdf "$urdf" --safety "$safety" --config "$config" --output "$output" --shrink&
+    nice rosrun cob_arm_navigation planning_description_generator --urdf "$urdf" --safety "$safety" --config "$config" --output "$output" $shrink &
 done
 wait
 
