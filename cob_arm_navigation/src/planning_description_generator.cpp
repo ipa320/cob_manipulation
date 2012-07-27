@@ -110,6 +110,8 @@ int main(int argc, char **argv){
     map<CollisionOperationsGenerator::DisableType,
 	   vector<CollisionOperationsGenerator::StringPair> > disable_map_;
 
+    set<CollisionOperationsGenerator::StringPair> already_disabled;
+
     // parse params
 
     string file_urdf, file_config, file_collisions, type;
@@ -128,6 +130,8 @@ int main(int argc, char **argv){
 				file_config = argv[++i];
 			else if(strcmp(argv[i],"--safety") == 0)
 				type = argv[++i];
+			else if(strcmp(argv[i],"--shrink") == 0)
+				shrink_mode = true;
 			else{
 				write_config = true;
 				arms.insert(make_pair(string(argv[i]),make_pair(string(argv[i+1]),string(argv[i+2]))));
@@ -136,7 +140,7 @@ int main(int argc, char **argv){
 			++i;
 		}
         if(i > argc){
-        	ROS_ERROR("planning_description_generator [--input PATH] [--output PATH] [--type TYPE] [ARM_NAME ARM_ROOT ARM_TIP] [...]");
+        	ROS_ERROR("planning_description_generator [--urdf PATH] [--config PATH] [--output PATH] [--shrink] [--safety TYPE] [ARM_NAME ARM_ROOT ARM_TIP] [...]");
         	return -1;
         }
     }
@@ -178,6 +182,31 @@ int main(int argc, char **argv){
         }catch(YAML::Exception &e) { write_config = true;}
     }
     
+    // read all disabled pairs in shrink mode
+    if(!file_collisions.empty() && shrink_mode){
+        std::ifstream fin(file_collisions.c_str());
+        try {
+            YAML::Parser parser(fin);
+            YAML::Node doc;
+            if(parser.GetNextDocument(doc)) {
+				const YAML::Node &ops = doc["default_collision_operations"];
+				for(YAML::Iterator it=ops.begin();it!=ops.end();++it) {
+					try {
+						string op, o1, o2;
+						(*it)["operation"] >>  op;
+						(*it)["object1"] >>  o1;
+						(*it)["object2"] >>  o2;
+						if(op=="disable"){
+							if(o1 > o2)  already_disabled.insert( make_pair(o2,o1) );
+							else already_disabled.insert( make_pair(o1,o2) );
+						}
+					}catch(YAML::ParserException& e) {
+						continue;
+					}
+				}
+            }
+        }catch(YAML::Exception &e) { }
+    }
     if(arms.empty()){
         ROS_ERROR("No kinematic chains specified!");
         return -1;
@@ -347,6 +376,14 @@ int main(int argc, char **argv){
 	{
 		never.remove(*it);
 		never.remove(make_pair(it->second, it->first));
+	}
+	for(std::list<CollisionOperationsGenerator::StringPair>::iterator it = never.begin(); it != never.end();)
+	{
+		if(already_disabled.find(*it)== already_disabled.end() && already_disabled.find(make_pair(it->second, it->first)) == already_disabled.end()){
+			it = never.erase(it);
+		}else{
+			++it;
+		}
 	}
 	//disable_map_[CollisionOperationsGenerator::NEVER].assign(never.begin(),never.end());
     sort_pairs(never, disable_map_[CollisionOperationsGenerator::NEVER]);
