@@ -47,7 +47,7 @@ int main(int argc, char **argv){
     planning_environment::CollisionModels* cm_ = 0;
     planning_environment::CollisionOperationsGenerator* ops_gen_ = 0;
     collision_space::EnvironmentModel* ode_collision_model_ = 0;
-    planning_models::KinematicModel::MultiDofConfig world_joint_config_("world_joint");
+    vector<KinematicModel::MultiDofConfig> multi_dof_configs;
     map<CollisionOperationsGenerator::DisableType,
 	   vector<CollisionOperationsGenerator::StringPair> > disable_map_;
 
@@ -84,20 +84,34 @@ int main(int argc, char **argv){
             YAML::Parser parser(fin);
             YAML::Node doc;
             if(parser.GetNextDocument(doc)) {
-                const YAML::Node &groups = doc["groups"];
-                 for(YAML::Iterator it=groups.begin();it!=groups.end();++it) {
-                    try {
-                        string group, tip, root;
-                        (*it)["name"] >>  group;
-                        (*it)["tip_link"] >>  tip;
-                        (*it)["base_link"] >>  root;
-                         arms.insert(make_pair(group,make_pair(root,tip)));
-                    }catch(YAML::ParserException& e) {
-                        continue;
-                    }            
+				const YAML::Node &groups = doc["groups"];
+				for(YAML::Iterator it=groups.begin();it!=groups.end();++it) {
+					try {
+						string group, tip, root;
+						(*it)["name"] >>  group;
+						(*it)["tip_link"] >>  tip;
+						(*it)["base_link"] >>  root;
+						 arms.insert(make_pair(group,make_pair(root,tip)));
+					}catch(YAML::ParserException& e) {
+						continue;
+					}
+				}
+				const YAML::Node &mdj = doc["multi_dof_joints"];
+				for(YAML::Iterator it=mdj.begin();it!=mdj.end();++it) {
+					try {
+						string name;
+						(*it)["name"] >>  name;
+				        planning_models::KinematicModel::MultiDofConfig joint_config("name");
+						(*it)["type"] >>  joint_config.type;
+						(*it)["parent_frame_id"] >>  joint_config.parent_frame_id;
+						(*it)["child_frame_id"] >>  joint_config.child_frame_id;
+					    multi_dof_configs.push_back(joint_config);
+					}catch(...) {
+						continue;
+					}
                 }
             }
-        }catch(YAML::ParserException& e) { /* nothing do to */ }            
+        }catch(...) { /* nothing do to */ }
     }
     
     if(arms.empty()){
@@ -125,14 +139,16 @@ int main(int argc, char **argv){
     }
       
     vector<KinematicModel::GroupConfig> gcs;
-    vector<KinematicModel::MultiDofConfig> multi_dof_configs;
     const urdf::Link *root = urdf_->getRoot().get();
 
     //now this should work with an n=on-identity transform
-    world_joint_config_.type = "Floating";
-    world_joint_config_.parent_frame_id = "odom_combined";
-    world_joint_config_.child_frame_id = root->name;
-    multi_dof_configs.push_back(world_joint_config_);
+    if(multi_dof_configs.empty()){
+        planning_models::KinematicModel::MultiDofConfig world_joint_config_("world_joint");
+		world_joint_config_.type = "Floating";
+		world_joint_config_.parent_frame_id = "odom_combined";
+		world_joint_config_.child_frame_id = root->name;
+	    multi_dof_configs.push_back(world_joint_config_);
+    }
 
     kmodel_ = new KinematicModel(*urdf_, gcs, multi_dof_configs);
 
@@ -278,12 +294,14 @@ int main(int argc, char **argv){
 
     (*emitter_) << YAML::Key << "multi_dof_joints";
     (*emitter_) << YAML::Value << YAML::BeginSeq;
-    (*emitter_) << YAML::BeginMap;
-    (*emitter_) << YAML::Key << "name" << YAML::Value << world_joint_config_.name;
-    (*emitter_) << YAML::Key << "type" << YAML::Value << world_joint_config_.type;
-    (*emitter_) << YAML::Key << "parent_frame_id" << YAML::Value << world_joint_config_.parent_frame_id;
-    (*emitter_) << YAML::Key << "child_frame_id" << YAML::Value << world_joint_config_.child_frame_id;
-    (*emitter_) << YAML::EndMap;
+    for(vector<KinematicModel::MultiDofConfig>::iterator it = multi_dof_configs.begin();  it != multi_dof_configs.end(); ++it){
+		(*emitter_) << YAML::BeginMap;
+		(*emitter_) << YAML::Key << "name" << YAML::Value << it->name;
+		(*emitter_) << YAML::Key << "type" << YAML::Value << it->type;
+		(*emitter_) << YAML::Key << "parent_frame_id" << YAML::Value << it->parent_frame_id;
+		(*emitter_) << YAML::Key << "child_frame_id" << YAML::Value << it->child_frame_id;
+	    (*emitter_) << YAML::EndMap;
+    }
     (*emitter_) << YAML::EndSeq;
 
   (*emitter_) << YAML::Key << "groups";
