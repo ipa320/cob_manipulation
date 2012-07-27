@@ -1,3 +1,4 @@
+# THIS IS A SHARED CONFIG, DO NOT EDIT! CREATE AN OVERLAY INSTEAD!
 multi_dof_joints:
   - name: world_joint
     type: Floating
@@ -5,5 +6,5 @@ multi_dof_joints:
     child_frame_id: base_footprint
 groups:
   - name: arm
-    base_link: arm_base_link
-    tip_link: arm_ee_link
+    base_link: arm_0_link
+    tip_link: arm_7_link
