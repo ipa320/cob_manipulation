@@ -288,27 +288,16 @@ int main(int argc, char **argv){
 
     // set DOF
     const vector<KinematicModel::JointModel*>& jmv = kmodel_->getJointModels();
-    vector<bool> consider_dof;
+	map<string, bool> cdof_map;
     //assuming that 0th is world joint, which we don't want to include
     for(unsigned int i = 1; i < jmv.size(); i++)
     {
 		const map<string, pair<double, double> >& joint_bounds = jmv[i]->getAllVariableBounds();
 		for(map<string, pair<double, double> >::const_iterator it = joint_bounds.begin(); it != joint_bounds.end(); it++)
 		{
-		  consider_dof.push_back(true);
+			cdof_map[it->first] = true;
 		}
 	}
-	int xind = 0;
-	map<string, bool> cdof_map;
-	for(unsigned int i = 1; i < jmv.size(); i++)
-	{
-		const map<string, pair<double, double> >& joint_bounds = jmv[i]->getAllVariableBounds();
-		for(map<string, pair<double, double> >::const_iterator it = joint_bounds.begin(); it != joint_bounds.end(); it++)
-		{
-		  cdof_map[it->first] = consider_dof[xind++];
-                  ROS_INFO_STREAM(it->first << " " << it->second.first << " " << it->second.second);
-		}
-    }
     ops_gen_->generateSamplingStructures(cdof_map);
 
 
