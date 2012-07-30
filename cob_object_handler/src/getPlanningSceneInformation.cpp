@@ -58,8 +58,6 @@
 
 #include <ros/ros.h>
 
-#include <arm_navigation_msgs/CollisionObject.h>
-#include <arm_navigation_msgs/Shape.h>
 #include <arm_navigation_msgs/GetPlanningScene.h>
 
 static const std::string GET_PLANNING_SCENE_NAME = "/environment_server/get_planning_scene";
@@ -68,11 +66,6 @@ int main(int argc, char** argv)
 {
 	ros::init(argc, argv, "addCylinder");
 	ros::NodeHandle nh;
-
-	ros::Publisher object_in_map_pub_;
-	object_in_map_pub_  = nh.advertise<arm_navigation_msgs::CollisionObject>("collision_object", 10);
-
-	ros::Duration(2.0).sleep();
 	
 	ros::service::waitForService(GET_PLANNING_SCENE_NAME);
 	ros::ServiceClient get_planning_scene_client = nh.serviceClient<arm_navigation_msgs::GetPlanningScene>(GET_PLANNING_SCENE_NAME);
@@ -90,8 +83,7 @@ int main(int argc, char** argv)
 	//ROS_INFO("AllowedCollisionMatrix.size: %d", get_planning_scene_res.planning_scene.allowed_collision_matrix.link_names.size());
 	ROS_INFO("CollisionObjects: %d", get_planning_scene_res.planning_scene.collision_objects.size());
 	ROS_INFO("AttachedCollisionObjects: %d", get_planning_scene_res.planning_scene.attached_collision_objects.size());
-	
-	ros::Duration(2.0).sleep();
+
 	ros::shutdown();
 }
 
