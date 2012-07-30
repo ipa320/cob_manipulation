@@ -3,7 +3,7 @@
   <include file="$(find cob_arm_navigation)/launch/planning_environment.xml" />
   
   <node pkg="cob_arm_navigation" type="cob_environment_server" output="screen" name="environment_server">
-	<rosparam command="load" file="$(find cob_arm_navigation)/config/$(env ROBOT)/$(env ROBOT)_padding.yaml" />
+      <!--<rosparam command="load" file="$(find cob_arm_navigation)/config/$(env ROBOT)/$(env ROBOT)_padding.yaml" />-->
   </node>      
   <node pkg="planning_environment" type="planning_scene_validity_server" output="screen" name="planning_scene_validity_server"/>
         
