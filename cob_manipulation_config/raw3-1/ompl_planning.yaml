@@ -1,0 +1,67 @@
+# THIS IS A SHARED CONFIG, DO NOT EDIT! CREATE AN OVERLAY INSTEAD!
+planner_configs:
+  SBLkConfig1:
+    type: kinematic::SBL
+  LBKPIECEkConfig1:
+    type: kinematic::LBKPIECE
+default_planner_config: SBLkConfig1    
+groups:
+  - arm
+  - arm_cartesian
+arm:
+  planner_type: JointPlanner
+  planner_configs:
+    - SBLkConfig1
+    - LBKPIECEkConfig1
+  projection_evaluator: joint_state
+  #needed for calling service ompl_planning/plan_kinematic_path
+  #otherwise end_effector name will be missed and ompl won't plan
+  tip_name: arm_7_link
+  root_name: base_footprint
+  kinematics_solver: arm_kinematics_constraint_aware/KDLArmKinematicsPlugin
+arm_cartesian:
+  parent_frame: arm_base_link
+  physical_group: arm
+  planner_type: RPYIKTaskSpacePlanner
+  state_spaces:
+    - x
+    - y
+    - z
+    - roll
+    - pitch
+    - yaw
+  x:
+    type: Linear
+    min: -2.0
+    max: 2.0
+  y:
+    type: Linear
+    min: -2.0
+    max: 2.0
+  z:
+    type: Linear
+    min: -2.0
+    max: 2.0
+  roll:
+    type: Revolute
+  pitch:
+    type: Revolute
+  yaw:
+    type: Revolute
+  planner_configs:
+    - SBLkConfig1
+    - LBKPIECEkConfig1
+<<<<<<< HEAD:cob_arm_navigation/config/cob3-3/ompl_planning.yaml
+  #kinematics_solver: arm_kinematics_constraint_aware/KDLArmKinematicsPlugin
+  kinematics_solver: cob3_arm_kinematics/IKFastKinematicsPlugin
+  #tip_name: sdh_palm_link
+  tip_name: arm_7_link
+  robot: cob3-3
+  root_name: base_footprint
+=======
+  kinematics_solver: cob3_arm_kinematics/KDLArmKinematicsPlugin
+  tip_name: arm_ee_link
+  root_name: arm_base_link
+>>>>>>> origin-ipa-mdl/master:cob_manipulation_config/raw3-1/ompl_planning.yaml
+  projection_evaluator: joint_state
+  longest_valid_segment_fraction: 0.001

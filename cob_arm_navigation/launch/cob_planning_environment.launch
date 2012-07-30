@@ -1,6 +1,0 @@
-<launch>
-	<param name="global_frame" value="/map" />
-	<!-- TODO: remove, use already uploaded description -->
-	<param name="robot_description" command="$(find xacro)/xacro.py '$(find cob_hardware_config)/$(env ROBOT)/urdf/$(env ROBOT).urdf.xacro'" />
-    <rosparam command="load" ns="robot_description_planning" file="$(find cob_arm_navigation)/config/$(env ROBOT)/$(env ROBOT)_planning_description.yaml" />
-</launch>

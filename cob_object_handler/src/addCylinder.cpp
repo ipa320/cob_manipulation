@@ -61,8 +61,10 @@
 #include <arm_navigation_msgs/CollisionObject.h>
 #include <arm_navigation_msgs/Shape.h>
 #include <arm_navigation_msgs/GetPlanningScene.h>
+#include <arm_navigation_msgs/SetPlanningSceneDiff.h>
 
 static const std::string GET_PLANNING_SCENE_NAME = "/environment_server/get_planning_scene";
+static const std::string SET_PLANNING_SCENE_DIFF_NAME = "/environment_server/set_planning_scene_diff";
 
 int main(int argc, char** argv) 
 {
@@ -75,7 +77,9 @@ int main(int argc, char** argv)
 	ros::Duration(2.0).sleep();
 	
 	ros::service::waitForService(GET_PLANNING_SCENE_NAME);
+	ros::service::waitForService(SET_PLANNING_SCENE_DIFF_NAME);
 	ros::ServiceClient get_planning_scene_client = nh.serviceClient<arm_navigation_msgs::GetPlanningScene>(GET_PLANNING_SCENE_NAME);
+	ros::ServiceClient set_planning_scene_diff_client = nh.serviceClient<arm_navigation_msgs::SetPlanningSceneDiff>(SET_PLANNING_SCENE_DIFF_NAME);
 	
 	arm_navigation_msgs::GetPlanningScene::Request get_planning_scene_req;
 	arm_navigation_msgs::GetPlanningScene::Response get_planning_scene_res;
@@ -92,6 +96,7 @@ int main(int argc, char** argv)
 			//add the cylinder into the collision space
 			arm_navigation_msgs::CollisionObject cylinder_object;
 			cylinder_object.id = "pole";
+			cylinder_object.padding = 10.0;
 			cylinder_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ADD;
 			//cylinder_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::REMOVE;
 			cylinder_object.header.frame_id = "/map";
@@ -113,6 +118,17 @@ int main(int argc, char** argv)
 			cylinder_object.poses.push_back(pose);
 			
 			object_in_map_pub_.publish(cylinder_object);
+			
+			arm_navigation_msgs::SetPlanningSceneDiff::Request set_planning_scene_diff_req;
+			arm_navigation_msgs::SetPlanningSceneDiff::Response set_planning_scene_diff_res;
+			
+			if(!set_planning_scene_diff_client.call(set_planning_scene_diff_req, set_planning_scene_diff_res)) 
+			{	
+				ROS_ERROR("Can't get planning scene");
+			}
+			
+			ROS_INFO("Got planning_scene!");			
+			
 			ROS_INFO("Should have published");
 		}
 		else

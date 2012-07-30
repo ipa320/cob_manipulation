@@ -73,10 +73,11 @@
 //#include <urdf/link.h>
 
 #include <arm_navigation_msgs/GetPlanningScene.h>
+#include <arm_navigation_msgs/SetPlanningSceneDiff.h>
 #include <planning_environment/models/collision_models.h>
 
 static const std::string GET_PLANNING_SCENE_NAME = "/environment_server/get_planning_scene";
-
+static const std::string SET_PLANNING_SCENE_DIFF_NAME = "/environment_server/set_planning_scene_diff";
 
 shapes::Shape* constructShape(const urdf::Geometry *geom)
 {
@@ -132,7 +133,7 @@ int main(int argc, char** argv)
 	*/
 	
 	std::string parameter_name = "world_description";
-	std::string model_name = "urdf_world_model";
+	std::string model_name = "world_model";
 	
 	ros::Publisher object_in_map_pub_;
 	object_in_map_pub_  = nh.advertise<arm_navigation_msgs::CollisionObject>("collision_object", 20);
@@ -142,6 +143,7 @@ int main(int argc, char** argv)
 
 	ros::service::waitForService(GET_PLANNING_SCENE_NAME);
 	ros::ServiceClient get_planning_scene_client = nh.serviceClient<arm_navigation_msgs::GetPlanningScene>(GET_PLANNING_SCENE_NAME);
+	ros::ServiceClient set_planning_scene_diff_client = nh.serviceClient<arm_navigation_msgs::SetPlanningSceneDiff>(SET_PLANNING_SCENE_DIFF_NAME);
 
 	arm_navigation_msgs::GetPlanningScene::Request get_planning_scene_req;
 	arm_navigation_msgs::GetPlanningScene::Response get_planning_scene_res;
@@ -207,6 +209,7 @@ int main(int argc, char** argv)
 			collision_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ADD;
 			//collision_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::REMOVE;
 			collision_object.header.frame_id = frame_id;
+			collision_object.padding = 0.06;
 			collision_object.header.stamp = ros::Time::now();
 		  
 
@@ -214,58 +217,83 @@ int main(int argc, char** argv)
 			for(unsigned int i=0; i<URDF_links.size(); i++)
 			{
 				urdf::Link current_link = *URDF_links[i];
-				ROS_DEBUG("Current Link: %s", current_link.name.c_str());
+			ROS_DEBUG("Current Link: %s", current_link.name.c_str());
 
-				if(current_link.name == "dummy_link")
-				{
-					ROS_DEBUG("Dealing with dummy_link...");
-					continue;
-				}
-
+			tf::Pose pose;
+			tf::Pose pose2;
+			tf::Transform model_origin;
+			tf::Transform link_origin;
+			tf::Transform joint_origin;
+			
+			model_origin = tf::Transform(tf::Quaternion(srv.response.pose.orientation.x, srv.response.pose.orientation.y, srv.response.pose.orientation.z, srv.response.pose.orientation.w), tf::Vector3(srv.response.pose.position.x, srv.response.pose.position.y, srv.response.pose.position.z));
+			link_origin = tf::Transform(tf::Quaternion(current_link.collision->origin.rotation.x, 
+													   current_link.collision->origin.rotation.y,
+													   current_link.collision->origin.rotation.z,
+													   current_link.collision->origin.rotation.w),
+										tf::Vector3(current_link.collision->origin.position.x,
+													current_link.collision->origin.position.y,
+													current_link.collision->origin.position.z));
+			
+			if(current_link.parent_joint == NULL)
+			{
+				ROS_DEBUG("Link does not have a parent joint...");
+				joint_origin.setIdentity();				
+			}
+			else
+			{			
+			
 				boost::shared_ptr< urdf::Joint > current_parent_joint = current_link.parent_joint;
 				ROS_DEBUG("Current Parent Joint: %s", current_parent_joint->name.c_str());
+				joint_origin = tf::Transform(tf::Quaternion(current_parent_joint->parent_to_joint_origin_transform.rotation.x, 
+													current_parent_joint->parent_to_joint_origin_transform.rotation.y, 
+													current_parent_joint->parent_to_joint_origin_transform.rotation.z, 
+													current_parent_joint->parent_to_joint_origin_transform.rotation.w), 
+									   tf::Vector3(current_parent_joint->parent_to_joint_origin_transform.position.x, 
+												   current_parent_joint->parent_to_joint_origin_transform.position.y, 
+												   current_parent_joint->parent_to_joint_origin_transform.position.z));
+			}
+			
+			tf::Transform temp;
+			temp.mult(joint_origin, link_origin);			
+			pose2.mult(model_origin, temp);
+
+			tf::Stamped<tf::Pose> stamped_pose_in;
+			stamped_pose_in.stamp_ = ros::Time::now();
+			stamped_pose_in.frame_id_ = frame_id;
+			stamped_pose_in.setData(pose2);
 
 
-				//fill CollisionObject for each link
-				shapes::Shape *current_shape;
-				current_shape = constructShape(current_link.collision->geometry.get());
-				ROS_DEBUG("shape.type: %d", current_shape->type);
-			  
-				ROS_DEBUG("Position (x,y,z): (%f,%f,%f)", current_link.collision->origin.position.x, current_link.collision->origin.position.y, current_link.collision->origin.position.z);
+			//fill CollisionObject for each link
+			shapes::Shape *current_shape;
+			current_shape = constructShape(current_link.collision->geometry.get());
+			ROS_DEBUG("shape.type: %d", current_shape->type);
+		  	ROS_DEBUG("Position (x,y,z): (%f,%f,%f)", current_link.collision->origin.position.x, current_link.collision->origin.position.y, current_link.collision->origin.position.z);
 
-				tf::Pose pose;
-				tf::Transform world2dummy;
-				tf::Transform dummy2link;
-				world2dummy = tf::Transform(tf::Quaternion(srv.response.pose.orientation.x, srv.response.pose.orientation.y, srv.response.pose.orientation.z, srv.response.pose.orientation.w), tf::Vector3(srv.response.pose.position.x, srv.response.pose.position.y, srv.response.pose.position.z));
-				dummy2link = tf::Transform(tf::Quaternion(current_parent_joint->parent_to_joint_origin_transform.rotation.x, 
-														current_parent_joint->parent_to_joint_origin_transform.rotation.y, 
-														current_parent_joint->parent_to_joint_origin_transform.rotation.z, 
-														current_parent_joint->parent_to_joint_origin_transform.rotation.w), 
-										   tf::Vector3(current_parent_joint->parent_to_joint_origin_transform.position.x, 
-													   current_parent_joint->parent_to_joint_origin_transform.position.y, 
-													   current_parent_joint->parent_to_joint_origin_transform.position.z));
-				tf::Pose pose2;
-				pose2.mult(world2dummy, dummy2link);
+			
+			arm_navigation_msgs::Shape msg_shape;
+			planning_environment::constructObjectMsg(current_shape, msg_shape);
 
-				tf::Stamped<tf::Pose> stamped_pose_in;
-				stamped_pose_in.stamp_ = ros::Time::now();
-				stamped_pose_in.frame_id_ = frame_id;
-				stamped_pose_in.setData(pose2);
+			geometry_msgs::PoseStamped msg_pose_stamped;
+			tf::poseStampedTFToMsg (stamped_pose_in, msg_pose_stamped);
 
-
-				arm_navigation_msgs::Shape msg_shape;
-				planning_environment::constructObjectMsg(current_shape, msg_shape);
-
-				geometry_msgs::PoseStamped msg_pose_stamped;
-				//tf::poseStampedTFToMsg (transformed_pose, msg_pose_stamped);
-				tf::poseStampedTFToMsg (stamped_pose_in, msg_pose_stamped);
-
-				collision_object.shapes.push_back(msg_shape);
-				collision_object.poses.push_back(msg_pose_stamped.pose);
+			collision_object.shapes.push_back(msg_shape);
+			collision_object.poses.push_back(msg_pose_stamped.pose);
 			}
 			
 			object_in_map_pub_.publish(collision_object);
+			
+			arm_navigation_msgs::SetPlanningSceneDiff::Request set_planning_scene_diff_req;
+			arm_navigation_msgs::SetPlanningSceneDiff::Response set_planning_scene_diff_res;
+			
+			if(set_planning_scene_diff_client.call(set_planning_scene_diff_req, set_planning_scene_diff_res)) 
+			{	
+				ROS_ERROR("Can't get planning scene");
+			}
+			
+			ROS_INFO("Got planning_scene!");
+			
 			ROS_INFO("Should have published");
+			
 		}
 		else
 		{
