@@ -8,6 +8,7 @@
   <license>LGPL</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_arm_navigation</url>
+  <depend package="actionlib"/>
   <depend package="planning_environment"/>
   <depend package="arm_kinematics_constraint_aware"/>
   <depend package="ompl_ros_interface"/>
@@ -20,9 +21,12 @@
   <depend package="robot_state_publisher"/>
   <depend package="move_arm_warehouse"/>
   <depend package="mongodb"/>
-  <depend package="cob_manipulator"/>
-  <depend package="nodelet"/>
 
   <depend package="cob_hardware_config"/> <!-- for URDFs -->
   <depend package="cob_manipulator"/> <!-- pose_transform -->
+  <depend package="cob_kinematics"/>
+  <depend package="cob_manipulation_config"/>
+  
+  <depend package="common_rosdeps" />
+  <rosdep name="yaml-cpp" />  
 </package>

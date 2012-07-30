@@ -1,0 +1,10 @@
+# THIS IS A SHARED CONFIG, DO NOT EDIT! CREATE AN OVERLAY INSTEAD!
+multi_dof_joints:
+  - name: world_joint
+    type: Floating
+    parent_frame_id: odom_combined
+    child_frame_id: base_footprint
+groups:
+  - name: arm
+    base_link: arm_0_link
+    tip_link: arm_7_link

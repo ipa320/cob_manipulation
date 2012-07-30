@@ -28,19 +28,3 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #rosbuild_link_boost(${PROJECT_NAME} thread)
 #rosbuild_add_executable(example examples/example.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
-
-rosbuild_add_executable(cob_environment_server src/cob_environment_server.cpp)
-rosbuild_link_boost(cob_environment_server thread)
-target_link_libraries(cob_environment_server planning_environment)
-
-rosbuild_add_executable(planning_description_generator src/planning_description_generator.cpp)
-target_link_libraries(planning_description_generator planning_environment yaml-cpp)
-
-# rostest
-rosbuild_add_roslaunch_check(launch ROBOT=cob3-1)
-rosbuild_add_roslaunch_check(launch ROBOT=cob3-2)
-rosbuild_add_roslaunch_check(launch ROBOT=cob3-3)
-rosbuild_add_roslaunch_check(launch ROBOT=cob3-4)
-#rosbuild_add_roslaunch_check(launch ROBOT=cob3-5)
-rosbuild_add_roslaunch_check(launch ROBOT=cob3-6)
-rosbuild_add_roslaunch_check(launch ROBOT=raw3-1)
