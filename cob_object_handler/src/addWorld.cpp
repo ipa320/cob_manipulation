@@ -73,10 +73,11 @@
 //#include <urdf/link.h>
 
 #include <arm_navigation_msgs/GetPlanningScene.h>
+#include <arm_navigation_msgs/SetPlanningSceneDiff.h>
 #include <planning_environment/models/collision_models.h>
 
 static const std::string GET_PLANNING_SCENE_NAME = "/environment_server/get_planning_scene";
-
+static const std::string SET_PLANNING_SCENE_DIFF_NAME = "/environment_server/set_planning_scene_diff";
 
 shapes::Shape* constructShape(const urdf::Geometry *geom)
 {
@@ -132,7 +133,7 @@ int main(int argc, char** argv)
 	*/
 	
 	std::string parameter_name = "world_description";
-	std::string model_name = "urdf_world_model";
+	std::string model_name = "world_model";
 	
 	ros::Publisher object_in_map_pub_;
 	object_in_map_pub_  = nh.advertise<arm_navigation_msgs::CollisionObject>("collision_object", 20);
@@ -142,6 +143,7 @@ int main(int argc, char** argv)
 
 	ros::service::waitForService(GET_PLANNING_SCENE_NAME);
 	ros::ServiceClient get_planning_scene_client = nh.serviceClient<arm_navigation_msgs::GetPlanningScene>(GET_PLANNING_SCENE_NAME);
+	ros::ServiceClient set_planning_scene_diff_client = nh.serviceClient<arm_navigation_msgs::SetPlanningSceneDiff>(SET_PLANNING_SCENE_DIFF_NAME);
 
 	arm_navigation_msgs::GetPlanningScene::Request get_planning_scene_req;
 	arm_navigation_msgs::GetPlanningScene::Response get_planning_scene_res;
@@ -279,7 +281,19 @@ int main(int argc, char** argv)
 			}
 			
 			object_in_map_pub_.publish(collision_object);
+			
+			arm_navigation_msgs::SetPlanningSceneDiff::Request set_planning_scene_diff_req;
+			arm_navigation_msgs::SetPlanningSceneDiff::Response set_planning_scene_diff_res;
+			
+			if(set_planning_scene_diff_client.call(set_planning_scene_diff_req, set_planning_scene_diff_res)) 
+			{	
+				ROS_ERROR("Can't get planning scene");
+			}
+			
+			ROS_INFO("Got planning_scene!");
+			
 			ROS_INFO("Should have published");
+			
 		}
 		else
 		{
