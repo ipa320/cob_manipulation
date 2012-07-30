@@ -9,6 +9,24 @@ groups:
   - name: arm
     base_link: base_footprint
     tip_link: arm_7_link
+    
+  - name: sdh
+    joints:
+     - sdh_palm_joint
+     - sdh_knuckle_joint
+     - sdh_finger_12_joint
+     - sdh_finger_13_joint
+     - sdh_finger_21_joint
+     - sdh_finger_22_joint
+     - sdh_finger_23_joint
+     - sdh_thumb_1_joint
+     - sdh_thumb_2_joint
+     - sdh_thumb_3_joint
+     #Debug output: No entry for sdh_grasp_link and sdh_tip_link
+     #- sdh_grasp_joint
+     #- sdh_tip_joint
+ #As is arm_navigation described, the end-effector is a joint collection
+ #so no links of SDH are needed
 
 default_collision_operations:
   - object1: base_footprint
