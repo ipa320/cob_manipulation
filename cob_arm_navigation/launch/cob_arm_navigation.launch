@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <launch>
+
 	<group>
 	    <include file="$(find cob_arm_navigation)/launch/cob_planning_environment.launch" />
 	    <include file="$(find cob_arm_navigation)/launch/environment_server.launch">
