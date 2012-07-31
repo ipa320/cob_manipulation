@@ -6,7 +6,7 @@ cob_config_controller::cob_config_controller()
 	//parsing urdf for KDL chain
 	KDL::Tree my_tree;
 	ros::NodeHandle node;
-	double base_to_arm_ratio_ = 0.05;
+	double base_to_arm_ratio_ = 0.1;
 	node.param("/arm_controller/arm_mmcontroller_node/arm_base", arm_base_name_, std::string("arm_0_link"));
 	node.param("/arm_controller/arm_mmcontroller_node/arm_end_effector", arm_ee_name_, std::string("arm_7_link"));
 	node.param("/arm_controller/arm_mmcontroller_node/default_control_mode", kinematic_mode_, std::string("arm_base"));
@@ -30,6 +30,7 @@ cob_config_controller::cob_config_controller()
 	//Initializing configuration control solver
 	iksolver1v = new augmented_solver(arm_base_chain);//Inverse velocity solver
 	fksolver1 = new ChainFkSolverPos_recursive(arm_base_chain);
+    fksolver1_vel = new ChainFkSolverVel_recursive(arm_base_chain);
 	iksolver1v->setBaseToArmFactor(base_to_arm_ratio_);
 
 	//Initializing communication
@@ -42,7 +43,7 @@ cob_config_controller::cob_config_controller()
 
 	ROS_INFO("Creating publishers");
 	arm_pub_ = n.advertise<brics_actuator::JointVelocities>("/arm_controller/command_vel",1);
-	base_pub_ = n.advertise<geometry_msgs::Twist>("/base_controller/command",1);
+	base_pub_ = n.advertise<geometry_msgs::Twist>("/base_controller/command_direct",1);
 	debug_cart_pub_ = n.advertise<geometry_msgs::PoseArray>("/arm_controller/debug/cart",1);
 	cart_position_pub_ = n.advertise<geometry_msgs::PoseStamped>("/arm_controller/cart_state",1);
 
@@ -56,9 +57,10 @@ cob_config_controller::cob_config_controller()
 }
 
 
-JntArray cob_config_controller::parseJointStates(std::vector<std::string> names, std::vector<double> positions)
+JntArray cob_config_controller::parseJointStates(std::vector<std::string> names, std::vector<double> positions, JntArray& q, JntArray& q_dot)
 {
 	JntArray q_temp(7);
+    JntArray q_dot_temp(7);
 	int count = 0;
 	bool parsed = false;
 	for(unsigned int i = 0; i < names.size(); i++)
@@ -66,6 +68,7 @@ JntArray cob_config_controller::parseJointStates(std::vector<std::string> names,
 			if(strncmp(names[i].c_str(), "arm_", 4) == 0)
 			{
 				q_temp(count) = positions[i];
+                q_dot_temp(count) = velocities[i];
 				count++;
 				parsed = true;
 			}
@@ -86,6 +89,8 @@ JntArray cob_config_controller::parseJointStates(std::vector<std::string> names,
 		std::cout << VirtualQ(0) << "\n";
 
 	}
+    q = q_temp:
+    q_dot = q_dot_temp;
 	return q_temp;
 }
 
@@ -245,13 +250,15 @@ void cob_config_controller::controllerStateCallback(const sensor_msgs::JointStat
 	JntArray q_dot_base(3);
 	std::vector<std::string> names = msg->name;
 	std::vector<double> positions = msg->position;
-	q = parseJointStates(names,positions);
+    std::vector<double> velocities = msg->velocities;
+	q = parseJointStates(names,positions,velocities,&q,&q_dot);
 	fksolver1->JntToCart(q, arm_pose_);
+    fksolver1_vel->JntToCart(q_dot, arm_vel_);    
 	sendCartPose();
 	if(RunSyncMM)
 	{
-		/*if(extTwist.vel.x() != 0.0 || extTwist.vel.y() != 0.0 || extTwist.vel.z() != 0.0)
-		{*/
+		if(extTwist.vel.x() != 0.0 || extTwist.vel.y() != 0.0 || extTwist.vel.z() != 0.0)
+		{
 			zeroCounterTwist = 0;
 			int ret = iksolver1v->CartToJnt(q, extTwist, q_out, q_dot_base);
 			if(ret >= 0)
@@ -261,7 +268,7 @@ void cob_config_controller::controllerStateCallback(const sensor_msgs::JointStat
 			}	
 			else
 				std::cout << "Something went wrong" << "\n";
-		/*}
+		}
 		else
 		{
 			if(zeroCounterTwist >= 4)
@@ -276,7 +283,7 @@ void cob_config_controller::controllerStateCallback(const sensor_msgs::JointStat
 					std::cout << "Something went wrong" << "\n";
 			}
 			zeroCounterTwist++;
-		}*/	
+		}	
 	}
 }
 
