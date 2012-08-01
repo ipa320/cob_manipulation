@@ -228,7 +228,7 @@ private:
 			collision_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ADD;
 			//collision_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::REMOVE;
 			collision_object.header.frame_id = frame_id;
-			collision_object.padding = 0.06;
+			//collision_object.padding = 0.06;
 			collision_object.header.stamp = ros::Time::now();
 		  
 
