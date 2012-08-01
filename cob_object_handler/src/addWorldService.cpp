@@ -75,93 +75,116 @@
 #include <arm_navigation_msgs/GetPlanningScene.h>
 #include <arm_navigation_msgs/SetPlanningSceneDiff.h>
 #include <planning_environment/models/collision_models.h>
+#include <cob_object_handler/HandleObject.h>
 
 static const std::string GET_PLANNING_SCENE_NAME = "/environment_server/get_planning_scene";
 static const std::string SET_PLANNING_SCENE_DIFF_NAME = "/environment_server/set_planning_scene_diff";
 
-shapes::Shape* constructShape(const urdf::Geometry *geom)
+class AddWorldService
 {
-	ROS_ASSERT(geom);
-
-	shapes::Shape *result = NULL;
-	if(geom->type == urdf::Geometry::BOX)
-	{
-		ROS_DEBUG("BOX");
-		urdf::Vector3 dim = dynamic_cast<const urdf::Box*>(geom)->dim;
-		result = new shapes::Box(dim.x, dim.y, dim.z);
-	}
-	else if(geom->type == urdf::Geometry::SPHERE)
-	{
-		ROS_DEBUG("SPHERE");
-		result = new shapes::Sphere(dynamic_cast<const urdf::Sphere*>(geom)->radius);
-	}
-	else if(geom->type == urdf::Geometry::CYLINDER)
-	{
-		ROS_DEBUG("CYLINDER");
-		result = new shapes::Cylinder(dynamic_cast<const urdf::Cylinder*>(geom)->radius, dynamic_cast<const urdf::Cylinder*>(geom)->length);
-	}
-	else if(geom->type == urdf::Geometry::MESH)
-	{
-		//you can find the code in motion_planning_common/planning_models/kinematic_models.cpp
-		ROS_INFO("MESH --- currently not supported");
-	}
-	else
-	{
-		ROS_ERROR("Unknown geometry type: %d", (int)geom->type);
-	}
-
-	return result;
-}
-
-
-int main(int argc, char** argv) 
-{
-
-	ros::init(argc, argv, "addURDF");
+private:
 	ros::NodeHandle nh;
-
-	//const std::string frame_id = "/base_footprint";
-	const std::string frame_id = "/map";
-	/*
-	tf::Transformer transformer;
-	transformer.setUsingDedicatedThread(true);
-	if(transformer.waitForTransform(frame_id, frame_id, ros::Time::now(), ros::Duration(20.0))==false)
-	{
-		ROS_ERROR("Frame %s does not exist! Did you start 2dnav?", frame_id.c_str());
-		return -1;
-	}
-	*/
 	
-	std::string parameter_name = "world_description";
-	std::string model_name = "urdf_world_model";
+	std::string frame_id;
+	
+	std::string parameter_name;
+	std::string model_name;
 	
 	ros::Publisher object_in_map_pub_;
-	object_in_map_pub_  = nh.advertise<arm_navigation_msgs::CollisionObject>("collision_object", 20);
-  
-	//this sleep is important!
-	ros::Duration(2.0).sleep();
-
-	ros::service::waitForService(GET_PLANNING_SCENE_NAME);
-	ros::ServiceClient get_planning_scene_client = nh.serviceClient<arm_navigation_msgs::GetPlanningScene>(GET_PLANNING_SCENE_NAME);
-	ros::ServiceClient set_planning_scene_diff_client = nh.serviceClient<arm_navigation_msgs::SetPlanningSceneDiff>(SET_PLANNING_SCENE_DIFF_NAME);
-
+	
+	ros::ServiceClient get_planning_scene_client;
+	ros::ServiceClient set_planning_scene_diff_client;
+	ros::ServiceClient get_model_state_client;
+	
 	arm_navigation_msgs::GetPlanningScene::Request get_planning_scene_req;
-	arm_navigation_msgs::GetPlanningScene::Response get_planning_scene_res;
-
-	if(argc > 1) 
-	{
-		std::stringstream s(argv[1]);
-		bool add;
-		s >> add;
+	arm_navigation_msgs::GetPlanningScene::Response get_planning_scene_res;	
+	
+	ros::ServiceServer add_world_service;
+	
+	
 		
-		if(add) 
+	
+public:	
+	AddWorldService()
+	{
+		//const std::string frame_id = "/base_footprint";
+		frame_id = "/map";
+
+		parameter_name = "world_description";
+		model_name = "urdf_world_model";
+		
+		object_in_map_pub_  = nh.advertise<arm_navigation_msgs::CollisionObject>("collision_object", 20);
+	  
+		//this sleep is important!
+		ros::Duration(2.0).sleep();
+
+		ros::service::waitForService(GET_PLANNING_SCENE_NAME);
+		get_planning_scene_client = nh.serviceClient<arm_navigation_msgs::GetPlanningScene>(GET_PLANNING_SCENE_NAME);
+		set_planning_scene_diff_client = nh.serviceClient<arm_navigation_msgs::SetPlanningSceneDiff>(SET_PLANNING_SCENE_DIFF_NAME);
+
+		ros::service::waitForService("/gazebo/get_model_state");
+		ros::service::waitForService("/planning_scene_validity_server/get_state_validity");	//just to make sure that the environment_server is there!
+
+		//access to tranformation /world to /root_link (table_top)
+		get_model_state_client = nh.serviceClient<gazebo::GetModelState>("/gazebo/get_model_state");
+		
+		
+		add_world_service = nh.advertiseService("/addWorld", &AddWorldService::addWorld, this);
+	}
+
+	void run()
+	{
+		ROS_INFO("Ready to addWorld.");
+		ros::spin();
+	}
+
+private:
+	shapes::Shape* constructShape(const urdf::Geometry *geom)
+	{
+		ROS_ASSERT(geom);
+
+		shapes::Shape *result = NULL;
+		if(geom->type == urdf::Geometry::BOX)
+		{
+			ROS_DEBUG("BOX");
+			urdf::Vector3 dim = dynamic_cast<const urdf::Box*>(geom)->dim;
+			result = new shapes::Box(dim.x, dim.y, dim.z);
+		}
+		else if(geom->type == urdf::Geometry::SPHERE)
+		{
+			ROS_DEBUG("SPHERE");
+			result = new shapes::Sphere(dynamic_cast<const urdf::Sphere*>(geom)->radius);
+		}
+		else if(geom->type == urdf::Geometry::CYLINDER)
+		{
+			ROS_DEBUG("CYLINDER");
+			result = new shapes::Cylinder(dynamic_cast<const urdf::Cylinder*>(geom)->radius, dynamic_cast<const urdf::Cylinder*>(geom)->length);
+		}
+		else if(geom->type == urdf::Geometry::MESH)
+		{
+			//you can find the code in motion_planning_common/planning_models/kinematic_models.cpp
+			ROS_INFO("MESH --- currently not supported");
+		}
+		else
+		{
+			ROS_ERROR("Unknown geometry type: %d", (int)geom->type);
+		}
+
+		return result;
+	}
+
+
+
+	bool addWorld(cob_object_handler::HandleObject::Request  &req,
+				  cob_object_handler::HandleObject::Response &res )
+	{
+		if(req.operation.data=="add") 
 		{
 			while(!nh.hasParam(parameter_name))
 			{
 				ROS_WARN("waiting for parameter \"world_description\"... ");
 				ros::Duration(0.5).sleep();
 			}
-		  
 		  
 			urdf::Model model;
 			if (!model.initParam(parameter_name))
@@ -186,15 +209,11 @@ int main(int argc, char** argv)
 				ROS_DEBUG("\t origin: %f,%f,%f", (*joints_it).second->parent_to_joint_origin_transform.position.x, (*joints_it).second->parent_to_joint_origin_transform.position.y, (*joints_it).second->parent_to_joint_origin_transform.position.z);
 			}
 
-			ros::service::waitForService("/gazebo/get_model_state");
-			ros::service::waitForService("/planning_scene_validity_server/get_state_validity");	//just to make sure that the environment_server is there!
 
-			//access to tranformation /world to /root_link (table_top)
-			ros::ServiceClient client = nh.serviceClient<gazebo::GetModelState>("/gazebo/get_model_state");
 			gazebo::GetModelState srv;
 
 			srv.request.model_name = model_name;
-			if (client.call(srv))
+			if (get_model_state_client.call(srv))
 			{
 				ROS_DEBUG("URDFPose (x,y,z): (%f,%f,%f)", srv.response.pose.position.x, srv.response.pose.position.y, srv.response.pose.position.z);
 			}
@@ -217,67 +236,67 @@ int main(int argc, char** argv)
 			for(unsigned int i=0; i<URDF_links.size(); i++)
 			{
 				urdf::Link current_link = *URDF_links[i];
-			ROS_DEBUG("Current Link: %s", current_link.name.c_str());
+				ROS_DEBUG("Current Link: %s", current_link.name.c_str());
 
-			tf::Pose pose;
-			tf::Pose pose2;
-			tf::Transform model_origin;
-			tf::Transform link_origin;
-			tf::Transform joint_origin;
-			
-			model_origin = tf::Transform(tf::Quaternion(srv.response.pose.orientation.x, srv.response.pose.orientation.y, srv.response.pose.orientation.z, srv.response.pose.orientation.w), tf::Vector3(srv.response.pose.position.x, srv.response.pose.position.y, srv.response.pose.position.z));
-			link_origin = tf::Transform(tf::Quaternion(current_link.collision->origin.rotation.x, 
-													   current_link.collision->origin.rotation.y,
-													   current_link.collision->origin.rotation.z,
-													   current_link.collision->origin.rotation.w),
-										tf::Vector3(current_link.collision->origin.position.x,
-													current_link.collision->origin.position.y,
-													current_link.collision->origin.position.z));
-			
-			if(current_link.parent_joint == NULL)
-			{
-				ROS_DEBUG("Link does not have a parent joint...");
-				joint_origin.setIdentity();				
-			}
-			else
-			{			
-			
-				boost::shared_ptr< urdf::Joint > current_parent_joint = current_link.parent_joint;
-				ROS_DEBUG("Current Parent Joint: %s", current_parent_joint->name.c_str());
-				joint_origin = tf::Transform(tf::Quaternion(current_parent_joint->parent_to_joint_origin_transform.rotation.x, 
-													current_parent_joint->parent_to_joint_origin_transform.rotation.y, 
-													current_parent_joint->parent_to_joint_origin_transform.rotation.z, 
-													current_parent_joint->parent_to_joint_origin_transform.rotation.w), 
-									   tf::Vector3(current_parent_joint->parent_to_joint_origin_transform.position.x, 
-												   current_parent_joint->parent_to_joint_origin_transform.position.y, 
-												   current_parent_joint->parent_to_joint_origin_transform.position.z));
-			}
-			
-			tf::Transform temp;
-			temp.mult(joint_origin, link_origin);			
-			pose2.mult(model_origin, temp);
+				tf::Pose pose;
+				tf::Pose pose2;
+				tf::Transform model_origin;
+				tf::Transform link_origin;
+				tf::Transform joint_origin;
+				
+				model_origin = tf::Transform(tf::Quaternion(srv.response.pose.orientation.x, srv.response.pose.orientation.y, srv.response.pose.orientation.z, srv.response.pose.orientation.w), tf::Vector3(srv.response.pose.position.x, srv.response.pose.position.y, srv.response.pose.position.z));
+				link_origin = tf::Transform(tf::Quaternion(current_link.collision->origin.rotation.x, 
+														   current_link.collision->origin.rotation.y,
+														   current_link.collision->origin.rotation.z,
+														   current_link.collision->origin.rotation.w),
+											tf::Vector3(current_link.collision->origin.position.x,
+														current_link.collision->origin.position.y,
+														current_link.collision->origin.position.z));
+				
+				if(current_link.parent_joint == NULL)
+				{
+					ROS_DEBUG("Link does not have a parent joint...");
+					joint_origin.setIdentity();				
+				}
+				else
+				{			
+				
+					boost::shared_ptr< urdf::Joint > current_parent_joint = current_link.parent_joint;
+					ROS_DEBUG("Current Parent Joint: %s", current_parent_joint->name.c_str());
+					joint_origin = tf::Transform(tf::Quaternion(current_parent_joint->parent_to_joint_origin_transform.rotation.x, 
+														current_parent_joint->parent_to_joint_origin_transform.rotation.y, 
+														current_parent_joint->parent_to_joint_origin_transform.rotation.z, 
+														current_parent_joint->parent_to_joint_origin_transform.rotation.w), 
+										   tf::Vector3(current_parent_joint->parent_to_joint_origin_transform.position.x, 
+													   current_parent_joint->parent_to_joint_origin_transform.position.y, 
+													   current_parent_joint->parent_to_joint_origin_transform.position.z));
+				}
+				
+				tf::Transform temp;
+				temp.mult(joint_origin, link_origin);			
+				pose2.mult(model_origin, temp);
 
-			tf::Stamped<tf::Pose> stamped_pose_in;
-			stamped_pose_in.stamp_ = ros::Time::now();
-			stamped_pose_in.frame_id_ = frame_id;
-			stamped_pose_in.setData(pose2);
+				tf::Stamped<tf::Pose> stamped_pose_in;
+				stamped_pose_in.stamp_ = ros::Time::now();
+				stamped_pose_in.frame_id_ = frame_id;
+				stamped_pose_in.setData(pose2);
 
 
-			//fill CollisionObject for each link
-			shapes::Shape *current_shape;
-			current_shape = constructShape(current_link.collision->geometry.get());
-			ROS_DEBUG("shape.type: %d", current_shape->type);
-		  	ROS_DEBUG("Position (x,y,z): (%f,%f,%f)", current_link.collision->origin.position.x, current_link.collision->origin.position.y, current_link.collision->origin.position.z);
+				//fill CollisionObject for each link
+				shapes::Shape *current_shape;
+				current_shape = constructShape(current_link.collision->geometry.get());
+				ROS_DEBUG("shape.type: %d", current_shape->type);
+				ROS_DEBUG("Position (x,y,z): (%f,%f,%f)", current_link.collision->origin.position.x, current_link.collision->origin.position.y, current_link.collision->origin.position.z);
 
-			
-			arm_navigation_msgs::Shape msg_shape;
-			planning_environment::constructObjectMsg(current_shape, msg_shape);
+				
+				arm_navigation_msgs::Shape msg_shape;
+				planning_environment::constructObjectMsg(current_shape, msg_shape);
 
-			geometry_msgs::PoseStamped msg_pose_stamped;
-			tf::poseStampedTFToMsg (stamped_pose_in, msg_pose_stamped);
+				geometry_msgs::PoseStamped msg_pose_stamped;
+				tf::poseStampedTFToMsg (stamped_pose_in, msg_pose_stamped);
 
-			collision_object.shapes.push_back(msg_shape);
-			collision_object.poses.push_back(msg_pose_stamped.pose);
+				collision_object.shapes.push_back(msg_shape);
+				collision_object.poses.push_back(msg_pose_stamped.pose);
 			}
 			
 			object_in_map_pub_.publish(collision_object);
@@ -295,7 +314,7 @@ int main(int argc, char** argv)
 			ROS_INFO("Should have published");
 			
 		}
-		else
+		else if (req.operation.data=="remove")
 		{
 			ROS_INFO("Removing the world");
 			if(!get_planning_scene_client.call(get_planning_scene_req, get_planning_scene_res)) 
@@ -319,40 +338,26 @@ int main(int argc, char** argv)
 				}
 			}
 		}
+		else
+			ROS_ERROR("Unknown operation! Please use 'add' or 'remove'");
+			
 
+	  return true;
+	}
 	
-/*	
-	if(!get_planning_scene_client.call(get_planning_scene_req, get_planning_scene_res)) 
-	{
-		ROS_WARN("Can't get planning scene");
-		return -1;
-	}
-	ROS_INFO("Got planning_scene!");
-*/	
-	//ros::spin();
-  
-/*  
-	set_planning_scene_req.planning_scene_diff.collision_objects.push_back(collision_object);
-	  
-  	//Update planning_scene
-	if(!set_planning_scene_client.call(set_planning_scene_req, set_planning_scene_res)) 
-	{
-		ROS_WARN("Failed to update PlanningScene");
-		return -1;
-	}
-	ROS_INFO("PlanningScene Updated!");
-	
-	ROS_INFO("Should have published");
-	ROS_INFO("collision_objects.size: %d", set_planning_scene_res.planning_scene.collision_objects.size());
-*/
-	}
-	else
-		ROS_WARN("Please call with argument: 1->addWorld; 0->removeWorld");
-		
+};
 
-	ros::Duration(2.0).sleep();
-	ros::shutdown();
+
+
+int main(int argc, char **argv)
+{
+	ros::init(argc, argv, "addWorldServiceServer");
+	
+	AddWorldService* add_world_service = new AddWorldService();
+
+	add_world_service->run();
+
+	return 0;
 }
-
 
 

@@ -78,6 +78,8 @@ private:
 	ros::ServiceServer m_attach_object_server;
 	ros::ServiceServer m_detach_object_server;
 	
+	ros::ServiceServer m_handle_object_server;
+	
 
 public:	
 	Object_Handler()
@@ -106,6 +108,8 @@ public:
 		m_remove_object_server = rh.advertiseService("/object_handler/remove_object", &Object_Handler::remove_object, this);
 		m_attach_object_server = rh.advertiseService("/object_handler/attach_object", &Object_Handler::attach_object, this);
 		m_detach_object_server = rh.advertiseService("/object_handler/detach_object", &Object_Handler::detach_object, this);
+		
+		m_handle_object_server = rh.advertiseService("/object_handler/handle_object", &Object_Handler::handle_object, this);
 		ROS_INFO("object_handler ready...");
 	}
 	
@@ -117,6 +121,25 @@ public:
 
 private:	
 	//implement callbacks here
+	
+	bool handle_object(cob_object_handler::HandleObject::Request &req,
+					   cob_object_handler::HandleObject::Response &res )
+	{
+		if(req.operation.data == "add")
+			return add_object(req, res);
+		else if(req.operation.data == "remove")
+			return remove_object(req,res);
+		else if(req.operation.data == "attach")
+			return attach_object(req,res);
+		else if(req.operation.data == "detach")
+			return detach_object(req,res);
+		else
+			ROS_ERROR("Unkown operation!");
+		
+		return false;
+	}
+	
+	
 	
 	bool add_object(cob_object_handler::HandleObject::Request  &req,
 					cob_object_handler::HandleObject::Response &res )

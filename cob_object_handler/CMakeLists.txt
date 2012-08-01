@@ -41,6 +41,6 @@ rosbuild_add_executable(addWorld src/addWorld.cpp)
 #rosbuild_add_executable(addObject src/addObject.cpp)
 rosbuild_add_executable(object_handler src/object_handler.cpp)
 rosbuild_add_executable(test_object_handler src/test_object_handler.cpp)
-rosbuild_add_executable(getPlanningSceneInformation src/getPlanningSceneInformation.cpp)
 
+rosbuild_add_executable(addWorldService src/addWorldService.cpp)
 

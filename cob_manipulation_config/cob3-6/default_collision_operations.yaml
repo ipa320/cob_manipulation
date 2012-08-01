@@ -1,36 +1,3 @@
-<<<<<<< HEAD:cob_arm_navigation/config/cob3-3/cob3-3_planning_description.yaml
-multi_dof_joints:
-  - name: world_joint
-    type: Floating
-    parent_frame_id: map
-    #parent_frame_id: base_footprint
-    child_frame_id: base_footprint
-
-groups:
-  - name: arm
-    base_link: base_footprint
-    tip_link: arm_7_link
-    
-  - name: sdh
-    joints:
-     - sdh_palm_joint
-     - sdh_knuckle_joint
-     - sdh_finger_12_joint
-     - sdh_finger_13_joint
-     - sdh_finger_21_joint
-     - sdh_finger_22_joint
-     - sdh_finger_23_joint
-     - sdh_thumb_1_joint
-     - sdh_thumb_2_joint
-     - sdh_thumb_3_joint
-     #Debug output: No entry for sdh_grasp_link and sdh_tip_link
-     #- sdh_grasp_joint
-     #- sdh_tip_joint
- #As is arm_navigation described, the end-effector is a joint collection
- #so no links of SDH are needed
-
-=======
->>>>>>> origin-ipa-mdl/master:cob_manipulation_config/cob3-6/default_collision_operations.yaml
 default_collision_operations:
   - object1: arm_0_link
     object2: arm_1_link
@@ -163,9 +130,6 @@ default_collision_operations:
     operation: disable  # Adjacent in collision
   - object1: torso_pan_link
     object2: torso_upper_neck_tilt_link
-    operation: disable  # Adjacent in collision
-  - object1: torso_lower_neck_tilt_link
-    object2: tray_base_link
     operation: disable  # Adjacent in collision
   - object1: tray_base_link
     object2: tray_left_link
@@ -2327,8 +2291,6 @@ default_collision_operations:
   - object1: torso_pan_link
     object2: tray_link
     operation: disable  # Never in collision
-<<<<<<< HEAD:cob_arm_navigation/config/cob3-3/cob3-3_planning_description.yaml
-=======
   - object1: torso_pan_link
     object2: tray_phidgets_1_link
     operation: disable  # Never in collision
@@ -2431,4 +2393,3 @@ default_collision_operations:
   - object1: tray_phidgets_4_link
     object2: tray_right_link
     operation: disable  # Never in collision
->>>>>>> origin-ipa-mdl/master:cob_manipulation_config/cob3-6/default_collision_operations.yaml
