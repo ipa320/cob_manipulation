@@ -836,26 +836,18 @@ geometry_msgs::Twist cob_cartesian_trajectories::PIDController(const double dt, 
     cout << "Error_dot twist: " << "\n" << Error_dot << "\n";
     
     // create twist
-    // PD2
-    double P = 10.;
-    double T = 0.055; //1.0560; //0.055;
-    double d = 0.3;   //0.9849; //0.3;
-    twist.linear.x = P*((T*T/(dt*dt) + 2*d*T/dt + 1)*Error.vel.x() - (2*T*T/(dt*dt) + 2*d*T/dt)*Error_last.vel.x() - T*T/(dt*dt)*Error_last2.vel.x());
-    P = 2.;
-    T = 0.051; //1.0605; //0.051;
-    d = 0.3;   //0.9826; //0.3;
-    twist.linear.y = P*((T*T/(dt*dt) + 2*d*T/dt + 1)*Error.vel.y() - (2*T*T/(dt*dt) + 2*d*T/dt)*Error_last.vel.y() - T*T/(dt*dt)*Error_last2.vel.y());
-    P = 1.;
-    T = 0.03;  //1.1426; //0.03;
-    d = 0.4;   //0.9537; //0.4;
-    twist.angular.z = P*((T*T/(dt*dt) + 2*d*T/dt + 1)*Error.rot.z() - (2*T*T/(dt*dt) + 2*d*T/dt)*Error_last.rot.z() - T*T/(dt*dt)*Error_last2.rot.z());
-    // P
-    P = 2.;
-    twist.linear.z = P*Error.vel.z();
-    P = 1.;
-    twist.angular.x = -(P*Error.rot.x());
-    P = 1.;
-    twist.angular.y = -(P*Error.rot.y());
+    p_gain_ = 1.5;
+    twist.linear.x = p_gain_*Error.vel.x() + i_gain_*Error_sum.vel.x() + d_gain_*Error_dot.vel.x();
+    p_gain_ = 1.5;
+    twist.linear.y = p_gain_*Error.vel.y() + i_gain_*Error_sum.vel.y() + d_gain_*Error_dot.vel.y(); 
+    p_gain_ = 1.;
+    twist.linear.z = p_gain_*Error.vel.z() + i_gain_*Error_sum.vel.z() + d_gain_*Error_dot.vel.z();
+    p_gain_ = 1.;
+    twist.angular.x = -(p_gain_*Error.rot.x() + i_gain_*Error_sum.rot.x() + d_gain_*Error_dot.rot.x());
+    p_gain_ = 1.;
+    twist.angular.y = -(p_gain_*Error.rot.y() + i_gain_*Error_sum.rot.y() + d_gain_*Error_dot.rot.y());
+    p_gain_ = 1.;
+    twist.angular.z = p_gain_*Error.rot.z() + i_gain_*Error_sum.rot.z() + d_gain_*Error_dot.rot.z();
 
     pubTrack(1, ros::Duration(0.5), F_target);
     pubTrack(9, ros::Duration(0.5), F_current);

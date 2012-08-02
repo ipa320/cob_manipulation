@@ -10,7 +10,7 @@
 
     <node pkg="cob_mmcontroller" type="cob_cartesian_trajectories_PID" name="cob_cartesian_trajectories_PID" cwd="node" respawn="false" output="screen">
         <param name="p_gain" value="1.0" />
-        <param name="i_gain" value="0.0002" /> <!--"0.0002" /-->
+        <param name="i_gain" value="0.000" /> <!--"0.0002" /-->
         <param name="d_gain" value="0.001" />
     </node>
         
