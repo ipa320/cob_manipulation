@@ -36,7 +36,7 @@
 ## @package ik_utilities
 #Utility functions for doing inverse kinematics, forward kinematics, checking a Cartesian path
 
-import roslib; roslib.load_manifest('interpolated_ik_motion_planner')
+import roslib; roslib.load_manifest('cob_interpolated_ik_motion_planner')
 import rospy
 from kinematics_msgs.srv import GetKinematicSolverInfo, GetPositionIK, GetPositionFK, GetConstraintAwarePositionIK, GetConstraintAwarePositionIKRequest
 from kinematics_msgs.msg import PositionIKRequest

@@ -87,9 +87,9 @@
 # Everything else is completely ignored.
 
 
-import roslib; roslib.load_manifest('interpolated_ik_motion_planner')
+import roslib; roslib.load_manifest('cob_interpolated_ik_motion_planner')
 import rospy
-import interpolated_ik_motion_planner.ik_utilities as ik_utilities
+import cob_interpolated_ik_motion_planner.ik_utilities as ik_utilities
 import math
 import sys
 import pdb
