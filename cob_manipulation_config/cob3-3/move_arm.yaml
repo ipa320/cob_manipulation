@@ -1,0 +1,5 @@
+# THIS IS A SHARED CONFIG, DO NOT EDIT! CREATE AN OVERLAY INSTEAD!
+move_arm_frequency: 50.0
+trajectory_filter_allowed_time: 20.0
+ik_allowed_time: 2.0
+publish_stats: true

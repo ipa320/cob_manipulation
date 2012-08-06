@@ -133,7 +133,7 @@ int main(int argc, char** argv)
 	*/
 	
 	std::string parameter_name = "world_description";
-	std::string model_name = "world_model";
+	std::string model_name = "urdf_world_model";
 	
 	ros::Publisher object_in_map_pub_;
 	object_in_map_pub_  = nh.advertise<arm_navigation_msgs::CollisionObject>("collision_object", 20);
@@ -347,7 +347,7 @@ int main(int argc, char** argv)
 */
 	}
 	else
-		ROS_WARN("Please call with argument: 1->addPole; 0->removePole");
+		ROS_WARN("Please call with argument: 1->addWorld; 0->removeWorld");
 		
 
 	ros::Duration(2.0).sleep();
