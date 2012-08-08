@@ -2,6 +2,6 @@
 group: arm
 controller_action_name: /arm_controller/follow_joint_trajectory
 move_arm_frequency: 50.0
-trajectory_filter_allowed_time: 20.0
+trajectory_filter_allowed_time: 5.0
 ik_allowed_time: 2.0
 publish_stats: true
