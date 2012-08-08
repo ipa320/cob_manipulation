@@ -97,13 +97,12 @@ from arm_navigation_msgs.srv import GetMotionPlan, GetMotionPlanResponse
 from arm_navigation_msgs.msg import ArmNavigationErrorCodes, RobotState
 from geometry_msgs.msg import PoseStamped, PointStamped, QuaternionStamped, Pose, Point, Quaternion
 from trajectory_msgs.msg import JointTrajectoryPoint
-from interpolated_ik_motion_planner.srv import SetInterpolatedIKMotionPlanParams, SetInterpolatedIKMotionPlanParamsResponse
 from sensor_msgs.msg import JointState
 
 # class to provide the interpolated ik motion planner service
 class InterpolatedIKService:
 
-    def __init__(self, which_arm): #which_arm is 'r' or 'l'
+    def __init__(self, which_arm):
         self.which_arm = which_arm 
         self.node_name = which_arm+'_interpolated_ik_motion_planner_server'
 
@@ -148,11 +147,6 @@ class InterpolatedIKService:
         s1 = rospy.Service(which_arm+'_interpolated_ik_motion_plan', \
                 GetMotionPlan, self.interpolated_ik_motion_planner_callback)
 
-        #advertise param changing service
-        s2 = rospy.Service(which_arm+'_interpolated_ik_motion_plan_set_params', \
-                SetInterpolatedIKMotionPlanParams, self.set_params_callback)
-
-
     ##add a header to a message with a 0 timestamp (good for getting the latest TF transform)
     def add_header(self, msg, frame):
         msg.header.frame_id = frame
@@ -163,22 +157,6 @@ class InterpolatedIKService:
     ##pretty-print list to string
     def pplist(self, list):
         return ' '.join(['%2.3f'%x for x in list])
-
-
-    ##callback for the set_params service
-    def set_params_callback(self, req):
-        self.num_steps = req.num_steps
-        self.consistent_angle = req.consistent_angle
-        self.collision_check_resolution= req.collision_check_resolution
-        self.steps_before_abort = req.steps_before_abort
-        self.pos_spacing = req.pos_spacing
-        self.rot_spacing = req.rot_spacing
-        self.collision_aware = req.collision_aware
-        self.start_from_end = req.start_from_end
-        self.max_joint_vels = req.max_joint_vels
-        self.max_joint_accs = req.max_joint_accs
-        return SetInterpolatedIKMotionPlanParamsResponse()
-
 
     ##callback for get_interpolated_ik_motion_plan service
     def interpolated_ik_motion_planner_callback(self, req):
@@ -213,17 +191,6 @@ class InterpolatedIKService:
                 rospy.logerr("missing joint angle, can't deal")
                 return 0
 
-            #desired start angle not specified, use the current angle
-#elif 0: #joint_name in joint_states_msg.name:
-#                index = joint_states_msg.name.index(joint_name)
-#                current_position = joint_states_msg.position[index]
-#                reordered_start_angles.append(current_position)
-
-            #malformed joint_states message?
-#            else:
-#                rospy.logerr("an expected arm joint,"+joint_name+"was not found!")
-#                return 0
-
         #get additional desired joint angles (such as for the gripper) to pass through to IK
         additional_joint_angles = []
         additional_joint_names = []
@@ -240,21 +207,7 @@ class InterpolatedIKService:
             IK_robot_state.joint_state.name = additional_joint_names
             IK_robot_state.joint_state.position = additional_joint_angles
 
-        #check that the desired link is in the list of possible IK links (only r/l_wrist_roll_link for now)
-        link_name = req.motion_plan_request.start_state.multi_dof_joint_state.child_frame_ids[0]
-        if link_name != self.ik_utils.link_name:
-            rospy.logerr("link_name not allowed: %s"%link_name)
-            return 0
-
-        #the start pose for that link
-        start_pose = req.motion_plan_request.start_state.multi_dof_joint_state.poses[0]
-
-        #the frame that start pose is in
-        frame_id = req.motion_plan_request.start_state.multi_dof_joint_state.frame_ids[0]
-
-        #turn it into a PoseStamped
-        start_pose_stamped = self.add_header(PoseStamped(), frame_id)
-        start_pose_stamped.pose = start_pose
+        start_pose_stamped = self.ik_utils.run_fk(reordered_start_angles,self.ik_utils.link_name)
 
         #the desired goal position
         goal_pos = req.motion_plan_request.goal_constraints.position_constraints[0].position         
@@ -352,7 +305,7 @@ class InterpolatedIKService:
 
         trajectory_error_codes = [ArmNavigationErrorCodes(val=error_code_dict[error_code]) for error_code in error_codes]
         res.trajectory_error_codes = trajectory_error_codes 
-        res.error_code.val = ArmNavigationErrorCodes.SUCCESS
+        res.error_code.val = ArmNavigationErrorCodes.SUCCESS if max(error_codes) == 0 else ArmNavigationErrorCodes.PLANNING_FAILED
 #         rospy.loginfo("trajectory:")
 #         for ind in range(len(trajectory)):
 #             rospy.loginfo("error code "+ str(error_codes[ind]) + " pos : " + self.pplist(trajectory[ind]))
