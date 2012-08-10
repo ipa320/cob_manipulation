@@ -237,6 +237,7 @@ private:
 			{
 				urdf::Link current_link = *URDF_links[i];
 				ROS_DEBUG("Current Link: %s", current_link.name.c_str());
+				if ( current_link.name == "dummy_link") continue;
 
 				tf::Pose pose;
 				tf::Pose pose2;
