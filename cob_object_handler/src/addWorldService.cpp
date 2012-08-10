@@ -108,7 +108,8 @@ public:
 	AddWorldService()
 	{
 		//const std::string frame_id = "/base_footprint";
-		frame_id = "/map";
+		//frame_id = "/map";
+		frame_id = "/odom_combined";
 
 		parameter_name = "world_description";
 		model_name = "urdf_world_model";
@@ -178,66 +179,63 @@ private:
 	bool addWorld(cob_object_handler::HandleObject::Request  &req,
 				  cob_object_handler::HandleObject::Response &res )
 	{
-		if(req.operation.data=="add") 
+		while(!nh.hasParam(parameter_name))
 		{
-			while(!nh.hasParam(parameter_name))
-			{
-				ROS_WARN("waiting for parameter \"world_description\"... ");
-				ros::Duration(0.5).sleep();
-			}
+			ROS_WARN("waiting for parameter \"world_description\"... ");
+			ros::Duration(0.5).sleep();
+		}
 		  
-			urdf::Model model;
-			if (!model.initParam(parameter_name))
-			{
-				ROS_ERROR("Failed to parse %s from parameter server", parameter_name.c_str());
-				return -1;
-			}
+		urdf::Model model;
+		if (!model.initParam(parameter_name))
+		{
+			ROS_ERROR("Failed to parse %s from parameter server", parameter_name.c_str());
+			return -1;
+		}
 
-			ROS_INFO("Successfully parsed urdf file");
+		ROS_INFO("Successfully parsed urdf file");
 
-			std::vector< boost::shared_ptr< urdf::Link > > URDF_links;
-			model.getLinks(URDF_links);
-			std::map< std::string, boost::shared_ptr< urdf::Joint > > URDF_joints = model.joints_;
-			std::map< std::string, boost::shared_ptr< urdf::Joint > >::iterator joints_it;
-
-
-			//tranfo between links is in joints->origin!
-			//access to Joint-Information
-			for(joints_it=URDF_joints.begin() ; joints_it != URDF_joints.end(); joints_it++)
-			{
-				ROS_DEBUG("Joint name: %s", (*joints_it).first.c_str());
-				ROS_DEBUG("\t origin: %f,%f,%f", (*joints_it).second->parent_to_joint_origin_transform.position.x, (*joints_it).second->parent_to_joint_origin_transform.position.y, (*joints_it).second->parent_to_joint_origin_transform.position.z);
-			}
+		std::vector< boost::shared_ptr< urdf::Link > > URDF_links;
+		model.getLinks(URDF_links);
+		std::map< std::string, boost::shared_ptr< urdf::Joint > > URDF_joints = model.joints_;
+		std::map< std::string, boost::shared_ptr< urdf::Joint > >::iterator joints_it;
 
 
-			gazebo::GetModelState srv;
+		//tranfo between links is in joints->origin!
+		//access to Joint-Information
+		for(joints_it=URDF_joints.begin() ; joints_it != URDF_joints.end(); joints_it++)
+		{
+			ROS_DEBUG("Joint name: %s", (*joints_it).first.c_str());
+			ROS_DEBUG("\t origin: %f,%f,%f", (*joints_it).second->parent_to_joint_origin_transform.position.x, (*joints_it).second->parent_to_joint_origin_transform.position.y, (*joints_it).second->parent_to_joint_origin_transform.position.z);
+		}
 
-			srv.request.model_name = model_name;
-			if (get_model_state_client.call(srv))
-			{
-				ROS_DEBUG("URDFPose (x,y,z): (%f,%f,%f)", srv.response.pose.position.x, srv.response.pose.position.y, srv.response.pose.position.z);
-			}
-			else
-			{
-				ROS_ERROR("Failed to call service get_model_state");
-				ros::shutdown();
-			}
-
+		  
+		joints_it=URDF_joints.begin();
+		for(unsigned int i=0; i<URDF_links.size(); i++)
+		{
+			urdf::Link current_link = *URDF_links[i];
+			ROS_DEBUG("Current Link: %s", current_link.name.c_str());
+			
 			arm_navigation_msgs::CollisionObject collision_object;
-			collision_object.id = model_name + "_object";
-			collision_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ADD;
-			//collision_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::REMOVE;
+			collision_object.id = current_link.name.c_str();
 			collision_object.header.frame_id = frame_id;
-			//collision_object.padding = 0.06;
 			collision_object.header.stamp = ros::Time::now();
-		  
-
-			joints_it=URDF_joints.begin();
-			for(unsigned int i=0; i<URDF_links.size(); i++)
+				
+			if(req.operation=="add") 
 			{
-				urdf::Link current_link = *URDF_links[i];
-				ROS_DEBUG("Current Link: %s", current_link.name.c_str());
-				if ( current_link.name == "dummy_link") continue;
+				collision_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ADD;
+
+				gazebo::GetModelState srv;
+
+				srv.request.model_name = model_name;
+				if (get_model_state_client.call(srv))
+				{
+					ROS_DEBUG("URDFPose (x,y,z): (%f,%f,%f)", srv.response.pose.position.x, srv.response.pose.position.y, srv.response.pose.position.z);
+				}
+				else
+				{
+					ROS_ERROR("Failed to call service get_model_state");
+					ros::shutdown();
+				}
 
 				tf::Pose pose;
 				tf::Pose pose2;
@@ -257,7 +255,8 @@ private:
 				if(current_link.parent_joint == NULL)
 				{
 					ROS_DEBUG("Link does not have a parent joint...");
-					joint_origin.setIdentity();				
+					joint_origin.setIdentity();		
+					continue;		
 				}
 				else
 				{			
@@ -298,49 +297,32 @@ private:
 
 				collision_object.shapes.push_back(msg_shape);
 				collision_object.poses.push_back(msg_pose_stamped.pose);
+
+			}
+			else if (req.operation=="remove")
+			{
+				ROS_INFO("Removing the world");
+				collision_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::REMOVE;
+			}
+			else
+			{
+				ROS_ERROR("Unknown operation! Please use 'add' or 'remove'");
+				return false;
 			}
 			
 			object_in_map_pub_.publish(collision_object);
-			
-			arm_navigation_msgs::SetPlanningSceneDiff::Request set_planning_scene_diff_req;
-			arm_navigation_msgs::SetPlanningSceneDiff::Response set_planning_scene_diff_res;
-			
-			if(set_planning_scene_diff_client.call(set_planning_scene_diff_req, set_planning_scene_diff_res)) 
-			{	
-				ROS_ERROR("Can't get planning scene");
-			}
-			
-			ROS_INFO("Got planning_scene!");
-			
-			ROS_INFO("Should have published");
-			
+			ros::Duration(0.1).sleep();
 		}
-		else if (req.operation.data=="remove")
-		{
-			ROS_INFO("Removing the world");
-			if(!get_planning_scene_client.call(get_planning_scene_req, get_planning_scene_res)) 
-			{
-				ROS_WARN("Can't get planning scene");
-				return -1;
-			}
-			ROS_INFO("Got planning_scene!");
 			
-			for(unsigned int i=0; i<get_planning_scene_res.planning_scene.collision_objects.size(); i++)
-			{
-				if(get_planning_scene_res.planning_scene.collision_objects[i].id == (model_name + "_object"))
-				{
-					ROS_INFO("Found the world within the collision_objects");
-					arm_navigation_msgs::CollisionObject cylinder_object = 	get_planning_scene_res.planning_scene.collision_objects[i];
-					cylinder_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::REMOVE;
-					
-					object_in_map_pub_.publish(cylinder_object);
-					ROS_INFO("Should have published");
-					break;
-				}
-			}
+		arm_navigation_msgs::SetPlanningSceneDiff::Request set_planning_scene_diff_req;
+		arm_navigation_msgs::SetPlanningSceneDiff::Response set_planning_scene_diff_res;
+		
+		if(!set_planning_scene_diff_client.call(set_planning_scene_diff_req, set_planning_scene_diff_res)) 
+		{	
+			ROS_ERROR("Can't get planning scene");
 		}
-		else
-			ROS_ERROR("Unknown operation! Please use 'add' or 'remove'");
+		
+		ROS_INFO("Should have published");
 			
 
 	  return true;
