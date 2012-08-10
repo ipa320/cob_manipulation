@@ -58,7 +58,8 @@
 
 static const std::string GET_PLANNING_SCENE_NAME = "/environment_server/get_planning_scene";
 static const std::string SET_PLANNING_SCENE_DIFF_NAME = "/environment_server/set_planning_scene_diff";
-const std::string frame_id = "/map";
+//const std::string frame_id = "/map";
+const std::string frame_id = "/odom_combined";
 
 
 class Object_Handler
@@ -125,13 +126,13 @@ private:
 	bool handle_object(cob_object_handler::HandleObject::Request &req,
 					   cob_object_handler::HandleObject::Response &res )
 	{
-		if(req.operation.data == "add")
+		if(req.operation == "add")
 			return add_object(req, res);
-		else if(req.operation.data == "remove")
+		else if(req.operation == "remove")
 			return remove_object(req,res);
-		else if(req.operation.data == "attach")
+		else if(req.operation == "attach")
 			return attach_object(req,res);
-		else if(req.operation.data == "detach")
+		else if(req.operation == "detach")
 			return detach_object(req,res);
 		else
 			ROS_ERROR("Unkown operation!");
@@ -145,10 +146,10 @@ private:
 					cob_object_handler::HandleObject::Response &res )
 	{
 		ROS_INFO("add_object-service called!");
-		ROS_INFO("Adding object %s ...",req.object.data.c_str());
+		ROS_INFO("Adding object %s ...",req.object.c_str());
 		
-		std::string parameter_name = req.object.data + "_description";
-		std::string model_name = req.object.data + "_model";
+		std::string parameter_name = req.object + "_description";
+		std::string model_name = req.object + "_model";
 		ROS_INFO("Model-Name: %s", model_name.c_str());
 
 		while(!rh.hasParam(parameter_name))	{	
@@ -259,23 +260,23 @@ private:
 		m_object_in_map_pub.publish(collision_object);
 		ROS_INFO("Object added to environment server!");
 		
-		
+		ros::Duration(2.0).sleep();
 		
 		arm_navigation_msgs::SetPlanningSceneDiff::Request set_planning_scene_diff_req;
 		arm_navigation_msgs::SetPlanningSceneDiff::Response set_planning_scene_diff_res;
 		
-		arm_navigation_msgs::CollisionOperation coll_op;
-		coll_op.object1="arm";
-		coll_op.object2="objects";
-		coll_op.penetration_distance=0.0;
-		coll_op.operation=1;	//ENABLE
-		set_planning_scene_diff_req.operations.collision_operations.push_back(coll_op);
+		//arm_navigation_msgs::CollisionOperation coll_op;
+		//coll_op.object1="arm";
+		//coll_op.object2="objects";
+		//coll_op.penetration_distance=0.0;
+		//coll_op.operation=1;	//ENABLE
+		//set_planning_scene_diff_req.operations.collision_operations.push_back(coll_op);
 		
-		coll_op.object1="sdh";
-		coll_op.object2="objects";
-		coll_op.penetration_distance=0.0;
-		coll_op.operation=1;	//ENABLE
-		set_planning_scene_diff_req.operations.collision_operations.push_back(coll_op);
+		//coll_op.object1="sdh";
+		//coll_op.object2="objects";
+		//coll_op.penetration_distance=0.0;
+		//coll_op.operation=1;	//ENABLE
+		//set_planning_scene_diff_req.operations.collision_operations.push_back(coll_op);
 		
 		
 		if(!m_set_planning_scene_diff_client.call(set_planning_scene_diff_req, set_planning_scene_diff_res)) 
@@ -286,8 +287,8 @@ private:
 		
 		
 
-		res.success.data = true;
-		res.error_message.data = "Object added to environment server!";
+		res.success = true;
+		res.error_message = "Object added to environment server!";
 		return true;
 	}
 	
@@ -296,17 +297,17 @@ private:
 					   cob_object_handler::HandleObject::Response &res )
 	{
 		ROS_INFO("remove_object-service called!");
-		ROS_INFO("Removing object %s ...",req.object.data.c_str());
+		ROS_INFO("Removing object %s ...",req.object.c_str());
 		
-		std::string object_name = req.object.data + "_model";
+		std::string object_name = req.object + "_model";
 		arm_navigation_msgs::GetPlanningScene::Request get_planning_scene_req;
 		arm_navigation_msgs::GetPlanningScene::Response get_planning_scene_res;
 		
 		if(!m_get_planning_scene_client.call(get_planning_scene_req, get_planning_scene_res)) 
 		{
 			ROS_ERROR("Can't get planning scene");
-			res.success.data = false;
-			res.error_message.data = "Can't get planning scene";
+			res.success = false;
+			res.error_message = "Can't get planning scene";
 			return false;
 		}
 		ROS_INFO("Got planning_scene!");
@@ -336,16 +337,16 @@ private:
 
 
 
-				res.success.data = true;
-				res.error_message.data = "Object removed from environment server!";
+				res.success = true;
+				res.error_message = "Object removed from environment server!";
 				return true;
 			}
 		}
 
 		ROS_ERROR("Could not find object %s among known objects. Aborting!", object_name.c_str());
 		  
-		res.success.data = false;
-		res.error_message.data = "Could not find object among known objects.";
+		res.success = false;
+		res.error_message = "Could not find object among known objects.";
 
 		return false;
 	}
@@ -355,9 +356,9 @@ private:
 					   cob_object_handler::HandleObject::Response &res )
 	{
 		ROS_INFO("attach_object-service called!");
-		ROS_INFO("Attaching object %s ...",req.object.data.c_str());
+		ROS_INFO("Attaching object %s ...",req.object.c_str());
 		
-		std::string object_name = req.object.data + "_model";
+		std::string object_name = req.object + "_model";
 		
 		arm_navigation_msgs::GetPlanningScene::Request get_planning_scene_req;
 		arm_navigation_msgs::GetPlanningScene::Response get_planning_scene_res;
@@ -365,8 +366,8 @@ private:
 		if(!m_get_planning_scene_client.call(get_planning_scene_req, get_planning_scene_res)) 
 		{
 			ROS_ERROR("Can't get planning scene");
-			res.success.data = false;
-			res.error_message.data = "Can't get planning scene";
+			res.success = false;
+			res.error_message = "Can't get planning scene";
 			return false;
 		}
 		ROS_INFO("Got planning_scene!");
@@ -408,15 +409,15 @@ private:
 				ROS_INFO("Got planning_scene!");
 				
 				
-				res.success.data = true;
-				res.error_message.data = "Object attached to robot!";
+				res.success = true;
+				res.error_message = "Object attached to robot!";
 				return true;
 			}
 		}
 		ROS_ERROR("Could not find object %s among known objects. Aborting!", object_name.c_str());
 	  
-		res.success.data = false;
-		res.error_message.data = "Could not find object among known objects.";
+		res.success = false;
+		res.error_message = "Could not find object among known objects.";
 
 		return false;
 	}
@@ -426,9 +427,9 @@ private:
 					   cob_object_handler::HandleObject::Response &res )
 	{
 		ROS_INFO("detach_object-service called!");
-		ROS_INFO("Detaching object %s ...",req.object.data.c_str());
+		ROS_INFO("Detaching object %s ...",req.object.c_str());
 		
-		std::string object_name = req.object.data + "_model";
+		std::string object_name = req.object + "_model";
 		
 		arm_navigation_msgs::GetPlanningScene::Request get_planning_scene_req;
 		arm_navigation_msgs::GetPlanningScene::Response get_planning_scene_res;
@@ -436,8 +437,8 @@ private:
 		if(!m_get_planning_scene_client.call(get_planning_scene_req, get_planning_scene_res)) 
 		{
 			ROS_ERROR("Can't get planning scene");
-			res.success.data = false;
-			res.error_message.data = "Can't get planning scene";
+			res.success = false;
+			res.error_message = "Can't get planning scene";
 			return false;
 		}
 		ROS_INFO("Got planning_scene!");
@@ -465,15 +466,15 @@ private:
 				ROS_INFO("Got planning_scene!");
 				
 				
-				res.success.data = true;
-				res.error_message.data = "Object detached from robot!";
+				res.success = true;
+				res.error_message = "Object detached from robot!";
 				return true;
 			}
 		}
 		ROS_ERROR("Could not find object %s among known objects. Aborting!", object_name.c_str());
 	  
-		res.success.data = false;
-		res.error_message.data = "Could not find object among known objects.";
+		res.success = false;
+		res.error_message = "Could not find object among known objects.";
 
 		return false;
 	}
