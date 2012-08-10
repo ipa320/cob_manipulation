@@ -66,7 +66,7 @@ int main(int argc, char **argv)
 	ros::ServiceClient detach_client = n.serviceClient<cob_object_handler::HandleObject>("object_handler/detach_object");
 	cob_object_handler::HandleObject::Request req;
 	cob_object_handler::HandleObject::Response res;
-	req.object.data = argv[2];
+	req.object = argv[2];
   
 	if(operation=="add")
 		success = add_client.call(req, res);
@@ -81,7 +81,7 @@ int main(int argc, char **argv)
   
 	if (success)
 	{
-		ROS_INFO("Result: %s", res.error_message.data.c_str());
+		ROS_INFO("Result: %s", res.error_message.c_str());
 	}
 	else
 	{
