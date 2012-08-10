@@ -43,4 +43,5 @@ rosbuild_add_executable(object_handler src/object_handler.cpp)
 rosbuild_add_executable(test_object_handler src/test_object_handler.cpp)
 
 rosbuild_add_executable(addWorldService src/addWorldService.cpp)
+rosbuild_add_executable(modifyCollisionObjects src/modifyCollisionObjects.cpp)
 
