@@ -99,7 +99,8 @@ int main(int argc, char** argv)
 			cylinder_object.padding = 10.0;
 			cylinder_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ADD;
 			//cylinder_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::REMOVE;
-			cylinder_object.header.frame_id = "/map";
+			//cylinder_object.header.frame_id = "/map";
+			cylinder_object.header.frame_id = "/odom_combined";
 			cylinder_object.header.stamp = ros::Time::now();
 			arm_navigation_msgs::Shape object;
 			object.type = arm_navigation_msgs::Shape::CYLINDER;

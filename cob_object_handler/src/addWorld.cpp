@@ -121,7 +121,9 @@ int main(int argc, char** argv)
 	ros::NodeHandle nh;
 
 	//const std::string frame_id = "/base_footprint";
-	const std::string frame_id = "/map";
+	//const std::string frame_id = "/map";
+	const std::string frame_id = "/odom_combined";
+	
 	/*
 	tf::Transformer transformer;
 	transformer.setUsingDedicatedThread(true);

@@ -72,7 +72,8 @@ int main(int argc, char** argv) {
 
   ros::init(argc, argv, "addObject");
   //const std::string frame_id = "/base_footprint";
-  const std::string frame_id = "/map";
+  //const std::string frame_id = "/map";
+  const std::string frame_id = "/odom_combined";
 
   ros::NodeHandle nh;
 
