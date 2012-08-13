@@ -50,9 +50,16 @@
 
 #include <arm_navigation_msgs/GetPlanningScene.h>
 #include <arm_navigation_msgs/SetPlanningSceneDiff.h>
-#include <arm_navigation_msgs/Shape.h>
+
+//#include <arm_navigation_msgs/Shape.h>
+#include "geometric_shapes/shape_operations.h"
+
 #include <planning_environment/models/collision_models.h>
 #include <planning_environment/util/construct_object.h>
+#include <resource_retriever/retriever.h>
+#include <assimp/assimp.hpp>     
+#include <assimp/aiScene.h>      
+#include <assimp/aiPostProcess.h>
 
 
 
@@ -195,6 +202,11 @@ private:
 		{
 			urdf::Link current_link = *URDF_links[i];
 			ROS_DEBUG("Current Link: %s", current_link.name.c_str());
+			if(current_link.collision == NULL)
+			{
+				ROS_DEBUG("Current link does not have a collision geometry");
+				continue;
+			}
 
 			tf::Pose pose;
 			tf::Pose pose2;
@@ -505,8 +517,19 @@ private:
 		}
 		else if(geom->type == urdf::Geometry::MESH)
 		{
-			//you can find the code in motion_planning_common/planning_models/kinematic_models.cpp
-			ROS_INFO("MESH --- currently not supported");
+			const urdf::Mesh *mesh = dynamic_cast<const urdf::Mesh*>(geom);
+			if (!mesh->filename.empty())
+			{
+				const btVector3* scale = new btVector3(mesh->scale.x, mesh->scale.y, mesh->scale.z);
+				result = shapes::createMeshFromFilename(mesh->filename.c_str(), scale);
+		
+				if (result == NULL)
+					ROS_ERROR("Failed to load mesh '%s'", mesh->filename.c_str());
+				else
+					ROS_DEBUG("Loaded mesh '%s' consisting of %d triangles", mesh->filename.c_str(), static_cast<shapes::Mesh*>(result)->triangleCount);			
+			}
+			else
+				ROS_WARN("Empty mesh filename");
 		}
 		else
 		{
