@@ -35,6 +35,7 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
 
 rosbuild_add_executable(addCylinder src/addCylinder.cpp)
 rosbuild_add_executable(addBox src/addBox.cpp)
+rosbuild_add_executable(addFloor src/addFloor.cpp)
 #rosbuild_add_executable(addFloor src/addFloor.cpp)
 rosbuild_add_executable(addWorld src/addWorld.cpp)
 #rosbuild_add_executable(addObject src/addObject.cpp)

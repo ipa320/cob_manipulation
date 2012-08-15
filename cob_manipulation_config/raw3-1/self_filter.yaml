@@ -1,4 +1,3 @@
-# THIS IS A SHARED CONFIG, DO NOT EDIT! CREATE AN OVERLAY INSTEAD!
 min_sensor_dist: .05
 self_see_default_padding: .00
 self_see_default_scale: 1.0

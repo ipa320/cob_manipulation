@@ -118,17 +118,7 @@ int main(int argc, char** argv)
 			cylinder_object.shapes.push_back(object);
 			cylinder_object.poses.push_back(pose);
 			
-			object_in_map_pub_.publish(cylinder_object);
-			
-			arm_navigation_msgs::SetPlanningSceneDiff::Request set_planning_scene_diff_req;
-			arm_navigation_msgs::SetPlanningSceneDiff::Response set_planning_scene_diff_res;
-			
-			if(!set_planning_scene_diff_client.call(set_planning_scene_diff_req, set_planning_scene_diff_res)) 
-			{	
-				ROS_ERROR("Can't get planning scene");
-			}
-			
-			ROS_INFO("Got planning_scene!");			
+			object_in_map_pub_.publish(cylinder_object);		
 			
 			ROS_INFO("Should have published");
 		}
@@ -155,7 +145,18 @@ int main(int argc, char** argv)
 					break;
 				}
 			}
+			
 		}
+		
+		arm_navigation_msgs::SetPlanningSceneDiff::Request set_planning_scene_diff_req;
+		arm_navigation_msgs::SetPlanningSceneDiff::Response set_planning_scene_diff_res;
+				
+		if(!set_planning_scene_diff_client.call(set_planning_scene_diff_req, set_planning_scene_diff_res)) 
+		{	
+			ROS_ERROR("Can't get planning scene");
+		}
+		
+		ROS_INFO("Got planning_scene!");	
 	}
 	else
 		ROS_WARN("Please call with argument: 1->addPole; 0->removePole");
