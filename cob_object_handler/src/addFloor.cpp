@@ -99,17 +99,17 @@ int main(int argc, char** argv)
 			//cylinder_object.padding = 10.0;
 			box_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ADD;
 			//cylinder_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::REMOVE;
-			box_object.header.frame_id = "/map";
+			box_object.header.frame_id = "/odom_combined";
 			box_object.header.stamp = ros::Time::now();
 			arm_navigation_msgs::Shape object;
 			object.type = arm_navigation_msgs::Shape::BOX;
 			object.dimensions.resize(3);
   			object.dimensions[0] = 10.0;
-			object.dimensions[1] = 10.0;
+			object.dimensions[1] = 14.0;
 			object.dimensions[2] = 0.01;
 			geometry_msgs::Pose pose;
-			pose.position.x = 0.0;
-			pose.position.y = 0.0;
+			pose.position.x = 2.0;
+			pose.position.y = -4;
 			pose.position.z = -0.005;
 			pose.orientation.x = 0;
 			pose.orientation.y = 0;
@@ -119,16 +119,6 @@ int main(int argc, char** argv)
 			box_object.poses.push_back(pose);
 		
 			object_in_map_pub_.publish(box_object);
-			
-			arm_navigation_msgs::SetPlanningSceneDiff::Request set_planning_scene_diff_req;
-			arm_navigation_msgs::SetPlanningSceneDiff::Response set_planning_scene_diff_res;
-			
-			if(!set_planning_scene_diff_client.call(set_planning_scene_diff_req, set_planning_scene_diff_res)) 
-			{	
-				ROS_ERROR("Can't get planning scene");
-			}
-			
-			ROS_INFO("Got planning_scene!");
 			
 			ROS_INFO("Should have published");
 		}
@@ -156,6 +146,15 @@ int main(int argc, char** argv)
 				}
 			}
 		}
+		arm_navigation_msgs::SetPlanningSceneDiff::Request set_planning_scene_diff_req;
+		arm_navigation_msgs::SetPlanningSceneDiff::Response set_planning_scene_diff_res;
+				
+		if(!set_planning_scene_diff_client.call(set_planning_scene_diff_req, set_planning_scene_diff_res)) 
+		{	
+			ROS_ERROR("Can't get planning scene");
+		}
+		
+		ROS_INFO("Got planning_scene!");
 	}
 	else
 		ROS_WARN("Please call with argument: 1->addPole; 0->removePole");
