@@ -10,7 +10,7 @@
     <!-- move arm action server-->
     
     <node pkg="move_arm" type="move_arm_simple_action" name="cob_move_arm">
-        <rosparam file="$(find cob_manipulation_config)/$(env ROBOT)/kinematics.yaml"/>
+        <rosparam file="$(find cob_manipulation_config)/$(env ROBOT)/move_arm.yaml"/>
         <remap from="arm_ik" to="/cob_ik_wrapper/arm/get_constraint_aware_ik" />
     </node>
 </launch>

@@ -17,6 +17,10 @@
   <depend package="bullet"/>
   <depend package= "tf"/>
   <depend package= "gazebo"/>
+  <depend package= "resource_retriever"/>
+  <depend package= "geometric_shapes"/>
+  <depend package="common_rosdeps" />
+  <rosdep name="assimp" />
 
 </package>
 

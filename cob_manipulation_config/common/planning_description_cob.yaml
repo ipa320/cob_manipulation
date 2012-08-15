@@ -1,8 +1,8 @@
 # THIS IS A SHARED CONFIG, DO NOT EDIT! CREATE AN OVERLAY INSTEAD!
 
-#default_robot_padding: 0.01
+#default_robot_padding: 0.03
 #default_robot_scale: 1.0
-#default_object_padding: 0.02
+#default_object_padding: 0.15
 #default_attached_padding: 0.05
 
 multi_dof_joints:

@@ -121,7 +121,9 @@ int main(int argc, char** argv)
 	ros::NodeHandle nh;
 
 	//const std::string frame_id = "/base_footprint";
-	const std::string frame_id = "/map";
+	//const std::string frame_id = "/map";
+	const std::string frame_id = "/odom_combined";
+	
 	/*
 	tf::Transformer transformer;
 	transformer.setUsingDedicatedThread(true);
@@ -133,7 +135,7 @@ int main(int argc, char** argv)
 	*/
 	
 	std::string parameter_name = "world_description";
-	std::string model_name = "world_model";
+	std::string model_name = "urdf_world_model";
 	
 	ros::Publisher object_in_map_pub_;
 	object_in_map_pub_  = nh.advertise<arm_navigation_msgs::CollisionObject>("collision_object", 20);
@@ -282,16 +284,6 @@ int main(int argc, char** argv)
 			
 			object_in_map_pub_.publish(collision_object);
 			
-			arm_navigation_msgs::SetPlanningSceneDiff::Request set_planning_scene_diff_req;
-			arm_navigation_msgs::SetPlanningSceneDiff::Response set_planning_scene_diff_res;
-			
-			if(set_planning_scene_diff_client.call(set_planning_scene_diff_req, set_planning_scene_diff_res)) 
-			{	
-				ROS_ERROR("Can't get planning scene");
-			}
-			
-			ROS_INFO("Got planning_scene!");
-			
 			ROS_INFO("Should have published");
 			
 		}
@@ -319,6 +311,15 @@ int main(int argc, char** argv)
 				}
 			}
 		}
+		arm_navigation_msgs::SetPlanningSceneDiff::Request set_planning_scene_diff_req;
+		arm_navigation_msgs::SetPlanningSceneDiff::Response set_planning_scene_diff_res;
+				
+		if(!set_planning_scene_diff_client.call(set_planning_scene_diff_req, set_planning_scene_diff_res)) 
+		{	
+			ROS_ERROR("Can't get planning scene");
+		}
+		
+		ROS_INFO("Got planning_scene!");
 
 	
 /*	

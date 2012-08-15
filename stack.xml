@@ -27,5 +27,6 @@
   <depend stack="schunk_modular_robotics" /> <!-- schunk_sdh -->
   <depend stack="visualization" /> <!-- rviz -->
   <depend stack="warehousewg" /> <!-- mongodb -->
+  <depend stack="common_rosdeps" /> <!-- assimp -->
 
 </stack>
