@@ -33,14 +33,16 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
 #rosbuild_add_executable(example examples/example.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
 
-
 rosbuild_add_executable(addCylinder src/addCylinder.cpp)
 rosbuild_add_executable(addBox src/addBox.cpp)
 #rosbuild_add_executable(addFloor src/addFloor.cpp)
 rosbuild_add_executable(addWorld src/addWorld.cpp)
 #rosbuild_add_executable(addObject src/addObject.cpp)
 rosbuild_add_executable(object_handler src/object_handler.cpp)
+target_link_libraries(object_handler assimp)
+
 rosbuild_add_executable(test_object_handler src/test_object_handler.cpp)
 
 rosbuild_add_executable(addWorldService src/addWorldService.cpp)
+rosbuild_add_executable(modifyCollisionObjects src/modifyCollisionObjects.cpp)
 
