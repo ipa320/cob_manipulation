@@ -249,7 +249,7 @@ private:
 				}				
 				else
 				{
-					model_origin = tf::Transform();
+					model_origin.setIdentity();
 				}
 
 

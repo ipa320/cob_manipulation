@@ -205,7 +205,7 @@ private:
 		}				
 		else
 		{
-			model_origin = tf::Transform();
+			model_origin.setIdentity();
 		}
 
 		arm_navigation_msgs::CollisionObject collision_object;
