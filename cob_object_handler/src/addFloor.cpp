@@ -3,7 +3,7 @@
  * \file
  *
  * \note
- *   Copyright (c) 2010 \n
+ *   Copyright (c) 2012 \n
  *   Fraunhofer Institute for Manufacturing Engineering
  *   and Automation (IPA) \n\n
  *
@@ -12,14 +12,14 @@
  * \note
  *   Project name: care-o-bot
  * \note
- *   ROS stack name: cob_apps
+ *   ROS stack name: cob_manipulation
  * \note
- *   ROS package name: cob_arm_navigation
+ *   ROS package name: cob_object_handler
  *
  * \author
  *   Author: Felix Messmer, email:felix.messmer@ipa.fhg.de
  *
- * \date Date of creation: January 2011
+ * \date Date of creation: April 2012
  *
  * \brief
  *   Adds a floor as a known obstacle to the environment server.
@@ -56,53 +56,113 @@
  ****************************************************************/
 
 
-
-
 #include <ros/ros.h>
 
 #include <arm_navigation_msgs/CollisionObject.h>
 #include <arm_navigation_msgs/Shape.h>
+#include <arm_navigation_msgs/GetPlanningScene.h>
+#include <arm_navigation_msgs/SetPlanningSceneDiff.h>
 
-int main(int argc, char** argv) {
+static const std::string GET_PLANNING_SCENE_NAME = "/environment_server/get_planning_scene";
+static const std::string SET_PLANNING_SCENE_DIFF_NAME = "/environment_server/set_planning_scene_diff";
 
+int main(int argc, char** argv) 
+{
   ros::init(argc, argv, "addFloor");
-
   ros::NodeHandle nh;
 
-  ros::service::waitForService("/cob3_environment_server/get_state_validity");	//just to make sure that the environment_server is there!
+	ros::Publisher object_in_map_pub_;
+	object_in_map_pub_  = nh.advertise<arm_navigation_msgs::CollisionObject>("collision_object", 10);
 
-  ros::Publisher object_in_map_pub_;
-  object_in_map_pub_  = nh.advertise<arm_navigation_msgs::CollisionObject>("collision_object", 10);
+	ros::Duration(2.0).sleep();
+	
+	ros::service::waitForService(GET_PLANNING_SCENE_NAME);
+	ros::service::waitForService(SET_PLANNING_SCENE_DIFF_NAME);
+	ros::ServiceClient get_planning_scene_client = nh.serviceClient<arm_navigation_msgs::GetPlanningScene>(GET_PLANNING_SCENE_NAME);
+	ros::ServiceClient set_planning_scene_diff_client = nh.serviceClient<arm_navigation_msgs::SetPlanningSceneDiff>(SET_PLANNING_SCENE_DIFF_NAME);
+	
+	arm_navigation_msgs::GetPlanningScene::Request get_planning_scene_req;
+	arm_navigation_msgs::GetPlanningScene::Response get_planning_scene_res;
+	
+	if(argc > 1) 
+	{
+		std::stringstream s(argv[1]);
+		bool add;
+		s >> add;
 
-  //add the cylinder into the collision space
-  arm_navigation_msgs::CollisionObject cylinder_object;
-  cylinder_object.id = "floor";
-  cylinder_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ADD;
-  //cylinder_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::REMOVE;
-  cylinder_object.header.frame_id = "/map";
-  cylinder_object.header.stamp = ros::Time::now();
-  arm_navigation_msgs::Shape object;
-  object.type = arm_navigation_msgs::Shape::BOX;
-  object.dimensions.resize(3);
-  object.dimensions[0] = 10.0;
-  object.dimensions[1] = 10.0;
-  object.dimensions[2] = 0.01;
-  geometry_msgs::Pose pose;
-  pose.position.x = 0.0;
-  pose.position.y = 0.0;
-  pose.position.z = -0.005;
-  pose.orientation.x = 0;
-  pose.orientation.y = 0;
-  pose.orientation.z = 0;
-  pose.orientation.w = 1;
-  cylinder_object.shapes.push_back(object);
-  cylinder_object.poses.push_back(pose);
-
-  cylinder_object.id = "floor";
-  object_in_map_pub_.publish(cylinder_object);
-
-  ROS_INFO("Should have published");
-
-  ros::shutdown();
+		if(add) 
+		{
+			ROS_INFO("Adding the obstacle");
+			//add the floor into the collision space
+			arm_navigation_msgs::CollisionObject box_object;
+			box_object.id = "floor";
+			//cylinder_object.padding = 10.0;
+			box_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ADD;
+			//cylinder_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::REMOVE;
+			box_object.header.frame_id = "/map";
+			box_object.header.stamp = ros::Time::now();
+			arm_navigation_msgs::Shape object;
+			object.type = arm_navigation_msgs::Shape::BOX;
+			object.dimensions.resize(3);
+  			object.dimensions[0] = 10.0;
+			object.dimensions[1] = 10.0;
+			object.dimensions[2] = 0.01;
+			geometry_msgs::Pose pose;
+			pose.position.x = 0.0;
+			pose.position.y = 0.0;
+			pose.position.z = -0.005;
+			pose.orientation.x = 0;
+			pose.orientation.y = 0;
+			pose.orientation.z = 0;
+			pose.orientation.w = 1;
+			box_object.shapes.push_back(object);
+			box_object.poses.push_back(pose);
+		
+			object_in_map_pub_.publish(box_object);
+			
+			arm_navigation_msgs::SetPlanningSceneDiff::Request set_planning_scene_diff_req;
+			arm_navigation_msgs::SetPlanningSceneDiff::Response set_planning_scene_diff_res;
+			
+			if(!set_planning_scene_diff_client.call(set_planning_scene_diff_req, set_planning_scene_diff_res)) 
+			{	
+				ROS_ERROR("Can't get planning scene");
+			}
+			
+			ROS_INFO("Got planning_scene!");
+			
+			ROS_INFO("Should have published");
+		}
+		else
+		{
+			ROS_INFO("Removing the pole");
+			if(!get_planning_scene_client.call(get_planning_scene_req, get_planning_scene_res)) 
+			{
+				ROS_WARN("Can't get planning scene");
+				return -1;
+			}
+			ROS_INFO("Got planning_scene!");
+			
+			for(unsigned int i=0; i<get_planning_scene_res.planning_scene.collision_objects.size(); i++)
+			{
+				if(get_planning_scene_res.planning_scene.collision_objects[i].id == "floor")
+				{
+					ROS_INFO("Found the pole within the collision_objects");
+					arm_navigation_msgs::CollisionObject box_object = 	get_planning_scene_res.planning_scene.collision_objects[i];
+					box_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::REMOVE;
+					
+					object_in_map_pub_.publish(box_object);
+					ROS_INFO("Should have published");
+					break;
+				}
+			}
+		}
+	}
+	else
+		ROS_WARN("Please call with argument: 1->addPole; 0->removePole");
+		
+	
+	
+	ros::Duration(2.0).sleep();
+	ros::shutdown();
 }
 
