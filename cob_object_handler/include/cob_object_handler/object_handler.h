@@ -193,7 +193,6 @@ private:
 		arm_navigation_msgs::CollisionObject collision_object;
 		collision_object.id = model_name + "_object";
 		collision_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ADD;
-		//collision_object.padding = 5.0;
 		collision_object.header.frame_id = frame_id;
 		collision_object.header.stamp = ros::Time::now();
 	  
@@ -275,21 +274,7 @@ private:
 		ros::Duration(2.0).sleep();
 		
 		arm_navigation_msgs::SetPlanningSceneDiff::Request set_planning_scene_diff_req;
-		arm_navigation_msgs::SetPlanningSceneDiff::Response set_planning_scene_diff_res;
-		
-		//arm_navigation_msgs::CollisionOperation coll_op;
-		//coll_op.object1="arm";
-		//coll_op.object2="objects";
-		//coll_op.penetration_distance=0.0;
-		//coll_op.operation=1;	//ENABLE
-		//set_planning_scene_diff_req.operations.collision_operations.push_back(coll_op);
-		
-		//coll_op.object1="sdh";
-		//coll_op.object2="objects";
-		//coll_op.penetration_distance=0.0;
-		//coll_op.operation=1;	//ENABLE
-		//set_planning_scene_diff_req.operations.collision_operations.push_back(coll_op);
-		
+		arm_navigation_msgs::SetPlanningSceneDiff::Response set_planning_scene_diff_res;		
 		
 		if(!m_set_planning_scene_diff_client.call(set_planning_scene_diff_req, set_planning_scene_diff_res)) 
 		{
