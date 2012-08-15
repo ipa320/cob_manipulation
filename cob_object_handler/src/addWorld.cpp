@@ -284,16 +284,6 @@ int main(int argc, char** argv)
 			
 			object_in_map_pub_.publish(collision_object);
 			
-			arm_navigation_msgs::SetPlanningSceneDiff::Request set_planning_scene_diff_req;
-			arm_navigation_msgs::SetPlanningSceneDiff::Response set_planning_scene_diff_res;
-			
-			if(set_planning_scene_diff_client.call(set_planning_scene_diff_req, set_planning_scene_diff_res)) 
-			{	
-				ROS_ERROR("Can't get planning scene");
-			}
-			
-			ROS_INFO("Got planning_scene!");
-			
 			ROS_INFO("Should have published");
 			
 		}
@@ -321,6 +311,15 @@ int main(int argc, char** argv)
 				}
 			}
 		}
+		arm_navigation_msgs::SetPlanningSceneDiff::Request set_planning_scene_diff_req;
+		arm_navigation_msgs::SetPlanningSceneDiff::Response set_planning_scene_diff_res;
+				
+		if(!set_planning_scene_diff_client.call(set_planning_scene_diff_req, set_planning_scene_diff_res)) 
+		{	
+			ROS_ERROR("Can't get planning scene");
+		}
+		
+		ROS_INFO("Got planning_scene!");
 
 	
 /*	
