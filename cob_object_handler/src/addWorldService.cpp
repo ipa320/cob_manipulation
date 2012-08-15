@@ -101,7 +101,7 @@ private:
 	
 	ros::ServiceServer add_world_service;
 	
-	
+	bool use_gazebo;
 		
 	
 public:	
@@ -118,16 +118,24 @@ public:
 	  
 		//this sleep is important!
 		ros::Duration(2.0).sleep();
-
+		
+		ROS_WARN("waiting for services...");
 		ros::service::waitForService(GET_PLANNING_SCENE_NAME);
 		get_planning_scene_client = nh.serviceClient<arm_navigation_msgs::GetPlanningScene>(GET_PLANNING_SCENE_NAME);
 		set_planning_scene_diff_client = nh.serviceClient<arm_navigation_msgs::SetPlanningSceneDiff>(SET_PLANNING_SCENE_DIFF_NAME);
 
-		ros::service::waitForService("/gazebo/get_model_state");
-		ros::service::waitForService("/planning_scene_validity_server/get_state_validity");	//just to make sure that the environment_server is there!
+		use_gazebo = true;
+		if(!ros::service::waitForService("/gazebo/get_model_state", 500))
+		{
+			ROS_WARN("/gazebo/get_model_state is not available...assuming to run on real robot");
+			use_gazebo = false;
+			
+		}
+		ROS_INFO("...done!");
 
 		//access to tranformation /world to /root_link (table_top)
-		get_model_state_client = nh.serviceClient<gazebo::GetModelState>("/gazebo/get_model_state");
+		if(use_gazebo)
+			get_model_state_client = nh.serviceClient<gazebo::GetModelState>("/gazebo/get_model_state");
 		
 		
 		add_world_service = nh.advertiseService("/addWorld", &AddWorldService::addWorld, this);
@@ -224,26 +232,32 @@ private:
 			{
 				collision_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ADD;
 
-				gazebo::GetModelState srv;
-
-				srv.request.model_name = model_name;
-				if (get_model_state_client.call(srv))
+				tf::Transform model_origin;
+				if(use_gazebo)
 				{
-					ROS_DEBUG("URDFPose (x,y,z): (%f,%f,%f)", srv.response.pose.position.x, srv.response.pose.position.y, srv.response.pose.position.z);
-				}
+					//access to tranformation /world to /root_link (table_top)
+					gazebo::GetModelState srv;
+					srv.request.model_name = model_name;
+					if (get_model_state_client.call(srv))	{
+						ROS_DEBUG("URDFPose (x,y,z): (%f,%f,%f)", srv.response.pose.position.x, srv.response.pose.position.y, srv.response.pose.position.z);
+						model_origin = tf::Transform(tf::Quaternion(srv.response.pose.orientation.x, srv.response.pose.orientation.y, srv.response.pose.orientation.z, srv.response.pose.orientation.w), tf::Vector3(srv.response.pose.position.x, srv.response.pose.position.y, srv.response.pose.position.z));
+					}
+					else {
+						ROS_ERROR("Failed to call service get_model_state");
+						ros::shutdown();
+					}
+				}				
 				else
 				{
-					ROS_ERROR("Failed to call service get_model_state");
-					ros::shutdown();
+					model_origin = tf::Transform();
 				}
+
 
 				tf::Pose pose;
 				tf::Pose pose2;
-				tf::Transform model_origin;
 				tf::Transform link_origin;
 				tf::Transform joint_origin;
 				
-				model_origin = tf::Transform(tf::Quaternion(srv.response.pose.orientation.x, srv.response.pose.orientation.y, srv.response.pose.orientation.z, srv.response.pose.orientation.w), tf::Vector3(srv.response.pose.position.x, srv.response.pose.position.y, srv.response.pose.position.z));
 				link_origin = tf::Transform(tf::Quaternion(current_link.collision->origin.rotation.x, 
 														   current_link.collision->origin.rotation.y,
 														   current_link.collision->origin.rotation.z,
