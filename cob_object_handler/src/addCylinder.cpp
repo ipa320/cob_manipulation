@@ -147,7 +147,9 @@ int main(int argc, char** argv)
 			}
 			
 		}
-		
+	
+		ros::Duration(0.1).sleep();
+	
 		arm_navigation_msgs::SetPlanningSceneDiff::Request set_planning_scene_diff_req;
 		arm_navigation_msgs::SetPlanningSceneDiff::Response set_planning_scene_diff_res;
 				
@@ -163,7 +165,7 @@ int main(int argc, char** argv)
 		
 	
 	
-	ros::Duration(2.0).sleep();
+	ros::Duration(0.5).sleep();
 	ros::shutdown();
 }
 
