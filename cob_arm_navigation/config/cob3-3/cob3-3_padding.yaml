@@ -1,4 +1,6 @@
-#link_padding:
+link_padding:
+  - link: base_link
+    padding: .2
 #  - link: arm_1_link
 #    padding: .03
 #  - link: arm_2_link
