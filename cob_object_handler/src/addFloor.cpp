@@ -92,25 +92,26 @@ int main(int argc, char** argv)
 
 		if(add) 
 		{
-			ROS_INFO("Adding the obstacle");
+			ROS_INFO("Adding the floor");
 			//add the floor into the collision space
 			arm_navigation_msgs::CollisionObject box_object;
 			box_object.id = "floor";
 			//cylinder_object.padding = 10.0;
 			box_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ADD;
 			//cylinder_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::REMOVE;
-			box_object.header.frame_id = "/odom_combined";
+			//box_object.header.frame_id = "/odom_combined";
+			box_object.header.frame_id = "/base_link";
 			box_object.header.stamp = ros::Time::now();
 			arm_navigation_msgs::Shape object;
 			object.type = arm_navigation_msgs::Shape::BOX;
 			object.dimensions.resize(3);
-  			object.dimensions[0] = 10.0;
-			object.dimensions[1] = 14.0;
+  			object.dimensions[0] = 3.0;
+			object.dimensions[1] = 3.0;
 			object.dimensions[2] = 0.01;
 			geometry_msgs::Pose pose;
-			pose.position.x = 2.0;
-			pose.position.y = -4;
-			pose.position.z = -0.005;
+			pose.position.x = 0.0;
+			pose.position.y = 0.0;
+			pose.position.z = 0.0;
 			pose.orientation.x = 0;
 			pose.orientation.y = 0;
 			pose.orientation.z = 0;
@@ -124,7 +125,7 @@ int main(int argc, char** argv)
 		}
 		else
 		{
-			ROS_INFO("Removing the pole");
+			ROS_INFO("Removing the floor");
 			if(!get_planning_scene_client.call(get_planning_scene_req, get_planning_scene_res)) 
 			{
 				ROS_WARN("Can't get planning scene");
@@ -136,7 +137,7 @@ int main(int argc, char** argv)
 			{
 				if(get_planning_scene_res.planning_scene.collision_objects[i].id == "floor")
 				{
-					ROS_INFO("Found the pole within the collision_objects");
+					ROS_INFO("Found the floor within the collision_objects");
 					arm_navigation_msgs::CollisionObject box_object = 	get_planning_scene_res.planning_scene.collision_objects[i];
 					box_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::REMOVE;
 					
@@ -146,6 +147,9 @@ int main(int argc, char** argv)
 				}
 			}
 		}
+
+		ros::Duration(0.1).sleep();		
+
 		arm_navigation_msgs::SetPlanningSceneDiff::Request set_planning_scene_diff_req;
 		arm_navigation_msgs::SetPlanningSceneDiff::Response set_planning_scene_diff_res;
 				
@@ -157,7 +161,7 @@ int main(int argc, char** argv)
 		ROS_INFO("Got planning_scene!");
 	}
 	else
-		ROS_WARN("Please call with argument: 1->addPole; 0->removePole");
+		ROS_WARN("Please call with argument: 1->addFloor; 0->removeFloor");
 		
 	
 	
