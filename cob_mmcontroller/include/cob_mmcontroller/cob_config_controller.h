@@ -56,6 +56,7 @@ private:
 	KDL::Chain arm_chain;
 	KDL::JntArray VirtualQ;
 	KDL::JntArray q;
+    KDL::JntArray q_dot;
 	KDL::JntArray q_last;
 	bool started;
 	KDL::Twist extTwist;
@@ -63,8 +64,10 @@ private:
 
 	KDL::Frame base_odom_;
 	KDL::Frame arm_pose_;
+    KDL::Twist arm_vel_;
 
 	ChainFkSolverPos_recursive *  fksolver1;
+    ChainFkSolverVel_recursive * fksolver1_vel;
 	augmented_solver * iksolver1v;//Inverse velocity solver
 
 	bool RunSyncMM;
