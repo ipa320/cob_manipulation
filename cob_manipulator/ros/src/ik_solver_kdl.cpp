@@ -92,18 +92,22 @@ bool ik_solve(kinematics_msgs::GetPositionIK::Request  &req,
 	//ToDo: get joint limits from robot_description on parameter_server or use /cob_arm_kinematics/get_ik_solver_info!!!
 	for(unsigned int i = 0; i < nj; i+=2)
 	{
-		q_min(i) =-2.9670;		//adjusted due to cob_description/lbr.urdf.xacro
-		q_max(i) = 2.9670;
+		q_min(i) =-6.2831853;		//adjusted due to ur5_description/model.urdf.xacro
+		q_max(i) = 6.2831853;
 	}
 	for(unsigned int i = 1; i < nj; i+=2)
 	{
-		q_min(i) =-2.0943951;	//adjusted due to cob_description/lbr.urdf.xacro
-		q_max(i) = 2.0943951;
+		q_min(i) =-6.2831853;	//adjusted due to ur5_description/model.urdf.xacro
+		q_max(i) = 6.2831853;
 	}
+	///HACK
+	q_min(0) = 3.0;	
+	q_max(0) = 4.5;	
+
 	
 	ChainFkSolverPos_recursive fksolver1(chain);//Forward position solver
 	ChainIkSolverVel_pinv iksolver1v(chain);//Inverse velocity solver
-	ChainIkSolverPos_NR_JL iksolverpos(chain, q_min, q_max, fksolver1,iksolver1v,1000,1e-6);//Maximum 100 iterations, stop at accuracy 1e-6
+	ChainIkSolverPos_NR_JL iksolverpos(chain, q_min, q_max, fksolver1,iksolver1v,1000,1e-3);//Maximum 100 iterations, stop at accuracy 1e-6
 
 	JntArray q(nj);
 	JntArray q_init(nj);
