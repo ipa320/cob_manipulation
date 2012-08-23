@@ -1,0 +1,56 @@
+# THIS IS A SHARED CONFIG, DO NOT EDIT! CREATE AN OVERLAY INSTEAD!
+joint_limits:
+  arm_shoulder_pan_joint:
+    has_position_limits: true
+    min_position: -6.2831853
+    max_position: 6.2831853
+    has_velocity_limits: true
+    max_velocity: 3.14159265
+    has_acceleration_limits: true
+    max_acceleration: 1
+    angle_wraparound: false
+  arm_shoulder_lift_joint:
+    has_position_limits: true
+    min_position: -6.2831853
+    max_position: 6.2831853
+    has_velocity_limits: true
+    max_velocity: 3.14159265
+    has_acceleration_limits: true
+    max_acceleration: 1
+    angle_wraparound: false
+  arm_elbow_joint:
+    has_position_limits: true
+    min_position: -6.2831853
+    max_position: 6.2831853
+    has_velocity_limits: true
+    max_velocity: 3.14159265
+    has_acceleration_limits: true
+    max_acceleration: 1
+    angle_wraparound: false
+  arm_wrist_1_joint:
+    has_position_limits: true
+    min_position: -6.2831853
+    max_position: 6.2831853
+    has_velocity_limits: true
+    max_velocity: 3.14159265
+    has_acceleration_limits: true
+    max_acceleration: 1
+    angle_wraparound: false
+  arm_wrist_2_joint:
+    has_position_limits: true
+    min_position: -6.2831853
+    max_position: 6.2831853
+    has_velocity_limits: true
+    max_velocity: 3.14159265
+    has_acceleration_limits: true
+    max_acceleration: 1
+    angle_wraparound: false
+  arm_wrist_3_joint:
+    has_position_limits: true
+    min_position: -6.2831853
+    max_position: 6.2831853
+    has_velocity_limits: true
+    max_velocity: 3.14159265
+    has_acceleration_limits: true
+    max_acceleration: 1
+    angle_wraparound: false
