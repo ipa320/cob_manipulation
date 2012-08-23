@@ -59,7 +59,7 @@ bool FkLookup::addRoot(const urdf::Model &model, const std::string &root){
 	return false;
     }
     if(!model.getLink(root)){
-	ROS_ERROR_STREAM("Model does not icnlude link " << root);
+	ROS_ERROR_STREAM("Model does not include link '" << root << "'");
 	return false;
     }
     tree.reset(new KDL::Tree());
@@ -113,10 +113,11 @@ int IKWrapper::transformPositionIKRequest(kinematics_msgs::PositionIKRequest &re
 	
 	if(!fk->getFK(joints,frame_fk)) return arm_navigation_msgs::ArmNavigationErrorCodes::NO_FK_SOLUTION;
 	
-	frame_out = frame_fk.Inverse() * frame_in;
-	
+	frame_out = frame_in * frame_fk.Inverse();
+
 	tf::PoseKDLToMsg(frame_out, request.pose_stamped.pose);
-	request.pose_stamped.header.frame_id = fk->getRoot();
+
+	request.ik_link_name = fk->getRoot();
     }
     if(pose){
 	KDL::Frame frame_extended, frame_ik, frame_out;
@@ -188,15 +189,12 @@ bool IKWrapper::getPositionFK(kinematics_msgs::GetPositionFK::Request &request,
     kinematics_msgs::GetPositionFK::Response response_intern;
     get_fk_client.call(request, response_intern);
     
-    ROS_ERROR_STREAM("intern " << response_intern.pose_stamped[0]);
     response.error_code = response_intern.error_code;
     response.pose_stamped.clear();
-    ROS_ERROR_STREAM("size " << requested_links.size());
     
     if(response_intern.error_code.val ==  arm_navigation_msgs::ArmNavigationErrorCodes::SUCCESS){
 	for(std::vector<std::string>::iterator it = requested_links.begin(); it != requested_links.end(); ++it){
 	    const FkLookup::ChainFK * fk = chains[*it];
-	    ROS_ERROR_STREAM("chain for  " <<  *it << " " << fk?1:0);
 	    if(fk == 0){
 		response.pose_stamped.push_back(response_intern.pose_stamped[roots_links[*it]]);
 		continue;
@@ -214,7 +212,6 @@ bool IKWrapper::getPositionFK(kinematics_msgs::GetPositionFK::Request &request,
 		break;
 	    }else{ // no error
 		geometry_msgs::PoseStamped ps = response_intern.pose_stamped[roots_links[fk->getRoot()]];
-		ROS_ERROR_STREAM("root " << ps);
 		KDL::Frame frame_in;
 		tf::PoseMsgToKDL(ps.pose, frame_in);
 

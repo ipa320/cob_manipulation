@@ -8,6 +8,7 @@ import rospy
 import time
 import actionlib
 from pr2_controllers_msgs.msg import *
+from control_msgs.msg import *
 from cob_srvs.srv import *
 from cob_manipulator.msg import *
 from trajectory_msgs.msg import *
@@ -21,7 +22,8 @@ class move_cart:
 		self.received_state = False
 		self.listener = tf.TransformListener()
 		time.sleep(0.5)
-		self.client = actionlib.SimpleActionClient('joint_trajectory_action', JointTrajectoryAction)
+		#self.client = actionlib.SimpleActionClient('joint_trajectory_action', JointTrajectoryAction)
+		self.client = actionlib.SimpleActionClient('follow_joint_trajectory', FollowJointTrajectoryAction)
 		self.as_ = actionlib.SimpleActionServer("move_cart", MoveCartAction, execute_cb=self.cbMoveCart)
 		if not self.client.wait_for_server(rospy.Duration(15)):
 			rospy.logerr("arm action server not ready within timeout, aborting...")
@@ -75,7 +77,8 @@ class move_cart:
 			self.as_.set_aborted(result);
 	
 	def moveArm(self, positions):
-		goal = JointTrajectoryGoal()
+		#goal = JointTrajectoryGoal()
+		goal = FollowJointTrajectoryGoal()
 		goalp = JointTrajectory()
 		goalp.joint_names = ["arm_1_joint","arm_2_joint","arm_3_joint","arm_4_joint","arm_5_joint","arm_6_joint","arm_7_joint"]
 		point=JointTrajectoryPoint()

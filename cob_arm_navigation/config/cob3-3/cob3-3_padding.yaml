@@ -1,0 +1,38 @@
+link_padding:
+  - link: base_link
+    padding: .2
+#  - link: arm_1_link
+#    padding: .03
+#  - link: arm_2_link
+#    padding: .03
+#  - link: arm_3_link
+#    padding: .03
+#  - link: arm_4_link
+#    padding: .04
+#  - link: arm_5_link
+#    padding: .04
+#  - link: arm_6_link
+#    padding: .04
+#  - link: arm_7_link
+#    padding: .04
+#  - link: sdh_finger_11_link
+#    padding: 0.05
+#  - link: sdh_finger_12_link
+#    padding: 0.05
+#  - link: sdh_finger_13_link
+#    padding: 0.075
+#  - link: sdh_finger_21_link
+#    padding: 0.05
+#  - link: sdh_finger_22_link
+#    padding: 0.05
+#  - link: sdh_finger_23_link
+#    padding: 0.075
+#  - link: sdh_palm_link
+#    padding: 0.05
+#  - link: sdh_thumb_1_link
+#    padding: 0.05
+#  - link: sdh_thumb_2_link
+#    padding: 0.05
+#  - link: sdh_thumb_3_link
+#    padding: 0.075
+
