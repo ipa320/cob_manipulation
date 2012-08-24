@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<launch>
+
+    <group>
+        <include file="$(find cob_arm_navigation)/launch/environment_server.xml" />
+        <include file="$(find cob_arm_navigation)/launch/ompl_planning.xml"/>
+        <include file="$(find cob_arm_navigation)/launch/move_groups.xml"/>
+    </group>
+
+<!--
+	<group>
+		<include file="$(find cob_arm_navigation)/launch/kinect_perception.launch" />
+	</group>
+-->
+
+</launch>

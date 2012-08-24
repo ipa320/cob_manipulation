@@ -6,7 +6,7 @@ arm_navigation_msgs/Constraints constraints
 #extended pose of the end effector
 geometry_msgs/Pose ik_pose
 #obey constraints?
-bool use_constraints
+bool constraint_aware
 # Maximum allowed time for IK calculation
 duration timeout
 ---
