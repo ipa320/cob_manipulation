@@ -1,0 +1,5 @@
+string operation
+string object
+---
+bool success
+string error_message

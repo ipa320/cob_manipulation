@@ -22,12 +22,12 @@
   <depend stack="pluginlib" /> <!-- pluginlib -->
   <depend stack="pr2_controllers" /> <!-- pr2_controllers_msgs -->
   <depend stack="pr2_kinematics" /> <!-- pr2_arm_kinematics -->
-  <depend stack="robot_model" /> <!-- robot_state_publisher, urdf, kdl_parser, collada_urdf -->
+  <depend stack="robot_model" /> <!-- urdf_parser, collada_urdf, urdf, robot_state_publisher, kdl_parser -->
   <depend stack="ros" />
   <depend stack="ros_comm" /> <!-- std_msgs, rospy, roscpp -->
   <depend stack="schunk_modular_robotics" /> <!-- schunk_sdh -->
   <depend stack="visualization" /> <!-- rviz -->
   <depend stack="warehousewg" /> <!-- mongodb -->
-  <depend stack="cob_manipulation_sandbox" /> <!-- articulation_msgs -->
+  <depend stack="common_rosdeps" /> <!-- assimp -->
 
 </stack>
