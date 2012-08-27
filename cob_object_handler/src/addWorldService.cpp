@@ -68,6 +68,7 @@
 #include <urdf/model.h>
 #include <planning_models/kinematic_model.h>
 #include <tf/tf.h>
+#include <tf/transform_listener.h>
 #include <planning_environment/util/construct_object.h>
 #include <gazebo/GetModelState.h>
 //#include <urdf/link.h>
@@ -109,8 +110,6 @@ public:
 	AddWorldService()
 	{
 		//const std::string frame_id = "/base_footprint";
-		//frame_id = "/map";
-		frame_id = "/odom_combined";
 
 		parameter_name = "world_description";
 		model_name = "urdf_world_model";
@@ -130,15 +129,17 @@ public:
 		{
 			ROS_WARN("/gazebo/get_model_state is not available...assuming to run on real robot");
 			use_gazebo = false;
-			
+			frame_id = "/map";
+			//frame_id = "/odom_combined";		
+		}
+		else
+		{
+			//access to tranformation /world to /root_link (table_top)
+			get_model_state_client = nh.serviceClient<gazebo::GetModelState>("/gazebo/get_model_state");
+			frame_id = "/odom_combined";
 		}
 		ROS_INFO("...done!");
 
-		//access to tranformation /world to /root_link (table_top)
-		if(use_gazebo)
-			get_model_state_client = nh.serviceClient<gazebo::GetModelState>("/gazebo/get_model_state");
-		
-		
 		add_world_service = nh.advertiseService("/addWorld", &AddWorldService::addWorld, this);
 	}
 
@@ -245,6 +246,7 @@ private:
 				collision_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ADD;
 
 				tf::Transform model_origin;
+				model_origin.setIdentity();
 				if(use_gazebo)
 				{
 					//access to tranformation /world to /root_link (table_top)
@@ -261,7 +263,28 @@ private:
 				}				
 				else
 				{
-					model_origin.setIdentity();
+					/*
+					tf::TransformListener listener;
+					tf::StampedTransform transform;
+					try
+					{
+						std::string error_string;
+						ROS_INFO("waiting...");
+						listener.waitForTransform("odom_combined", "map", ros::Time(0), ros::Duration(10000));
+						ROS_INFO("done waiting for transform");
+						//int success = listener.getLatestCommonTime("/odom_combined", "/map", time, &error_string);
+						listener.lookupTransform("odom_combined", "map", ros::Time(0), transform);
+					}
+					catch (tf::TransformException ex)
+					{
+						ROS_ERROR("%s",ex.what());
+					}
+					model_origin.setBasis(transform.getBasis());
+					model_origin.setOrigin(transform.getOrigin());
+					double roll, pitch, yaw;
+					model_origin.getBasis().getRPY(roll, pitch, yaw);
+					ROS_INFO("Rotation: %f, %f, %f", roll, pitch, yaw);
+					*/
 				}
 
 
