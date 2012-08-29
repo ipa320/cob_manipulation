@@ -4,7 +4,7 @@
     This package contains the launch files for arm navigation with the Care-O-bot 3.
 
   </description>
-  <author>Alexander Bubeck</author>
+  <author>Mathias Luedtke and Felix Messmer</author>
   <license>LGPL</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_arm_navigation</url>
