@@ -77,6 +77,7 @@
 #include <arm_navigation_msgs/SetPlanningSceneDiff.h>
 #include <planning_environment/models/collision_models.h>
 #include <cob_object_handler/HandleObject.h>
+#include "geometric_shapes/shape_operations.h"
 
 static const std::string GET_PLANNING_SCENE_NAME = "/environment_server/get_planning_scene";
 static const std::string SET_PLANNING_SCENE_DIFF_NAME = "/environment_server/set_planning_scene_diff";
@@ -172,8 +173,19 @@ private:
 		}
 		else if(geom->type == urdf::Geometry::MESH)
 		{
-			//you can find the code in motion_planning_common/planning_models/kinematic_models.cpp
-			ROS_INFO("MESH --- currently not supported");
+			const urdf::Mesh *mesh = dynamic_cast<const urdf::Mesh*>(geom);
+			if (!mesh->filename.empty())
+			{
+				const btVector3* scale = new btVector3(mesh->scale.x, mesh->scale.y, mesh->scale.z);
+				result = shapes::createMeshFromFilename(mesh->filename.c_str(), scale);
+		
+				if (result == NULL)
+					ROS_ERROR("Failed to load mesh '%s'", mesh->filename.c_str());
+				else
+					ROS_DEBUG("Loaded mesh '%s' consisting of %d triangles", mesh->filename.c_str(), static_cast<shapes::Mesh*>(result)->triangleCount);			
+			}
+			else
+				ROS_WARN("Empty mesh filename");
 		}
 		else
 		{

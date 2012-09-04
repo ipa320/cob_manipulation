@@ -1,9 +1,13 @@
 <launch>
-    <node pkg="arm_kinematics_constraint_aware" type="arm_kinematics_constraint_aware" name="cob_arm_kinematics">
-        <rosparam file="$(find cob_manipulation_config)/$(env ROBOT)/kinematics.yaml"/>
-    </node>
-    <!-- <node pkg="cob_interpolated_ik_motion_planner" name="cob_interpolated_ik_motion_planner" type="interpolated_ik_motion_planner.py" args="arm">
-        <param name="robot_prefix" value="cob" />
-    </node> -->
-    <node pkg="cob_kinematics" type="ik_wrapper_node" name="cob_ik_wrapper" ns="/cob_ik_wrapper/arm/"/>
+	<arg name="robot" default="$(env ROBOT)"/>
+
+	<node pkg="arm_kinematics_constraint_aware" type="arm_kinematics_constraint_aware" name="cob_arm_kinematics">
+		<rosparam file="$(find cob_manipulation_config)/$(arg robot)/kinematics.yaml"/>
+	</node>
+<!-- 
+	<node pkg="cob_interpolated_ik_motion_planner" name="cob_interpolated_ik_motion_planner" type="interpolated_ik_motion_planner.py" args="arm">
+		<param name="robot_prefix" value="cob" />
+	</node>
+-->
+	<node pkg="cob_kinematics" type="ik_wrapper_node" name="cob_ik_wrapper" ns="/cob_ik_wrapper/arm/"/>
 </launch>
