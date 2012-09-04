@@ -56,10 +56,7 @@
 
 #include <planning_environment/models/collision_models.h>
 #include <planning_environment/util/construct_object.h>
-#include <resource_retriever/retriever.h>
-#include <assimp/assimp.hpp>     
-#include <assimp/aiScene.h>      
-#include <assimp/aiPostProcess.h>
+
 
 
 
