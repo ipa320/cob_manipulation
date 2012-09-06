@@ -51,6 +51,13 @@ if __name__ == '__main__':
 	rospy.wait_for_service('/object_handler/handle_object')
 	print "...done"
 	
+	#floor_pose = PoseStamped()
+	#floor_pose.header.frame_id = "/odom_combined"
+	#floor_pose.header.stamp = rospy.Time.now()
+	#floor_pose.pose.position.x, floor_pose.pose.position.y, floor_pose.pose.position.z = [0,0,0]
+	#floor_pose.pose.orientation.x, floor_pose.pose.orientation.y, floor_pose.pose.orientation.z, floor_pose.pose.orientation.w = quaternion_from_euler(0,0,0)
+	#load_object(HandleObjectRequest.BOX, "floor", "add", floor_pose, dimensions=[3.0,3.0.0.1] )
+	
 	#box_pose = PoseStamped()
 	#box_pose.header.frame_id = "/odom_combined"
 	#box_pose.header.stamp = rospy.Time.now()
