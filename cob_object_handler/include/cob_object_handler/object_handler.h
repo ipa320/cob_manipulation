@@ -35,33 +35,37 @@
 
 
 #include <ros/ros.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <vector>
-#include <tinyxml.h>
+//#include <stdio.h>
+//#include <stdlib.h>
+//#include <vector>
+//#include <tinyxml.h>
 #include <tf/tf.h>
 
 #include <cob_object_handler/HandleObject.h>
-#include <gazebo/GetModelState.h>
-#include <urdf/model.h>
-#include <planning_models/kinematic_model.h>
 #include <arm_navigation_msgs/CollisionObject.h>
 #include <arm_navigation_msgs/AttachedCollisionObject.h>
-
-#include <arm_navigation_msgs/GetPlanningScene.h>
 #include <arm_navigation_msgs/SetPlanningSceneDiff.h>
+#include <cob_object_detection_msgs/DetectObjects.h>
 
-//#include <arm_navigation_msgs/Shape.h>
 #include "geometric_shapes/shape_operations.h"
-
-#include <planning_environment/models/collision_models.h>
 #include <planning_environment/util/construct_object.h>
 
 
 
+//#include <urdf/model.h>
+//#include <planning_models/kinematic_model.h>
 
-static const std::string GET_PLANNING_SCENE_NAME = "/environment_server/get_planning_scene";
+
+
+////#include <arm_navigation_msgs/Shape.h>
+
+//#include <planning_environment/models/collision_models.h>
+
+
+
+
 static const std::string SET_PLANNING_SCENE_DIFF_NAME = "/environment_server/set_planning_scene_diff";
+static const std::string DETECT_OBJECTS_NAME = "/detect_object";
 //const std::string frame_id = "/map";
 const std::string frame_id = "/odom_combined";
 
@@ -71,68 +75,40 @@ class Object_Handler
 private:
 	ros::NodeHandle rh;
 
-	ros::Publisher m_object_in_map_pub;
-	ros::Publisher m_att_object_in_map_pub;
+	ros::Publisher m_object_pub;
+	ros::Publisher m_att_object_pub;
 
-	ros::ServiceClient m_state_client;
-	ros::ServiceClient m_get_planning_scene_client;
 	ros::ServiceClient m_set_planning_scene_diff_client;
-	
-	ros::ServiceServer m_add_object_server;
-	ros::ServiceServer m_remove_object_server;
-	ros::ServiceServer m_attach_object_server;
-	ros::ServiceServer m_detach_object_server;
+	ros::ServiceClient m_detect_objects_client;
 	
 	ros::ServiceServer m_handle_object_server;
-	
-	bool use_gazebo;
 	
 
 public:	
 	Object_Handler()
 	{
-		ROS_INFO("Object_Handler_constructor called");
-
 		ROS_WARN("waiting for services...");
-		ros::service::waitForService(GET_PLANNING_SCENE_NAME);
 		ros::service::waitForService(SET_PLANNING_SCENE_DIFF_NAME);
+		ros::service::waitForService(DETECT_OBJECTS_NAME);
 		
-		use_gazebo = true;
-		if(!ros::service::waitForService("/gazebo/get_model_state", 500))
-		{
-			ROS_WARN("/gazebo/get_model_state is not available...assuming to run on real robot");
-			use_gazebo = false;
-			
-		}
-		ROS_INFO("...done!");
+		m_object_pub  = rh.advertise<arm_navigation_msgs::CollisionObject>("collision_object", 1);
+		m_att_object_pub  = rh.advertise<arm_navigation_msgs::AttachedCollisionObject>("attached_collision_object", 1);
 		
-		m_object_in_map_pub  = rh.advertise<arm_navigation_msgs::CollisionObject>("collision_object", 1);
-		m_att_object_in_map_pub  = rh.advertise<arm_navigation_msgs::AttachedCollisionObject>("attached_collision_object", 1);
-
 		//this sleep is important!
 		ros::Duration(2.0).sleep();
 		
-		m_get_planning_scene_client = rh.serviceClient<arm_navigation_msgs::GetPlanningScene>(GET_PLANNING_SCENE_NAME);
 		m_set_planning_scene_diff_client = rh.serviceClient<arm_navigation_msgs::SetPlanningSceneDiff>(SET_PLANNING_SCENE_DIFF_NAME);
-		if(use_gazebo)
-				m_state_client = rh.serviceClient<gazebo::GetModelState>("/gazebo/get_model_state");
-		
-
-		m_add_object_server = rh.advertiseService("/object_handler/add_object", &Object_Handler::add_object, this);
-		m_remove_object_server = rh.advertiseService("/object_handler/remove_object", &Object_Handler::remove_object, this);
-		m_attach_object_server = rh.advertiseService("/object_handler/attach_object", &Object_Handler::attach_object, this);
-		m_detach_object_server = rh.advertiseService("/object_handler/detach_object", &Object_Handler::detach_object, this);
+		m_detect_objects_client = rh.serviceClient<cob_object_detection_msgs::DetectObjects>(DETECT_OBJECTS_NAME);
 		
 		m_handle_object_server = rh.advertiseService("/object_handler/handle_object", &Object_Handler::handle_object, this);
-		ROS_INFO("object_handler ready...");
 	}
 	
 	void run()
 	{
-		ROS_INFO("spinning...");
+		ROS_INFO("object_handler ready...");
 		ros::spin();
 	}
-
+	
 private:	
 	//implement callbacks here
 	
@@ -141,26 +117,91 @@ private:
 	{
 		if(req.operation == "add")
 			return add_object(req, res);
-		else if(req.operation == "remove")
+/*		else if(req.operation == "remove")
 			return remove_object(req,res);
 		else if(req.operation == "attach")
 			return attach_object(req,res);
 		else if(req.operation == "detach")
-			return detach_object(req,res);
+			return detach_object(req,res);*/
 		else
 			ROS_ERROR("Unkown operation!");
 		
 		return false;
 	}
 	
-	
-	
 	bool add_object(cob_object_handler::HandleObject::Request  &req,
 					cob_object_handler::HandleObject::Response &res )
 	{
 		ROS_INFO("add_object-service called!");
-		ROS_INFO("Adding object %s ...",req.object.c_str());
+		ROS_INFO("Adding object %s ...",req.id.c_str());
 		
+		arm_navigation_msgs::CollisionObject collision_object;
+		collision_object.id = req.id;
+		collision_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ADD;
+		
+		if(req.type == cob_object_handler::HandleObject::Request::SPHERE || req.type == cob_object_handler::HandleObject::Request::BOX || req.type == cob_object_handler::HandleObject::Request::CYLINDER)
+		{
+			arm_navigation_msgs::Shape shape;
+			shape.type = req.type;
+			for(unsigned int i=0; i<req.dimensions.size(); i++)
+				shape.dimensions.push_back(req.dimensions[i]);
+			
+			collision_object.header = req.pose.header;
+			collision_object.shapes.push_back(shape);
+			collision_object.poses.push_back(req.pose.pose);
+		}
+		else if(req.type == cob_object_handler::HandleObject::Request::MESH)
+		{
+			arm_navigation_msgs::Shape shape;
+			const btVector3* scale = new btVector3(1.0, 1.0, 1.0);
+			shapes::Shape *shape_object = shapes::createMeshFromFilename(req.filename.c_str(), scale);
+			planning_environment::constructObjectMsg(shape_object, shape);
+			
+			collision_object.header = req.pose.header;
+			collision_object.shapes.push_back(shape);
+			collision_object.poses.push_back(req.pose.pose);
+		}
+		else if(req.type == cob_object_handler::HandleObject::Request::URDF)
+		{
+			
+		}
+		else if(req.type == cob_object_handler::HandleObject::Request::DETECT)
+		{
+			cob_object_detection_msgs::DetectObjects::Request detect_req;
+			cob_object_detection_msgs::DetectObjects::Response detect_res;
+			
+			detect_req.object_name.data = req.id.c_str();
+			
+			if(!m_detect_objects_client.call(detect_req, detect_res)) 
+			{
+				ROS_ERROR("/detect_objects failed");
+				res.success = false;
+				res.error_message = "Failed to detect object";
+				return true;
+			}
+			
+			cob_object_detection_msgs::Detection detection = detect_res.object_list.detections[0];
+			
+			arm_navigation_msgs::Shape shape;
+			shape.type = cob_object_handler::HandleObject::Request::BOX;
+			shape.dimensions.push_back(detection.bounding_box_lwh.x);
+			shape.dimensions.push_back(detection.bounding_box_lwh.y);
+			shape.dimensions.push_back(detection.bounding_box_lwh.z);
+			for(unsigned int i=0; i<shape.dimensions.size(); i++)
+				ROS_INFO("%d: %f", i, shape.dimensions[i]);
+			
+			collision_object.header = detection.pose.header;
+			collision_object.shapes.push_back(shape);
+			collision_object.poses.push_back(detection.pose.pose);
+		}
+		else
+		{
+			res.success = false;
+			res.error_message = "Object type is not supported!";
+			return true;
+		}
+		
+		/*
 		std::string parameter_name = req.object + "_description";
 		std::string model_name = req.object + "_model";
 		ROS_INFO("Model-Name: %s", model_name.c_str());
@@ -241,7 +282,7 @@ private:
 				joint_origin.setIdentity();				
 			}
 			else
-			{			
+			{
 			
 				boost::shared_ptr< urdf::Joint > current_parent_joint = current_link.parent_joint;
 				ROS_DEBUG("Current Parent Joint: %s", current_parent_joint->name.c_str());
@@ -280,14 +321,14 @@ private:
 			collision_object.shapes.push_back(msg_shape);
 			collision_object.poses.push_back(msg_pose_stamped.pose);
 		}
-
-		m_object_in_map_pub.publish(collision_object);
+*/
+		m_object_pub.publish(collision_object);
 		ROS_INFO("Object added to environment server!");
 		
 		ros::Duration(2.0).sleep();
 		
 		arm_navigation_msgs::SetPlanningSceneDiff::Request set_planning_scene_diff_req;
-		arm_navigation_msgs::SetPlanningSceneDiff::Response set_planning_scene_diff_res;		
+		arm_navigation_msgs::SetPlanningSceneDiff::Response set_planning_scene_diff_res;
 		
 		if(!m_set_planning_scene_diff_client.call(set_planning_scene_diff_req, set_planning_scene_diff_res)) 
 		{
@@ -295,14 +336,12 @@ private:
 		}
 		ROS_INFO("Got planning_scene!");
 		
-		
-
 		res.success = true;
 		res.error_message = "Object added to environment server!";
 		return true;
 	}
-	
-	
+	 
+/*
 	bool remove_object(cob_object_handler::HandleObject::Request  &req,
 					   cob_object_handler::HandleObject::Response &res )
 	{
@@ -536,6 +575,7 @@ private:
 
 		return result;
 	}
+*/
 	
 ///NOT USED ANYMORE
 /*	

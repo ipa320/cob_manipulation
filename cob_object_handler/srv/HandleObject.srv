@@ -1,5 +1,22 @@
+# type of the collision_object (SPHERE, CYLINDER, BOX, MESH, URDF, DETECT)
+byte SPHERE=0
+byte BOX=1
+byte CYLINDER=2
+byte MESH=3
+byte URDF=4
+byte DETECT=5
+byte type
+
+# id of the object
+string id
+
+# add, remove, attach, detach
 string operation
-string object
+
+geometry_msgs/PoseStamped pose
+
+float64[] dimensions
+string filename
 ---
 bool success
 string error_message
