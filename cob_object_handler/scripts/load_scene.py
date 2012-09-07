@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import roslib; roslib.load_manifest('cob_manipulation_test')
+import roslib; roslib.load_manifest('cob_object_handler')
 import rospy
 
 from arm_navigation_msgs.msg import *
