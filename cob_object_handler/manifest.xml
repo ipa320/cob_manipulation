@@ -16,6 +16,7 @@
   <depend package="geometric_shapes"/>
   <depend package="planning_environment"/>
   <depend package="cob_object_detection_msgs"/>
+
 <!--  
   <depend package="pr2_controllers_msgs"/>
   

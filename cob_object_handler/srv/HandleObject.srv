@@ -10,13 +10,28 @@ byte type
 # id of the object
 string id
 
-# add, remove, attach, detach
+# add, remove
 string operation
 
 geometry_msgs/PoseStamped pose
 
+# depending on type
 float64[] dimensions
+
+# padding for collision object
+float32 padding
+
+# filename of mesh or urdf
 string filename
+
+# scale factor (for mesh type only)
+geometry_msgs/Vector3 scale
+
+# collision_object will be attached to this link
+string attach_link
+# touch_links are allowed to be in collision with attached_object
+string[] touch_links
+
 ---
 bool success
 string error_message

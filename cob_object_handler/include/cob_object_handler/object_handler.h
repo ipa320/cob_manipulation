@@ -35,39 +35,25 @@
 
 
 #include <ros/ros.h>
-//#include <stdio.h>
-//#include <stdlib.h>
-//#include <vector>
-//#include <tinyxml.h>
+#include <vector>
 #include <tf/tf.h>
 
 #include <cob_object_handler/HandleObject.h>
 #include <arm_navigation_msgs/CollisionObject.h>
 #include <arm_navigation_msgs/AttachedCollisionObject.h>
+#include <arm_navigation_msgs/GetPlanningScene.h>
 #include <arm_navigation_msgs/SetPlanningSceneDiff.h>
 #include <cob_object_detection_msgs/DetectObjects.h>
 
 #include "geometric_shapes/shape_operations.h"
 #include <planning_environment/util/construct_object.h>
 
+#include <urdf/model.h>
 
 
-//#include <urdf/model.h>
-//#include <planning_models/kinematic_model.h>
-
-
-
-////#include <arm_navigation_msgs/Shape.h>
-
-//#include <planning_environment/models/collision_models.h>
-
-
-
-
+static const std::string GET_PLANNING_SCENE_NAME = "/environment_server/get_planning_scene";
 static const std::string SET_PLANNING_SCENE_DIFF_NAME = "/environment_server/set_planning_scene_diff";
 static const std::string DETECT_OBJECTS_NAME = "/detect_object";
-//const std::string frame_id = "/map";
-const std::string frame_id = "/odom_combined";
 
 
 class Object_Handler
@@ -78,6 +64,7 @@ private:
 	ros::Publisher m_object_pub;
 	ros::Publisher m_att_object_pub;
 
+	ros::ServiceClient m_get_planning_scene_client;
 	ros::ServiceClient m_set_planning_scene_diff_client;
 	ros::ServiceClient m_detect_objects_client;
 	
@@ -88,6 +75,7 @@ public:
 	Object_Handler()
 	{
 		ROS_WARN("waiting for services...");
+		ros::service::waitForService(GET_PLANNING_SCENE_NAME);
 		ros::service::waitForService(SET_PLANNING_SCENE_DIFF_NAME);
 		ros::service::waitForService(DETECT_OBJECTS_NAME);
 		
@@ -95,8 +83,9 @@ public:
 		m_att_object_pub  = rh.advertise<arm_navigation_msgs::AttachedCollisionObject>("attached_collision_object", 1);
 		
 		//this sleep is important!
-		ros::Duration(2.0).sleep();
+		ros::Duration(0.5).sleep();
 		
+		m_get_planning_scene_client = rh.serviceClient<arm_navigation_msgs::GetPlanningScene>(GET_PLANNING_SCENE_NAME);
 		m_set_planning_scene_diff_client = rh.serviceClient<arm_navigation_msgs::SetPlanningSceneDiff>(SET_PLANNING_SCENE_DIFF_NAME);
 		m_detect_objects_client = rh.serviceClient<cob_object_detection_msgs::DetectObjects>(DETECT_OBJECTS_NAME);
 		
@@ -117,12 +106,12 @@ private:
 	{
 		if(req.operation == "add")
 			return add_object(req, res);
-/*		else if(req.operation == "remove")
+		else if(req.operation == "remove")
 			return remove_object(req,res);
 		else if(req.operation == "attach")
 			return attach_object(req,res);
 		else if(req.operation == "detach")
-			return detach_object(req,res);*/
+			return detach_object(req,res);
 		else
 			ROS_ERROR("Unkown operation!");
 		
@@ -132,15 +121,16 @@ private:
 	bool add_object(cob_object_handler::HandleObject::Request  &req,
 					cob_object_handler::HandleObject::Response &res )
 	{
-		ROS_INFO("add_object-service called!");
+		ROS_DEBUG("add_object-service called!");
 		ROS_INFO("Adding object %s ...",req.id.c_str());
-		
-		arm_navigation_msgs::CollisionObject collision_object;
-		collision_object.id = req.id;
-		collision_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ADD;
 		
 		if(req.type == cob_object_handler::HandleObject::Request::SPHERE || req.type == cob_object_handler::HandleObject::Request::BOX || req.type == cob_object_handler::HandleObject::Request::CYLINDER)
 		{
+			arm_navigation_msgs::CollisionObject collision_object;
+			collision_object.id = req.id;
+			collision_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ADD;
+			collision_object.padding=req.padding;
+			
 			arm_navigation_msgs::Shape shape;
 			shape.type = req.type;
 			for(unsigned int i=0; i<req.dimensions.size(); i++)
@@ -149,24 +139,155 @@ private:
 			collision_object.header = req.pose.header;
 			collision_object.shapes.push_back(shape);
 			collision_object.poses.push_back(req.pose.pose);
+			
+			m_object_pub.publish(collision_object);
+			ROS_DEBUG("Object added to environment server!");
+			ros::Duration(0.5).sleep();
 		}
 		else if(req.type == cob_object_handler::HandleObject::Request::MESH)
 		{
+			arm_navigation_msgs::CollisionObject collision_object;
+			collision_object.id = req.id;
+			collision_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ADD;
+			collision_object.padding=req.padding;
+			
 			arm_navigation_msgs::Shape shape;
-			const btVector3* scale = new btVector3(1.0, 1.0, 1.0);
+			const btVector3* scale = new btVector3(req.scale.x, req.scale.y, req.scale.z);
 			shapes::Shape *shape_object = shapes::createMeshFromFilename(req.filename.c_str(), scale);
 			planning_environment::constructObjectMsg(shape_object, shape);
 			
 			collision_object.header = req.pose.header;
 			collision_object.shapes.push_back(shape);
 			collision_object.poses.push_back(req.pose.pose);
+			
+			m_object_pub.publish(collision_object);
+			ROS_DEBUG("Object added to environment server!");
+			ros::Duration(0.5).sleep();
 		}
 		else if(req.type == cob_object_handler::HandleObject::Request::URDF)
 		{
+			/*
+			///initialize urdf::Model from parameter_server 
+			std::string parameter_name = req.filename;
+
+			if(!rh.hasParam(parameter_name))
+			{
+				res.success = false;
+				res.error_message = "Parameter cannot be found on paramer server!";
+				return true;
+			}
+			
+			urdf::Model model;
+			if (!model.initParam(parameter_name))
+			{
+				res.success = false;
+				res.error_message = "Failed to parse parameter!";
+				return true;
+			}
+			*/
+			
+			urdf::Model model;
+			if (!model.initFile(req.filename))
+			{
+				res.success = false;
+				res.error_message = "Failed to create urdf model";
+				return true;
+			}
+			
+			std::vector< boost::shared_ptr< urdf::Link > > URDF_links;
+			model.getLinks(URDF_links);
+			std::map< std::string, boost::shared_ptr< urdf::Joint > > URDF_joints = model.joints_;
+			std::map< std::string, boost::shared_ptr< urdf::Joint > >::iterator joints_it;
+			
+			tf::Transform model_origin;
+			model_origin = tf::Transform(tf::Quaternion(req.pose.pose.orientation.x, req.pose.pose.orientation.y, req.pose.pose.orientation.z, req.pose.pose.orientation.w), tf::Vector3(req.pose.pose.position.x, req.pose.pose.position.y, req.pose.pose.position.z));
+			
+			joints_it=URDF_joints.begin();
+			for(unsigned int i=0; i<URDF_links.size(); i++) 
+			{
+				urdf::Link current_link = *URDF_links[i];
+				ROS_DEBUG("Current Link: %s", current_link.name.c_str());
+				if(current_link.collision == NULL)
+				{
+					ROS_DEBUG("Current link does not have a collision geometry");
+					continue;
+				}
+				
+				arm_navigation_msgs::CollisionObject collision_object;
+				collision_object.id = req.id;
+				collision_object.id.append("["+current_link.name+"]");
+				collision_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ADD;
+				collision_object.padding=req.padding;
+				
+				tf::Pose pose;
+				tf::Pose pose2;
+				tf::Transform link_origin;
+				tf::Transform joint_origin;
+				
+				link_origin = tf::Transform(tf::Quaternion(current_link.collision->origin.rotation.x, 
+														   current_link.collision->origin.rotation.y,
+														   current_link.collision->origin.rotation.z,
+														   current_link.collision->origin.rotation.w),
+											tf::Vector3(current_link.collision->origin.position.x,
+														current_link.collision->origin.position.y,
+														current_link.collision->origin.position.z));
+				
+				if(current_link.parent_joint == NULL)
+				{
+					ROS_DEBUG("Link does not have a parent joint...");
+					joint_origin.setIdentity();
+				}
+				else
+				{
+				
+					boost::shared_ptr< urdf::Joint > current_parent_joint = current_link.parent_joint;
+					ROS_DEBUG("Current Parent Joint: %s", current_parent_joint->name.c_str());
+					joint_origin = tf::Transform(tf::Quaternion(current_parent_joint->parent_to_joint_origin_transform.rotation.x, 
+														current_parent_joint->parent_to_joint_origin_transform.rotation.y, 
+														current_parent_joint->parent_to_joint_origin_transform.rotation.z, 
+														current_parent_joint->parent_to_joint_origin_transform.rotation.w), 
+										   tf::Vector3(current_parent_joint->parent_to_joint_origin_transform.position.x, 
+													   current_parent_joint->parent_to_joint_origin_transform.position.y, 
+													   current_parent_joint->parent_to_joint_origin_transform.position.z));
+				}
+				
+				tf::Transform temp;
+				temp.mult(joint_origin, link_origin);
+				pose2.mult(model_origin, temp);
+				
+				tf::Stamped<tf::Pose> stamped_pose_in;
+				stamped_pose_in.setData(pose2);
+				
+				//fill CollisionObject for each link
+				shapes::Shape *current_shape;
+				current_shape = constructShape(current_link.collision->geometry.get());
+				ROS_DEBUG("shape.type: %d", current_shape->type);
+				ROS_DEBUG("Position (x,y,z): (%f,%f,%f)", current_link.collision->origin.position.x, current_link.collision->origin.position.y, current_link.collision->origin.position.z);
+				
+				arm_navigation_msgs::Shape msg_shape;
+				planning_environment::constructObjectMsg(current_shape, msg_shape);
+
+				geometry_msgs::PoseStamped msg_pose_stamped;
+				tf::poseStampedTFToMsg (stamped_pose_in, msg_pose_stamped);
+
+				collision_object.shapes.push_back(msg_shape);
+				collision_object.poses.push_back(msg_pose_stamped.pose);
+				
+				collision_object.header = req.pose.header;
+				
+				m_object_pub.publish(collision_object);
+				ROS_DEBUG("Object added to environment server!");
+				ros::Duration(0.5).sleep();
+			}
 			
 		}
 		else if(req.type == cob_object_handler::HandleObject::Request::DETECT)
 		{
+			arm_navigation_msgs::CollisionObject collision_object;
+			collision_object.id = req.id;
+			collision_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ADD;
+			collision_object.padding=req.padding;
+			
 			cob_object_detection_msgs::DetectObjects::Request detect_req;
 			cob_object_detection_msgs::DetectObjects::Response detect_res;
 			
@@ -175,6 +296,13 @@ private:
 			if(!m_detect_objects_client.call(detect_req, detect_res)) 
 			{
 				ROS_ERROR("/detect_objects failed");
+				res.success = false;
+				res.error_message = "Service call /detect_object failed";
+				return true;
+			}
+			if(detect_res.object_list.detections.size() < 1)
+			{
+				ROS_ERROR("object not found");
 				res.success = false;
 				res.error_message = "Failed to detect object";
 				return true;
@@ -187,12 +315,14 @@ private:
 			shape.dimensions.push_back(detection.bounding_box_lwh.x);
 			shape.dimensions.push_back(detection.bounding_box_lwh.y);
 			shape.dimensions.push_back(detection.bounding_box_lwh.z);
-			for(unsigned int i=0; i<shape.dimensions.size(); i++)
-				ROS_INFO("%d: %f", i, shape.dimensions[i]);
 			
 			collision_object.header = detection.pose.header;
 			collision_object.shapes.push_back(shape);
 			collision_object.poses.push_back(detection.pose.pose);
+			
+			m_object_pub.publish(collision_object);
+			ROS_DEBUG("Object added to environment server!");
+			ros::Duration(0.5).sleep();
 		}
 		else
 		{
@@ -201,131 +331,52 @@ private:
 			return true;
 		}
 		
-		/*
-		std::string parameter_name = req.object + "_description";
-		std::string model_name = req.object + "_model";
-		ROS_INFO("Model-Name: %s", model_name.c_str());
-
-		while(!rh.hasParam(parameter_name))	{	
-			ROS_WARN("waiting for parameter \"world_description\"... ");
-			ros::Duration(0.5).sleep();
+		arm_navigation_msgs::SetPlanningSceneDiff::Request set_planning_scene_diff_req;
+		arm_navigation_msgs::SetPlanningSceneDiff::Response set_planning_scene_diff_res;
+		
+		if(!m_set_planning_scene_diff_client.call(set_planning_scene_diff_req, set_planning_scene_diff_res)) 
+		{
+			ROS_ERROR("Can't get planning scene");
 		}
 		
-		urdf::Model model;
-		if (!model.initParam(parameter_name))	{
-			ROS_ERROR("Failed to parse %s from parameter server", parameter_name.c_str());
-			return false;
-		}
-		ROS_INFO("Successfully parsed urdf file");
-
-
-		std::vector< boost::shared_ptr< urdf::Link > > URDF_links;
-		model.getLinks(URDF_links);
-		ROS_INFO("links.size: %d", URDF_links.size());
-		std::map< std::string, boost::shared_ptr< urdf::Joint > > URDF_joints = model.joints_;
-		std::map< std::string, boost::shared_ptr< urdf::Joint > >::iterator joints_it;
-		ROS_INFO("joints.size: %d", URDF_joints.size());
-
-		tf::Transform model_origin;
-		if(use_gazebo)
-		{
-			//access to tranformation /world to /root_link (table_top)
-			gazebo::GetModelState srv;
-			srv.request.model_name = model_name;
-			if (m_state_client.call(srv))	{
-				ROS_DEBUG("URDFPose (x,y,z): (%f,%f,%f)", srv.response.pose.position.x, srv.response.pose.position.y, srv.response.pose.position.z);
-				model_origin = tf::Transform(tf::Quaternion(srv.response.pose.orientation.x, srv.response.pose.orientation.y, srv.response.pose.orientation.z, srv.response.pose.orientation.w), tf::Vector3(srv.response.pose.position.x, srv.response.pose.position.y, srv.response.pose.position.z));
-			}
-			else {
-				ROS_ERROR("Failed to call service get_model_state");
-				return false;
-			}
-		}				
-		else
-		{
-			model_origin.setIdentity();
-		}
-
-		arm_navigation_msgs::CollisionObject collision_object;
-		collision_object.id = model_name + "_object";
-		collision_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ADD;
-		collision_object.header.frame_id = frame_id;
-		collision_object.header.stamp = ros::Time::now();
-	  
-		joints_it=URDF_joints.begin();
-		for(unsigned int i=0; i<URDF_links.size(); i++) 
-		{
-			urdf::Link current_link = *URDF_links[i];
-			ROS_DEBUG("Current Link: %s", current_link.name.c_str());
-			if(current_link.collision == NULL)
-			{
-				ROS_DEBUG("Current link does not have a collision geometry");
-				continue;
-			}
-
-			tf::Pose pose;
-			tf::Pose pose2;
-			tf::Transform link_origin;
-			tf::Transform joint_origin;
-			
-			link_origin = tf::Transform(tf::Quaternion(current_link.collision->origin.rotation.x, 
-													   current_link.collision->origin.rotation.y,
-													   current_link.collision->origin.rotation.z,
-													   current_link.collision->origin.rotation.w),
-										tf::Vector3(current_link.collision->origin.position.x,
-													current_link.collision->origin.position.y,
-													current_link.collision->origin.position.z));
-			
-			if(current_link.parent_joint == NULL)
-			{
-				ROS_DEBUG("Link does not have a parent joint...");
-				joint_origin.setIdentity();				
-			}
-			else
-			{
-			
-				boost::shared_ptr< urdf::Joint > current_parent_joint = current_link.parent_joint;
-				ROS_DEBUG("Current Parent Joint: %s", current_parent_joint->name.c_str());
-				joint_origin = tf::Transform(tf::Quaternion(current_parent_joint->parent_to_joint_origin_transform.rotation.x, 
-													current_parent_joint->parent_to_joint_origin_transform.rotation.y, 
-													current_parent_joint->parent_to_joint_origin_transform.rotation.z, 
-													current_parent_joint->parent_to_joint_origin_transform.rotation.w), 
-									   tf::Vector3(current_parent_joint->parent_to_joint_origin_transform.position.x, 
-												   current_parent_joint->parent_to_joint_origin_transform.position.y, 
-												   current_parent_joint->parent_to_joint_origin_transform.position.z));
-			}
-			
-			tf::Transform temp;
-			temp.mult(joint_origin, link_origin);			
-			pose2.mult(model_origin, temp);
-
-			tf::Stamped<tf::Pose> stamped_pose_in;
-			stamped_pose_in.stamp_ = ros::Time::now();
-			stamped_pose_in.frame_id_ = frame_id;
-			stamped_pose_in.setData(pose2);
-
-
-			//fill CollisionObject for each link
-			shapes::Shape *current_shape;
-			current_shape = constructShape(current_link.collision->geometry.get());
-			ROS_DEBUG("shape.type: %d", current_shape->type);
-		  	ROS_DEBUG("Position (x,y,z): (%f,%f,%f)", current_link.collision->origin.position.x, current_link.collision->origin.position.y, current_link.collision->origin.position.z);
-
-			
-			arm_navigation_msgs::Shape msg_shape;
-			planning_environment::constructObjectMsg(current_shape, msg_shape);
-
-			geometry_msgs::PoseStamped msg_pose_stamped;
-			tf::poseStampedTFToMsg (stamped_pose_in, msg_pose_stamped);
-
-			collision_object.shapes.push_back(msg_shape);
-			collision_object.poses.push_back(msg_pose_stamped.pose);
-		}
-*/
-		m_object_pub.publish(collision_object);
-		ROS_INFO("Object added to environment server!");
+		res.success = true;
+		res.error_message = "Object added to environment server!";
+		return true;
+	}
+	 
+	 
+	 
+	bool remove_object(cob_object_handler::HandleObject::Request  &req,
+					   cob_object_handler::HandleObject::Response &res )
+	{
+		ROS_DEBUG("remove_object-service called!");
+		ROS_INFO("Removing object %s ...",req.id.c_str());
 		
-		ros::Duration(2.0).sleep();
+		std::string object_name = req.id;
+		arm_navigation_msgs::GetPlanningScene::Request get_planning_scene_req;
+		arm_navigation_msgs::GetPlanningScene::Response get_planning_scene_res;
+		
+		if(!m_get_planning_scene_client.call(get_planning_scene_req, get_planning_scene_res)) 
+		{
+			ROS_ERROR("Can't get planning scene");
+			res.success = false;
+			res.error_message = "Can't get planning scene";
+			return true;
+		}
+		
+		for(unsigned int i=0; i<get_planning_scene_res.planning_scene.collision_objects.size(); i++)
+		{
+			if(get_planning_scene_res.planning_scene.collision_objects[i].id.compare(0, object_name.size(),object_name) == 0)
+			{
+				ROS_DEBUG("Found: %s", get_planning_scene_res.planning_scene.collision_objects[i].id.c_str());
+				arm_navigation_msgs::CollisionObject collision_object = get_planning_scene_res.planning_scene.collision_objects[i];
+				collision_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::REMOVE;
+				
+				m_object_pub.publish(collision_object);
+				ROS_DEBUG("Object removed from environment server!");
+				ros::Duration(0.5).sleep();
+			}
+		}
 		
 		arm_navigation_msgs::SetPlanningSceneDiff::Request set_planning_scene_diff_req;
 		arm_navigation_msgs::SetPlanningSceneDiff::Response set_planning_scene_diff_res;
@@ -334,81 +385,20 @@ private:
 		{
 			ROS_ERROR("Can't get planning scene");
 		}
-		ROS_INFO("Got planning_scene!");
-		
+
 		res.success = true;
-		res.error_message = "Object added to environment server!";
+		res.error_message = "Object removed from environment server!";
 		return true;
-	}
-	 
-/*
-	bool remove_object(cob_object_handler::HandleObject::Request  &req,
-					   cob_object_handler::HandleObject::Response &res )
-	{
-		ROS_INFO("remove_object-service called!");
-		ROS_INFO("Removing object %s ...",req.object.c_str());
-		
-		std::string object_name = req.object + "_model";
-		arm_navigation_msgs::GetPlanningScene::Request get_planning_scene_req;
-		arm_navigation_msgs::GetPlanningScene::Response get_planning_scene_res;
-		
-		if(!m_get_planning_scene_client.call(get_planning_scene_req, get_planning_scene_res)) 
-		{
-			ROS_ERROR("Can't get planning scene");
-			res.success = false;
-			res.error_message = "Can't get planning scene";
-			return false;
-		}
-		ROS_INFO("Got planning_scene!");
-		
-		for(unsigned int i=0; i<get_planning_scene_res.planning_scene.collision_objects.size(); i++)
-		{
-			ROS_INFO("Collision_object.id: %s", get_planning_scene_res.planning_scene.collision_objects[i].id.c_str());
-			if(get_planning_scene_res.planning_scene.collision_objects[i].id == (object_name + "_object"))
-			{
-				ROS_INFO("%s found!", object_name.c_str());
-				arm_navigation_msgs::CollisionObject collision_object = get_planning_scene_res.planning_scene.collision_objects[i];
-				collision_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::REMOVE;
-				
-				m_object_in_map_pub.publish(collision_object);
-				ROS_INFO("Object removed from environment server!");
-				
-				
-				
-				arm_navigation_msgs::SetPlanningSceneDiff::Request set_planning_scene_diff_req;
-				arm_navigation_msgs::SetPlanningSceneDiff::Response set_planning_scene_diff_res;
-				
-				if(!m_set_planning_scene_diff_client.call(set_planning_scene_diff_req, set_planning_scene_diff_res)) 
-				{
-					ROS_ERROR("Can't get planning scene");
-				}
-				ROS_INFO("Got planning_scene!");
-
-
-
-				res.success = true;
-				res.error_message = "Object removed from environment server!";
-				return true;
-			}
-		}
-
-		ROS_ERROR("Could not find object %s among known objects. Aborting!", object_name.c_str());
-		  
-		res.success = false;
-		res.error_message = "Could not find object among known objects.";
-
-		return false;
 	}
 	
 	
 	bool attach_object(cob_object_handler::HandleObject::Request  &req,
 					   cob_object_handler::HandleObject::Response &res )
 	{
-		ROS_INFO("attach_object-service called!");
-		ROS_INFO("Attaching object %s ...",req.object.c_str());
+		ROS_DEBUG("attach_object-service called!");
+		ROS_INFO("Attaching object %s ...",req.id.c_str());
 		
-		std::string object_name = req.object + "_model";
-		
+		std::string object_name = req.id;
 		arm_navigation_msgs::GetPlanningScene::Request get_planning_scene_req;
 		arm_navigation_msgs::GetPlanningScene::Response get_planning_scene_res;
 		
@@ -417,68 +407,50 @@ private:
 			ROS_ERROR("Can't get planning scene");
 			res.success = false;
 			res.error_message = "Can't get planning scene";
-			return false;
+			return true;
 		}
-		ROS_INFO("Got planning_scene!");
 		
 		for(unsigned int i=0; i<get_planning_scene_res.planning_scene.collision_objects.size(); i++)
 		{
-			if(get_planning_scene_res.planning_scene.collision_objects[i].id == (object_name + "_object"))
+			if(get_planning_scene_res.planning_scene.collision_objects[i].id.compare(0, object_name.size(),object_name) == 0)
 			{
-				ROS_INFO("%s found!", object_name.c_str());
-					
 				arm_navigation_msgs::AttachedCollisionObject att_object;
 				att_object.object = get_planning_scene_res.planning_scene.collision_objects[i];
 				//attach it to the SDH
-				att_object.link_name = "arm_7_link";
-				att_object.touch_links.push_back("sdh_grasp_link");
-				att_object.touch_links.push_back("sdh_palm_link");
-				att_object.touch_links.push_back("sdh_finger_11_link");
-				att_object.touch_links.push_back("sdh_finger_12_link");
-				att_object.touch_links.push_back("sdh_finger_13_link");
-				att_object.touch_links.push_back("sdh_finger_21_link");
-				att_object.touch_links.push_back("sdh_finger_22_link");
-				att_object.touch_links.push_back("sdh_finger_23_link");
-				att_object.touch_links.push_back("sdh_thumb_1_link");
-				att_object.touch_links.push_back("sdh_thumb_2_link");
-				att_object.touch_links.push_back("sdh_thumb_3_link");
+				att_object.link_name = req.attach_link;
+				for(unsigned int k=0; k<req.touch_links.size(); k++)
+					att_object.touch_links.push_back(req.touch_links[i]);
 				
 				att_object.object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ATTACH_AND_REMOVE_AS_OBJECT;
 				
-				m_att_object_in_map_pub.publish(att_object);
-				ROS_INFO("Object attached to robot!");
-
-				arm_navigation_msgs::SetPlanningSceneDiff::Request set_planning_scene_diff_req;
-				arm_navigation_msgs::SetPlanningSceneDiff::Response set_planning_scene_diff_res;
-				
-				if(!m_set_planning_scene_diff_client.call(set_planning_scene_diff_req, set_planning_scene_diff_res)) 
-				{
-					ROS_ERROR("Can't get planning scene");
-				}
-				ROS_INFO("Got planning_scene!");
-				
-				
-				res.success = true;
-				res.error_message = "Object attached to robot!";
-				return true;
+				m_att_object_pub.publish(att_object);
+				ROS_DEBUG("Object attached to robot! %s", get_planning_scene_res.planning_scene.collision_objects[i].id.c_str());
+				ros::Duration(1.0).sleep();
 			}
 		}
-		ROS_ERROR("Could not find object %s among known objects. Aborting!", object_name.c_str());
-	  
-		res.success = false;
-		res.error_message = "Could not find object among known objects.";
-
-		return false;
+		
+		arm_navigation_msgs::SetPlanningSceneDiff::Request set_planning_scene_diff_req;
+		arm_navigation_msgs::SetPlanningSceneDiff::Response set_planning_scene_diff_res;
+		
+		if(!m_set_planning_scene_diff_client.call(set_planning_scene_diff_req, set_planning_scene_diff_res)) 
+		{
+			ROS_ERROR("Can't get planning scene");
+		}
+		
+		
+		res.success = true;
+		res.error_message = "Object attached to robot!";
+		return true;
 	}
 	
 	
 	bool detach_object(cob_object_handler::HandleObject::Request  &req,
 					   cob_object_handler::HandleObject::Response &res )
 	{
-		ROS_INFO("detach_object-service called!");
-		ROS_INFO("Detaching object %s ...",req.object.c_str());
+		ROS_DEBUG("detach_object-service called!");
+		ROS_INFO("Detaching object %s ...",req.id.c_str());
 		
-		std::string object_name = req.object + "_model";
+		std::string object_name = req.id;
 		
 		arm_navigation_msgs::GetPlanningScene::Request get_planning_scene_req;
 		arm_navigation_msgs::GetPlanningScene::Response get_planning_scene_res;
@@ -488,49 +460,38 @@ private:
 			ROS_ERROR("Can't get planning scene");
 			res.success = false;
 			res.error_message = "Can't get planning scene";
-			return false;
+			return true;
 		}
-		ROS_INFO("Got planning_scene!");
 		
 		for(unsigned int i=0; i<get_planning_scene_res.planning_scene.attached_collision_objects.size(); i++)
 		{
-			if(get_planning_scene_res.planning_scene.attached_collision_objects[i].object.id == (object_name + "_object"))
+			if(get_planning_scene_res.planning_scene.attached_collision_objects[i].object.id.compare(0, object_name.size(),object_name) == 0)
 			{
-				ROS_INFO("%s found!", object_name.c_str());
-				
 				arm_navigation_msgs::AttachedCollisionObject att_object;
 				att_object = get_planning_scene_res.planning_scene.attached_collision_objects[i];
 				att_object.object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::DETACH_AND_ADD_AS_OBJECT;
 				
-				m_att_object_in_map_pub.publish(att_object);
-				ROS_INFO("Object detached from robot!");
-
-				arm_navigation_msgs::SetPlanningSceneDiff::Request set_planning_scene_diff_req;
-				arm_navigation_msgs::SetPlanningSceneDiff::Response set_planning_scene_diff_res;
-				
-				if(!m_set_planning_scene_diff_client.call(set_planning_scene_diff_req, set_planning_scene_diff_res)) 
-				{
-					ROS_ERROR("Can't get planning scene");
-				}
-				ROS_INFO("Got planning_scene!");
-				
-				
-				res.success = true;
-				res.error_message = "Object detached from robot!";
-				return true;
+				m_att_object_pub.publish(att_object);
+				ROS_DEBUG("Object detached from robot!");
+				ros::Duration(0.5).sleep();
 			}
 		}
-		ROS_ERROR("Could not find object %s among known objects. Aborting!", object_name.c_str());
-	  
-		res.success = false;
-		res.error_message = "Could not find object among known objects.";
-
-		return false;
+		arm_navigation_msgs::SetPlanningSceneDiff::Request set_planning_scene_diff_req;
+		arm_navigation_msgs::SetPlanningSceneDiff::Response set_planning_scene_diff_res;
+		
+		if(!m_set_planning_scene_diff_client.call(set_planning_scene_diff_req, set_planning_scene_diff_res)) 
+		{
+			ROS_ERROR("Can't get planning scene");
+		}
+		
+		res.success = true;
+		res.error_message = "Object detached from robot!";
+		return true;
 	}
 	
-	
-	
-	//helper functions
+///~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+///          helper functions
+///~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	shapes::Shape* constructShape(const urdf::Geometry *geom)
 	{
 		ROS_ASSERT(geom);
@@ -575,7 +536,6 @@ private:
 
 		return result;
 	}
-*/
 	
 ///NOT USED ANYMORE
 /*	
@@ -741,10 +701,6 @@ private:
 		return true;
 	}
 */
-
-	
-	
-	
 };
 
 #endif
