@@ -34,9 +34,7 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
 #target_link_libraries(example ${PROJECT_NAME})
 
 rosbuild_add_executable(object_handler src/object_handler.cpp)
-target_link_libraries(object_handler assimp)
 
-#rosbuild_add_executable(addWorld src/addWorld.cpp)
-#rosbuild_add_executable(addWorldService src/addWorldService.cpp)
+
 
 

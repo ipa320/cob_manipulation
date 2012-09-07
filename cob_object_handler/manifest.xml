@@ -16,19 +16,6 @@
   <depend package="geometric_shapes"/>
   <depend package="planning_environment"/>
   <depend package="cob_object_detection_msgs"/>
-
-<!--  
-  <depend package="pr2_controllers_msgs"/>
-  
-  <depend package="planning_models"/>
-  
-  <depend package="assimp"/>
-  <depend package="bullet"/>
-
-  <depend package= "resource_retriever"/>
-  <depend package="common_rosdeps" />
-  <rosdep name="assimp" />
--->
 </package>
 
 
