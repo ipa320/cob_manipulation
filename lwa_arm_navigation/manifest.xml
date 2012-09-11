@@ -16,7 +16,7 @@
   <depend package="move_arm"/>
   <!--@ToDo: Find out why needed-->
   <!--Maybe for defining static obstacles in planning-->
-  <depend package="tinyxml"/>
+  <!--depend package="tinyxml"/-->
   <!--depend package="gazebo"/-->
   <!--###################-->
   <depend package="mongodb"/>
