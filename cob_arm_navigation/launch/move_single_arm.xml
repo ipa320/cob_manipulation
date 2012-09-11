@@ -1,0 +1,21 @@
+<launch>
+        <arg name="robot" default="$(env ROBOT)"/>
+
+	<include file="$(find cob_arm_navigation)/launch/planning_environment.xml">
+		<arg name="robot" value="$(arg robot)" />
+	</include>
+
+	<!-- prerequisites -->
+	<include file="$(find cob_arm_navigation)/launch/constraint_aware_kinematics.xml">
+                <arg name="robot" value="$(arg robot)" />
+        </include>
+	<include file="$(find cob_arm_navigation)/launch/trajectory_filter_server.xml">
+                <arg name="robot" value="$(arg robot)" />
+	</include>
+    
+	<!-- move arm action server-->
+	<node pkg="move_arm" type="move_arm_simple_action" name="cob_move_arm">
+		<rosparam file="$(find cob_manipulation_config)/$(arg robot)/move_arm.yaml"/>
+		<remap from="arm_ik" to="/cob_ik_wrapper/arm/get_constraint_aware_ik" />
+	</node>
+</launch>

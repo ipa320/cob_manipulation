@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<launch>
+    	<!-- define arguments -->
+    	<arg name="robot" default="$(env ROBOT)"/>
+
+	<group>
+        	<include file="$(find cob_arm_navigation)/launch/environment_server.xml">
+			<arg name="robot" value="$(arg robot)"/>
+		</include>
+        	<include file="$(find cob_arm_navigation)/launch/ompl_planning.xml">
+                	<arg name="robot" value="$(arg robot)"/>
+        	</include>
+        	<include file="$(find cob_arm_navigation)/launch/move_groups.xml">
+                	<arg name="robot" value="$(arg robot)"/>
+        	</include>
+    	</group>
+
+<!--
+	<group>
+		<include file="$(find cob_arm_navigation)/launch/kinect_perception.launch" />
+	</group>
+-->
+
+</launch>

@@ -1,0 +1,14 @@
+<package>
+  <description brief="cob_manipulation_config">
+
+     cob_manipulation_config
+
+  </description>
+  <author>Mathias Lüdtke</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cob_manipulation_config</url>
+
+</package>
+
+

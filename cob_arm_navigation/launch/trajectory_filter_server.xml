@@ -1,0 +1,13 @@
+<launch>
+        <arg name="robot" default="$(env ROBOT)"/>
+
+	<!-- load config -->
+	<include file="$(find cob_arm_navigation)/launch/planning_environment.xml">
+                <arg name="robot" value="$(arg robot)" />
+        </include>
+
+	<node pkg="trajectory_filter_server" type="trajectory_filter_server" name="trajectory_filter_server">
+		<rosparam command="load" file="$(find trajectory_filter_server)/config/filters.yaml" />
+		<rosparam file="$(find cob_manipulation_config)/$(arg robot)/joint_limits.yaml"/>
+	</node>
+</launch>
