@@ -154,7 +154,7 @@ private:
 			collision_object.padding=req.padding;
 			
 			arm_navigation_msgs::Shape shape;
-			const btVector3* scale = new btVector3(req.scale.x, req.scale.y, req.scale.z);
+			const tf::Vector3* scale = new tf::Vector3(req.scale.x, req.scale.y, req.scale.z);
 			shapes::Shape *shape_object = shapes::createMeshFromFilename(req.filename.c_str(), scale);
 			planning_environment::constructObjectMsg(shape_object, shape);
 			
@@ -520,7 +520,7 @@ private:
 			const urdf::Mesh *mesh = dynamic_cast<const urdf::Mesh*>(geom);
 			if (!mesh->filename.empty())
 			{
-				const btVector3* scale = new btVector3(mesh->scale.x, mesh->scale.y, mesh->scale.z);
+				const tf::Vector3* scale = new tf::Vector3(mesh->scale.x, mesh->scale.y, mesh->scale.z);
 				result = shapes::createMeshFromFilename(mesh->filename.c_str(), scale);
 		
 				if (result == NULL)
