@@ -4,11 +4,11 @@
      The cob_manipulation stack includes packages that provide manipulation capabilities for Care-O-bot.
 
   </description>
-  <author>Maintained by Alexander Bubeck</author>
-  <license>LGPL</license>  
+  <author>Maintained by Mathias Luedtke and Felix Messmer</author>
+  <license>BSD,LGPL</license>  
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_manipulation</url>
-  <depend stack="arm_navigation" /> <!-- move_arm, trajectory_filter_server, planning_environment, robot_self_filter, constraint_aware_spline_smoother, arm_kinematics_constraint_aware, kinematics_msgs, kinematics_base, arm_navigation_msgs, ompl_ros_interface -->
+  <depend stack="arm_navigation" /> <!-- move_arm, trajectory_filter_server, kinematics_base, robot_self_filter, constraint_aware_spline_smoother, arm_kinematics_constraint_aware, kinematics_msgs, planning_environment, arm_navigation_msgs, ompl_ros_interface -->
   <depend stack="arm_navigation_experimental" /> <!-- collider, move_arm_warehouse -->
   <depend stack="cob_command_tools" /> <!-- cob_script_server -->
   <depend stack="cob_common" /> <!-- cob_srvs, brics_actuator -->
@@ -16,7 +16,6 @@
   <depend stack="common" /> <!-- actionlib, tinyxml -->
   <depend stack="common_msgs" /> <!-- nav_msgs, actionlib_msgs, trajectory_msgs, sensor_msgs, geometry_msgs, visualization_msgs -->
   <depend stack="geometry" /> <!-- tf, tf_conversions -->
-  <depend stack="nodelet_core" /> <!-- nodelet -->
   <depend stack="object_manipulation" /> <!-- object_manipulation_msgs -->
   <depend stack="orocos_kinematics_dynamics" /> <!-- kdl -->
   <depend stack="pluginlib" /> <!-- pluginlib -->
@@ -29,5 +28,7 @@
   <depend stack="visualization" /> <!-- rviz -->
   <depend stack="warehousewg" /> <!-- mongodb -->
   <depend stack="common_rosdeps" /> <!-- assimp -->
+  <depend stack="cob_object_perception"/> <!-- cob_object_detection_msgs -->
+
 
 </stack>
