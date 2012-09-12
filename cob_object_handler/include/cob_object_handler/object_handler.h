@@ -78,8 +78,8 @@ public:
 			ROS_WARN("waiting for %s",GET_PLANNING_SCENE_NAME.c_str());
 		while(!ros::service::waitForService(SET_PLANNING_SCENE_DIFF_NAME, ros::Duration(1.0)))
 			ROS_WARN("waiting for %s",SET_PLANNING_SCENE_DIFF_NAME.c_str());
-		while(!ros::service::waitForService(DETECT_OBJECTS_NAME, ros::Duration(1.0)))
-			ROS_WARN("waiting for %s",DETECT_OBJECTS_NAME.c_str());
+		/*while(!ros::service::waitForService(DETECT_OBJECTS_NAME, ros::Duration(1.0)))
+			ROS_WARN("waiting for %s",DETECT_OBJECTS_NAME.c_str());*/
 		
 		m_object_pub  = rh.advertise<arm_navigation_msgs::CollisionObject>("collision_object", 1);
 		m_att_object_pub  = rh.advertise<arm_navigation_msgs::AttachedCollisionObject>("attached_collision_object", 1);
