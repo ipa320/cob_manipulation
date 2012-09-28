@@ -9,6 +9,7 @@
 
   <depend package="roscpp"/>
   <depend package="arm_navigation_msgs"/>
+  <depend package="planning_environment"/>
   <depend package="kinematics_msgs"/>
   <depend package="sensor_msgs"/>
   <depend package="geometry_msgs"/>
