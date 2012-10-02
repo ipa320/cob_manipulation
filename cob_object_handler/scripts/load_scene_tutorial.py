@@ -53,13 +53,13 @@ if __name__ == '__main__':
 	
 	
 	### ADDING A MESH
-	handle_object("add", "mug", HandleObjectRequest.MESH, pos=[0, 0.0, 1.2], euler=[-1.57, 0, 3.14], filename="package://gazebo_worlds/Media/models/mug-test.stl", scale=[0.1, 0.1, 0.1])
+	handle_object("add", "mug", HandleObjectRequest.MESH, pos=[0.6, 0.0, 0.9], euler=[-1.57, 0, 3.14], filename="package://gazebo_worlds/Media/models/mug-test.stl", scale=[0.1, 0.1, 0.1])
 	
 	### ADDING DETECTED OBJECT
 	handle_object("add", "milk_model", HandleObjectRequest.DETECT)
 	
 	### ADDING URDF OBJECT
-	handle_object("add", "table_ikea", HandleObjectRequest.URDF, filename="/home/fxm/git/care-o-bot/cob_environments/cob_gazebo_objects/objects/table_ikea.urdf")
+	handle_object("add", "table_ikea", HandleObjectRequest.URDF, pos=[1.1,0, 0], filename="/home/fxm/git/care-o-bot/cob_environments/cob_gazebo_objects/objects/table_ikea.urdf")
 	
 	### ADDING URDF.XACRO OBJECT
 	file_path="/home/fxm/git/care-o-bot/cob_environments/cob_gazebo_worlds/urdf/ipa-apartment/"
