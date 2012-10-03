@@ -155,8 +155,6 @@ bool IKWrapper::getJoints(const std::vector<std::string> &links, std::vector<std
     for(std::vector<std::string>::const_iterator it = links.begin(); it != links.end(); ++it){
 	const FkLookup::ChainFK* c = fk_lookup.getChain(*it);    
 	if(c){
-	    //unqiue_roots.insert(c->getRoot());
-	    //TODO: unqiue_joints
 	    std::vector<std::string> j;
 	    c->getJoints(j);
 	    unqiue_joints.insert(j.begin(),j.end());

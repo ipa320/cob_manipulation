@@ -53,7 +53,7 @@ class IKWrapper{
 public:
     IKWrapper(const urdf::Model &model, const std::vector<std::string> root_names,const std::vector<std::string> tip_names);
 
-    void updateRobotState(arm_navigation_msgs::RobotState &rs){
+    void updateRobotState(const arm_navigation_msgs::RobotState &rs){
         robot_state = rs; // no lock -> lock it externally!
     }
 
