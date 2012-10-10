@@ -78,6 +78,8 @@ public:
 			ROS_WARN("waiting for %s",GET_PLANNING_SCENE_NAME.c_str());
 		while(!ros::service::waitForService(SET_PLANNING_SCENE_DIFF_NAME, ros::Duration(1.0)))
 			ROS_WARN("waiting for %s",SET_PLANNING_SCENE_DIFF_NAME.c_str());
+		/*while(!ros::service::waitForService(DETECT_OBJECTS_NAME, ros::Duration(1.0)))
+			ROS_WARN("waiting for %s",DETECT_OBJECTS_NAME.c_str());*/
 		
 		m_object_pub  = rh.advertise<arm_navigation_msgs::CollisionObject>("collision_object", 1);
 		m_att_object_pub  = rh.advertise<arm_navigation_msgs::AttachedCollisionObject>("attached_collision_object", 1);
@@ -87,6 +89,7 @@ public:
 		
 		m_get_planning_scene_client = rh.serviceClient<arm_navigation_msgs::GetPlanningScene>(GET_PLANNING_SCENE_NAME);
 		m_set_planning_scene_diff_client = rh.serviceClient<arm_navigation_msgs::SetPlanningSceneDiff>(SET_PLANNING_SCENE_DIFF_NAME);
+		m_detect_objects_client = rh.serviceClient<cob_object_detection_msgs::DetectObjects>(DETECT_OBJECTS_NAME);
 		
 		m_handle_object_server = rh.advertiseService("/object_handler/handle_object", &Object_Handler::handle_object, this);
 	}
@@ -282,11 +285,6 @@ private:
 		}
 		else if(req.type == cob_object_handler::HandleObject::Request::DETECT)
 		{
-			while(!ros::service::waitForService(DETECT_OBJECTS_NAME, ros::Duration(1.0)))
-				ROS_WARN("waiting for %s",DETECT_OBJECTS_NAME.c_str());
-				
-			m_detect_objects_client = rh.serviceClient<cob_object_detection_msgs::DetectObjects>(DETECT_OBJECTS_NAME);
-			
 			arm_navigation_msgs::CollisionObject collision_object;
 			collision_object.id = req.id;
 			collision_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ADD;
