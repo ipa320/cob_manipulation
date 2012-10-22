@@ -34,3 +34,5 @@ rosbuild_add_executable(ik_wrapper_node ros/nodes/ik_wrapper_node.cpp ros/src/ik
 target_link_libraries(ik_wrapper_node planning_environment)
 
 rosbuild_add_executable(urdf_openrave ros/src/urdf_openrave.cpp)
+
+add_subdirectory(ikfast)
