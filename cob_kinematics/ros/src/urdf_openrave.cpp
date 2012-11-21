@@ -208,7 +208,7 @@ int main(int argc, char **argv){
         </Joint>
 */        
     for(list<joint_data>::iterator it=joints.begin(); it != joints.end(); ++it){
-	if( it->lower == 0 && it->lower == 0){
+	if( it->lower == 0 && it->upper == 0){
 	    sout << "\t" << "\t" << "<Joint type=\"hinge\" enable=\"false\" name=\"" << it->name << "\">" << endl;
 	}else{
 	    sout << "\t" << "\t" << "<Joint type=\"hinge\" name=\"" << it->name << "\">" << endl;
