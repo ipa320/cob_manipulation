@@ -3,7 +3,7 @@
 
 #include <ros/ros.h>
 
-#ifdef USE_ELECTRIC_LEGACY_WRAPPER
+#ifdef ROS_VERSION_ELECTRIC
 
 #define WRAPPER_DECLARE_GET_VECTOR(name) std::vector<std::string> name() 
 
