@@ -127,6 +127,10 @@ public:
             const boost::function<void(const geometry_msgs::Pose &ik_pose,
                     const std::vector<double> &ik_solution, int &error_code)> &solution_callback,
             int &error_code) {
+        if (desired_pose_callback) {
+            desired_pose_callback(ik_pose, ik_seed_state, error_code);
+            if (error_code != kinematics::SUCCESS) return false;
+        }
     }
 
     /**
@@ -151,6 +155,10 @@ public:
             const boost::function<void(const geometry_msgs::Pose &ik_pose,
                     const std::vector<double> &ik_solution, int &error_code)> &solution_callback,
             int &error_code) {
+        if (desired_pose_callback) {
+            desired_pose_callback(ik_pose, ik_seed_state, error_code);
+            if (error_code != kinematics::SUCCESS) return false;
+        }
     }
 
     /**
