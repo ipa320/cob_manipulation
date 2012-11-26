@@ -17,14 +17,10 @@
 * ROS package name: cob_kinematics
 *
 * \author
-* Author: Mathias Luedtke
-* \author
-* Supervised by:
-*
-* \date Date of creation: September 2012
+* Author: Mathias Lüdtke
 *
 * \brief
-* This code is used for generating the planning description configuration files.
+* Converter from kinematics descriptions from URDF to openRAVE XML
 *
 *****************************************************************
 *
