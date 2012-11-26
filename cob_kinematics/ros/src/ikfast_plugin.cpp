@@ -74,6 +74,78 @@ void setConsistencyLimit(std::vector<std::pair<double, double> > &min_max,
             seed[redundancy] + consistency_limit);
 }
 
+struct Stepper {
+    int upper_, lower_, current_;
+    double *value;
+    double start_, step_;
+    Stepper(double *value, double lower, double upper, double step) :
+        current_(0), value(value), start_(*value), step_(step) {
+        double right_bound = fmax(lower, start_ - M_PI) + 2 * M_PI + step;
+        double left_bound = fmin(upper, start_ + M_PI) - 2 * M_PI - step;
+        right_bound = fmin(right_bound, upper);
+        left_bound = fmax(left_bound, lower);
+
+        lower_ = -(int) (fabs(left_bound - start_) / step);
+        upper_ = fabs(right_bound - start_) / step;
+        //ROS_ERROR("Stepper: %f %f %f %f, %d %d", *value, lower, upper, step, lower_, upper_);
+    }
+    void reset() {
+        current_ = 0;
+        *value = start_;
+    }
+    bool step() {
+        int next;
+        if (current_ <= 0) { // neg
+            next = 1 - current_; // -> pos
+            if (next > upper_) {
+                next = -next; // -> neg
+                if (next < lower_) return false;
+            }
+        } else { // pos
+            next = -current_; // -> neg
+            if (next < lower_) {
+                next = 1 - next; // -> pos
+                if (next > upper_) return false;
+            }
+
+        }
+        current_ = next;
+        *value = start_ + current_ * step_;
+        return true;
+    }
+};
+
+struct JointSpaceStepper {
+    std::vector<Stepper> steppers;
+    int current_;
+    std::vector<double> state;
+    JointSpaceStepper(double step, const std::vector<double> &ik_seed_state,
+            const std::vector<std::pair<double, double> > &min_max,
+            const std::vector<double> &indices) :
+        current_(0), state(indices.size()) {
+        int i = 0;
+        for (std::vector<double>::const_reverse_iterator it = indices.rbegin(); it
+                != indices.rend(); ++it) { // reverse!
+            steppers.push_back(Stepper(&state[i++], min_max[*it].first,
+                    min_max[*it].second, step));
+        }
+    }
+    bool step() {
+        bool overflow = false;
+        while (current_ < steppers.size() && !steppers[current_].step()) {
+            ++current_;
+            overflow = true;
+        }
+        if (current_ >= steppers.size()) return false;
+        if (overflow) {
+            while (current_ > 0)
+                steppers[current_--].reset();
+        }
+        return true;
+
+    }
+};
+
 namespace IKFAST_NAMESPACE {
 
 class IKFastPlugin: public kinematics::KinematicsBase {
