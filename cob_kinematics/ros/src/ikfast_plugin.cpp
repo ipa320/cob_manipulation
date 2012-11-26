@@ -53,6 +53,14 @@
 
 #include <cob_kinematics/kinematics_base_wrapper.h>
 
+#define IKFAST_HAS_LIBRARY
+#define IKFAST_NO_MAIN
+#include "ikfast.h"
+
+#include <kinematics_msgs/GetKinematicSolverInfo.h>
+#include <arm_navigation_msgs/ArmNavigationErrorCodes.h>
+#include <urdf/model.h>
+
 namespace IKFAST_NAMESPACE {
 
 class IKFastPlugin: public kinematics::KinematicsBase {
@@ -160,25 +168,133 @@ public:
             const std::string& base_name, const std::string& tip_name,
             const double& search_discretization) {
         setValues(group_name, base_name, tip_name, search_discretization);
-        // TODO parse stuff ;)
+
+        links_.resize(1);
+        links_[0] = tip_name_;
+
+        std::string urdf_xml, full_urdf_xml;
+        ros::NodeHandle node_handle;
+        node_handle.param("urdf_xml", urdf_xml,
+                std::string("robot_description"));
+        node_handle.searchParam(urdf_xml, full_urdf_xml);
+        ROS_DEBUG("Reading xml file from parameter server");
+        std::string result;
+        if (!node_handle.getParam(full_urdf_xml, result)) {
+            ROS_FATAL("Could not load the xml from parameter server: %s", urdf_xml.c_str());
+            return false;
+        }
+        // Load and Read Models
+        if (!loadModel(result)) {
+            ROS_FATAL("Could not load models!");
+            return false;
+        }
+        indices_.clear();
+        for (int i = 0; i < GetNumFreeParameters(); ++i)
+            indices_.push_back(GetFreeParameters()[i]);
+
     }
 
     /**
      * @brief  Return all the joint names in the order they are used internally
      */
     virtual WRAPPER_DECLARE_GET_VECTOR(getJointNames) {
+        return joints_;
     }
 
     /**
      * @brief  Return all the link names in the order they are represented internally
      */
     virtual WRAPPER_DECLARE_GET_VECTOR(getLinkNames) {
+        return links_;
     }
 
     /**
      * @brief  Virtual destructor for the interface
      */
     virtual ~IKFastPlugin() {
+    }
+    IKFastPlugin() :
+        bounds_epsilon_(0.0) {
+    }
+protected:
+    std::vector<std::pair<double, double> > min_max_;
+    double bounds_epsilon_;
+    std::vector<double> indices_;
+    std::vector<std::string> links_;
+    std::vector<std::string> joints_;
+    bool loadModel(const std::string xml) {
+        urdf::Model robot_model;
+
+        if (!robot_model.initString(xml)) {
+            ROS_FATAL("Could not initialize robot model");
+            return -1;
+        }
+        if (!readJoints(robot_model)) {
+            ROS_FATAL("Could not read information about the joints");
+            return false;
+        }
+        return true;
+    }
+
+    bool readJoints(urdf::Model &robot_model) {
+        int dimension_ = 0;
+        // get joint maxs and mins
+        boost::shared_ptr<const urdf::Link> link = robot_model.getLink(
+                tip_name_);
+        boost::shared_ptr<const urdf::Joint> joint;
+        while (link && link->name != base_name_) {
+            joint = robot_model.getJoint(link->parent_joint->name);
+            if (!joint) {
+                ROS_ERROR("Could not find joint: %s",link->parent_joint->name.c_str());
+                return false;
+            }
+            if (joint->type != urdf::Joint::UNKNOWN && joint->type
+                    != urdf::Joint::FIXED) {
+                ROS_INFO( "adding joint: [%s]", joint->name.c_str() );
+                dimension_++;
+            }
+            link = robot_model.getLink(link->getParent()->name);
+        }
+
+        if (dimension_ != GetNumJoints()) {
+            ROS_ERROR("Solver needs %d joints, but %d were found.",GetNumJoints(), dimension_);
+            return false;
+        }
+
+        min_max_.resize(dimension_);
+        joints_.resize(dimension_);
+        link = robot_model.getLink(tip_name_);
+
+        unsigned int i = 0;
+        while (link && i < dimension_) {
+            joint = robot_model.getJoint(link->parent_joint->name);
+            if (joint->type != urdf::Joint::UNKNOWN && joint->type
+                    != urdf::Joint::FIXED) {
+                ROS_INFO( "getting bounds for joint: [%s]", joint->name.c_str() );
+
+                float lower, upper;
+                if (joint->type != urdf::Joint::CONTINUOUS) {
+                    if (joint->safety) {
+                        lower = joint->safety->soft_lower_limit
+                                + bounds_epsilon_;
+                        upper = joint->safety->soft_upper_limit
+                                - bounds_epsilon_;
+                    } else {
+                        lower = joint->limits->lower + bounds_epsilon_;
+                        upper = joint->limits->upper - bounds_epsilon_;
+                    }
+                } else {
+                    lower = -M_PI;
+                    upper = M_PI;
+                }
+                min_max_[dimension_ - i - 1] = std::make_pair(lower, upper);
+                joints_[dimension_ - i - 1] = joint->name;
+                i++;
+            }
+            link = robot_model.getLink(link->getParent()->name);
+        }
+
+        return true;
     }
 };
 
