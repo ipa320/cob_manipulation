@@ -146,6 +146,83 @@ struct JointSpaceStepper {
     }
 };
 
+using namespace ikfast;
+
+class IkSolutionListFiltered: public IkSolutionList<double> {
+protected:
+    const std::vector<std::pair<double, double> > &min_max;
+    const std::vector<double> &ik_seed_state;
+    const boost::function<void(const geometry_msgs::Pose &ik_pose,
+            const std::vector<double> &ik_solution, int &error_code)>
+            &solution_callback;
+    const geometry_msgs::Pose &ik_pose;
+    double min_dist;
+    std::vector<double> min_solution;
+
+    virtual bool filterSolution(const std::vector<double> &values) {
+        for (unsigned int i = 0; i < min_max.size(); ++i)
+            if (values[i] < min_max[i].first || values[i] > min_max[i].second) {
+                return false;
+            }
+
+        int error_code = kinematics::SUCCESS;
+        if (solution_callback) solution_callback(ik_pose, values, error_code);
+        return error_code == kinematics::SUCCESS;
+    }
+public:
+    IkSolutionListFiltered(
+            const std::vector<std::pair<double, double> > &min_max,
+            const std::vector<double> &ik_seed_state,
+            const boost::function<void(const geometry_msgs::Pose &,
+                    const std::vector<double> &, int &)> &solution_callback,
+            const geometry_msgs::Pose &ik_pose) :
+        min_max(min_max), ik_seed_state(ik_seed_state), solution_callback(
+                solution_callback), ik_pose(ik_pose) {
+    }
+
+    virtual size_t AddSolution(const std::vector<
+            IkSingleDOFSolutionBase<double> >& vinfos,
+            const std::vector<int>& vfree) {
+
+        //ROS_ERROR("Solution!");
+
+        IkSolution<double> sol(vinfos, vfree);
+        std::vector<double> vsolfree(sol.GetFree().size());
+        std::vector<double> solvalues;
+        sol.GetSolution(solvalues, vsolfree);
+
+        double dist = harmonize(ik_seed_state, solvalues);
+
+        if (filterSolution(solvalues)) {
+            if (min_solution.empty() || dist < min_dist) min_solution
+                    = solvalues;
+        }
+
+        return IkSolutionList<double>::AddSolution(vinfos, vfree);
+    }
+    static double harmonize(const std::vector<double> &ik_seed_state,
+            std::vector<double> &solution) {
+        double dist_sqr = 0;
+        for (size_t i = 0; i < ik_seed_state.size(); ++i) {
+            if (fabs(solution[i] - ik_seed_state[i]) > 2 * M_PI) {
+                if (ik_seed_state[i] < 0) {
+                    if (solution[i] > 0) solution[i] -= 2 * M_PI;
+                } else {
+                    if (solution[i] < 0) solution[i] += 2 * M_PI;
+                }
+            }
+
+            dist_sqr += fabs(solution[i] - ik_seed_state[i]);
+        }
+        return dist_sqr;
+    }
+
+    bool getMinSolution(std::vector<double> &dest) {
+        if (min_solution.empty()) return false;
+        dest = min_solution;
+        return true;
+    }
+};
 namespace IKFAST_NAMESPACE {
 
 class IKFastPlugin: public kinematics::KinematicsBase {
