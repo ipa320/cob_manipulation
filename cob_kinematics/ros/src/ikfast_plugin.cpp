@@ -52,6 +52,7 @@
 #include <ros/ros.h>
 
 #include <cob_kinematics/kinematics_base_wrapper.h>
+#include <tf_conversions/tf_kdl.h>
 
 #define IKFAST_HAS_LIBRARY
 #define IKFAST_NO_MAIN
@@ -61,6 +62,9 @@
 #include <arm_navigation_msgs/ArmNavigationErrorCodes.h>
 #include <urdf/model.h>
 
+void print_frame(const char * str, const double* trans, const double* rot) {
+    ROS_ERROR("%s %f %f %f, %f %f %f %f %f %f %f %f %f", str, trans[0], trans[1], trans[2], rot[0],  rot[1], rot[2], rot[3], rot[4], rot[5], rot[6], rot[7], rot[8]);
+}
 namespace IKFAST_NAMESPACE {
 
 class IKFastPlugin: public kinematics::KinematicsBase {
@@ -158,6 +162,23 @@ public:
     virtual bool getPositionFK(const std::vector<std::string> &link_names,
             const std::vector<double> &joint_angles, std::vector<
                     geometry_msgs::Pose> &poses) {
+        KDL::Frame p_out;
+
+        if (joint_angles.size() != GetNumJoints()) {
+            ROS_ERROR("%d joint angles are required", GetNumJoints());
+            return false;
+        }
+
+        if (link_names.size() != 1 || link_names[0] != tip_name_) {
+            ROS_ERROR("Can compute FK for %s only",tip_name_.c_str());
+            return false;
+        }
+
+        ComputeFk(&joint_angles[0], p_out.p.data, p_out.M.data);
+        // print_frame("FK:", p_out.p.data, p_out.M.data);
+        poses.resize(1);
+        tf::PoseKDLToMsg(p_out, poses[0]);
+        return true;
     }
 
     /**
