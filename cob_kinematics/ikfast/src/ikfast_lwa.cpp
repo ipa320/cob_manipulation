@@ -12,7 +12,7 @@
 /// See the License for the specific language governing permissions and
 /// limitations under the License.
 ///
-/// ikfast version 61 generated on 2012-10-19 19:31:57.806406
+/// ikfast version 61 generated on 2012-11-23 19:10:48.288028
 /// To compile with gcc:
 ///     gcc -lstdc++ ik.cpp
 /// To compile without any main function as a shared object (might need -llapack):
@@ -20,7 +20,8 @@
 #define IKFAST_HAS_LIBRARY
 #include "ikfast.h" // found inside share/openrave-X.Y/python/ikfast.h
 using namespace ikfast;
-
+#include "ros/ros.h"
+#define IKFAST_ASSERT ROS_ASSERT
 // check if the included ikfast version matches what this file was compiled with
 #define IKFAST_COMPILE_ASSERT(x) extern int __dummy[(int)x]
 IKFAST_COMPILE_ASSERT(IKFAST_VERSION==61);
