@@ -237,6 +237,9 @@ public:
     virtual bool getPositionIK(const geometry_msgs::Pose &ik_pose,
             const std::vector<double> &ik_seed_state,
             std::vector<double> &solution, int &error_code) {
+
+        return searchPositionIK(ik_pose, ik_seed_state, solution, min_max_,
+                error_code);
     }
 
     /**
@@ -250,6 +253,9 @@ public:
     virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
             const std::vector<double> &ik_seed_state, const double &timeout,
             std::vector<double> &solution, int &error_code) {
+
+        return searchPositionIK(ik_pose, ik_seed_state, solution, min_max_,
+                error_code, timeout);
     }
 
     /**
@@ -269,6 +275,8 @@ public:
         std::vector<std::pair<double, double> > min_max = min_max_;
         setConsistencyLimit(min_max, ik_seed_state, redundancy,
                 consistency_limit);
+        return searchPositionIK(ik_pose, ik_seed_state, solution, min_max,
+                error_code, timeout);
     }
 
     /**
@@ -293,6 +301,8 @@ public:
             desired_pose_callback(ik_pose, ik_seed_state, error_code);
             if (error_code != kinematics::SUCCESS) return false;
         }
+        return searchPositionIK(ik_pose, ik_seed_state, solution, min_max_,
+                error_code, timeout, solution_callback);
     }
 
     /**
@@ -325,6 +335,8 @@ public:
         std::vector<std::pair<double, double> > min_max = min_max_; // local copy
         setConsistencyLimit(min_max, ik_seed_state, redundancy,
                 consistency_limit);
+        return searchPositionIK(ik_pose, ik_seed_state, solution, min_max,
+                error_code, timeout, solution_callback);
     }
 
     /**
@@ -417,6 +429,45 @@ protected:
     std::vector<double> indices_;
     std::vector<std::string> links_;
     std::vector<std::string> joints_;
+    bool searchPositionIK(
+            const geometry_msgs::Pose &ik_pose,
+            const std::vector<double> &ik_seed_state,
+            std::vector<double> &solution,
+            const std::vector<std::pair<double, double> > &min_max,
+            int &error_code,
+            const double timeout = -1,
+            const boost::function<void(const geometry_msgs::Pose &ik_pose,
+                    const std::vector<double> &ik_solution, int &error_code)> &solution_callback =
+                    0) {
+
+        KDL::Frame frame;
+        tf::PoseMsgToKDL(ik_pose, frame);
+        error_code = kinematics::NO_IK_SOLUTION;
+
+        // print_frame("IK:", frame.p.data, frame.M.data);
+        JointSpaceStepper jss(search_discretization_, ik_seed_state, min_max,
+                indices_);
+
+        IkSolutionListFiltered sollist(min_max, ik_seed_state,
+                solution_callback, ik_pose);
+
+        ros::Time maxTime = ros::Time::now() + ros::Duration(timeout);
+        do {
+            //ROS_ERROR("State: %f", jss.state[0]);
+            if (ComputeIk(frame.p.data, frame.M.data, &jss.state[0], sollist)) {
+                error_code = kinematics::STATE_IN_COLLISION; // is reachable but violates constraints
+            }
+            if (sollist.getMinSolution(solution)) {
+                error_code = kinematics::SUCCESS;
+                break;
+            }
+            if (timeout >= 0.0 && ros::Time::now() > maxTime) {
+                error_code = kinematics::TIMED_OUT;
+                break;
+            }
+        } while (jss.step());
+        return error_code == kinematics::SUCCESS;
+    }
     bool loadModel(const std::string xml) {
         urdf::Model robot_model;
 
