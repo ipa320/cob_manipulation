@@ -65,6 +65,15 @@
 void print_frame(const char * str, const double* trans, const double* rot) {
     ROS_ERROR("%s %f %f %f, %f %f %f %f %f %f %f %f %f", str, trans[0], trans[1], trans[2], rot[0],  rot[1], rot[2], rot[3], rot[4], rot[5], rot[6], rot[7], rot[8]);
 }
+void setConsistencyLimit(std::vector<std::pair<double, double> > &min_max,
+        const std::vector<double> &seed, const unsigned int& redundancy,
+        const double &consistency_limit) {
+    min_max[redundancy].first = fmax(min_max[redundancy].first,
+            seed[redundancy] - consistency_limit);
+    min_max[redundancy].second = fmin(min_max[redundancy].second,
+            seed[redundancy] + consistency_limit);
+}
+
 namespace IKFAST_NAMESPACE {
 
 class IKFastPlugin: public kinematics::KinematicsBase {
@@ -107,6 +116,10 @@ public:
             const std::vector<double> &ik_seed_state, const double &timeout,
             const unsigned int& redundancy, const double &consistency_limit,
             std::vector<double> &solution, int &error_code) {
+
+        std::vector<std::pair<double, double> > min_max = min_max_;
+        setConsistencyLimit(min_max, ik_seed_state, redundancy,
+                consistency_limit);
     }
 
     /**
@@ -159,6 +172,10 @@ public:
             desired_pose_callback(ik_pose, ik_seed_state, error_code);
             if (error_code != kinematics::SUCCESS) return false;
         }
+
+        std::vector<std::pair<double, double> > min_max = min_max_; // local copy
+        setConsistencyLimit(min_max, ik_seed_state, redundancy,
+                consistency_limit);
     }
 
     /**
