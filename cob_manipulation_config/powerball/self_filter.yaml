@@ -1,0 +1,20 @@
+min_sensor_dist: .05
+self_see_default_padding: .00
+self_see_default_scale: 1.0
+self_see_links:
+  - name: arm_base_link
+    padding: .15
+  - name: arm_shoulder_link
+    padding: .15
+  - name: arm_upper_arm_link
+    padding: .15
+  - name: arm_forearm_link
+    padding: .15
+  - name: arm_wrist_1_link
+    padding: .15
+  - name: arm_wrist_2_link
+    padding: .15
+  - name: arm_wrist_3_link
+    padding: .15
+  - name: arm_ee_link
+    padding: .15
