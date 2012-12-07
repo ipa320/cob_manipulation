@@ -21,15 +21,18 @@ FkLookup::ChainFK::ChainFK(const KDL::Tree& tree, const std::string& root, const
     }
     ROS_ASSERT(joints.size() == chain.getNrOfJoints());
 }
-
-bool FkLookup::ChainFK::parseJointState(const sensor_msgs::JointState &state_in, KDL::JntArray &array_out) const{
+bool FkLookup::ChainFK::parseJointState(const sensor_msgs::JointState &state_in, KDL::JntArray &array_out, std::map<std::string, unsigned int> &missing) const{
+    // seed state > robot_state > planning_scene
+   if(missing.size() == 0){
+        array_out.resize(joints.size());
+        missing = joints;
+    }
+    int joints_needed = missing.size();
     unsigned int num = state_in.name.size();
-    int joints_needed = joints.size();
-    array_out.resize(joints_needed);
-    if(num == state_in.position.size()){
-	for(unsigned i = 0; i <  num; ++i){
-	    std::map<std::string, unsigned int>::const_iterator it = joints.find(state_in.name[i]);
-	    if( it != joints.end()){
+    if(state_in.name.size() == state_in.position.size()){
+	for(unsigned i = 0; i <  num && joints_needed > 0; ++i){
+	    std::map<std::string, unsigned int>::iterator it = missing.find(state_in.name[i]);
+	    if( it != missing.end()){
 		array_out(it->second) = state_in.position[i];
 		--joints_needed;
 	    }
@@ -109,7 +112,13 @@ int IKWrapper::transformPositionIKRequest(kinematics_msgs::PositionIKRequest &re
 	tf::PoseMsgToKDL(request.pose_stamped.pose, frame_in);
 
 	KDL::JntArray joints;
-	if(!fk->parseJointState(request.robot_state.joint_state, joints)) return arm_navigation_msgs::ArmNavigationErrorCodes::INCOMPLETE_ROBOT_STATE;
+        std::map<std::string, unsigned int> missing;
+	if(!fk->parseJointState(request.ik_seed_state.joint_state, joints, missing)
+            && !fk->parseJointState(request.robot_state.joint_state, joints, missing)
+            && !fk->parseJointState(robot_state.joint_state, joints, missing) )
+        {
+            return arm_navigation_msgs::ArmNavigationErrorCodes::INCOMPLETE_ROBOT_STATE;
+        }
 	
 	if(!fk->getFK(joints,frame_fk)) return arm_navigation_msgs::ArmNavigationErrorCodes::NO_FK_SOLUTION;
 	
@@ -203,8 +212,9 @@ bool IKWrapper::getPositionFK(kinematics_msgs::GetPositionFK::Request &request,
 	    KDL::Frame frame_fk;
 
 	    KDL::JntArray joints;
-	    if(!fk->parseJointState(request.robot_state.joint_state, joints)){
-		 
+            std::map<std::string, unsigned int> missing;
+            if(!fk->parseJointState(request.robot_state.joint_state, joints, missing)
+                && !fk->parseJointState(robot_state.joint_state, joints, missing) ){
 		response.error_code.val = arm_navigation_msgs::ArmNavigationErrorCodes::INCOMPLETE_ROBOT_STATE;
 		break;
 	    }else if(!fk->getFK(joints,frame_fk)){
