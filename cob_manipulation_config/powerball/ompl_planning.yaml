@@ -1,0 +1,15 @@
+# THIS IS A SHARED CONFIG, DO NOT EDIT! CREATE AN OVERLAY INSTEAD!
+planner_configs:
+  SBLkConfig1:
+    type: kinematic::SBL
+  LBKPIECEkConfig1:
+    type: kinematic::LBKPIECE
+default_planner_config: SBLkConfig1    
+groups:
+  - arm
+arm:
+  planner_type: JointPlanner
+  planner_configs:
+    - SBLkConfig1
+    - LBKPIECEkConfig1
+  projection_evaluator: joint_state
