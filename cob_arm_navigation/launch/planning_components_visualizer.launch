@@ -23,6 +23,8 @@
         <remap from="/cob3_6_arm_kinematics/get_ik" to="/cob_arm_kinematics/get_ik"/>
         <remap from="/icob_arm_kinematics/get_constraint_aware_ik" to="/cob_arm_kinematics/get_constraint_aware_ik"/>
         <remap from="/icob_arm_kinematics/get_ik" to="/cob_arm_kinematics/get_ik"/>
+        <remap from="/powerball_arm_kinematics/get_constraint_aware_ik" to="/cob_arm_kinematics/get_constraint_aware_ik"/>
+        <remap from="/powerball_arm_kinematics/get_ik" to="/cob_arm_kinematics/get_ik"/>
     </node>
     <node pkg="robot_state_publisher" type="state_publisher" name="rob_st_pub" />
 </launch>
