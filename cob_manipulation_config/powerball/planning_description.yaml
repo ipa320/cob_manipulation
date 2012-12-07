@@ -1,0 +1,14 @@
+#default_robot_padding: 0.01
+#default_robot_scale: 1.0
+#default_object_padding: 0.02
+#default_attached_padding: 0.05
+
+multi_dof_joints:
+  - name: world_joint
+    type: Fixed
+    parent_frame_id: base_link
+    child_frame_id: base_link
+groups:
+  - name: arm
+    base_link: arm_0_link
+    tip_link: arm_6_link
