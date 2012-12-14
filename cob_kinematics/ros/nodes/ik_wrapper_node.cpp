@@ -10,6 +10,10 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/scoped_ptr.hpp>
 
+#include <planning_environment/models/collision_models_interface.h>
+
+#include <std_srvs/Empty.h>
+
 class IKWrapperNode{
     boost::scoped_ptr<IKWrapper> wrapper;
     ros::NodeHandle nh;
@@ -22,7 +26,11 @@ class IKWrapperNode{
     ros::ServiceServer get_constraint_aware_ik_server;    
     ros::ServiceServer get_ik_extended_server;
 
+    planning_environment::CollisionModelsInterface cmi;
 public:    
+    void updateRobotState(const arm_navigation_msgs::PlanningScene &scene){
+	if(wrapper) wrapper->updateRobotState(scene.robot_state);	
+    }
     bool getPositionIK(kinematics_msgs::GetPositionIK::Request &request, 
              kinematics_msgs::GetPositionIK::Response &response){
         response.error_code.val  = wrapper->transformPositionIKRequest(request.ik_request);
@@ -75,7 +83,9 @@ public:
         return wrapper->getPositionFK(request, response, get_fk_client);
     }
 
-    IKWrapperNode():nh("~"){
+    IKWrapperNode():nh("~"),cmi("/robot_description",false){
+	
+    cmi.addSetPlanningSceneCallback(boost::bind(&IKWrapperNode::updateRobotState,this, _1));
     std::string prefix, ik_name, fk_name, constraint_ik_name, info_name,link_names, prefetch_tips;
 
     nh.param<std::string>("srvs_prefix", prefix, "/cob_arm_kinematics/");    
@@ -134,6 +144,11 @@ public:
         if(get_ik_client.exists() || get_constraint_aware_ik_client.exists()){
          get_ik_extended_server = rh.advertiseService("get_ik_extended", &IKWrapperNode::getPositionIKExtended,this);
         }
+	if(ros::service::waitForService("/register_planning_scene", ros::Duration(10.0))){
+	    std_srvs::Empty::Request req;
+	    std_srvs::Empty::Response res;
+	    ros::service::call("/register_planning_scene", req, res);
+	}
     }else{
          nh.shutdown();
      }
