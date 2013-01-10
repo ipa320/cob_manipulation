@@ -6,7 +6,7 @@
 		<arg name="robot" value="$(arg robot)" />
 	</include>
 	
-	<node name="state_transformer" pkg="state_transformer" type="state_transformer" respawn="false" output="screen" />
+	<!--<node name="state_transformer" pkg="state_transformer" type="state_transformer" respawn="false" output="screen" /> -->
 	
 	<node name="object_handler" pkg="cob_object_handler" type="object_handler" respawn="false" output="screen" />
 </launch>
