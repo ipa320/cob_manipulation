@@ -31,7 +31,7 @@
   <depend package="urdf"/>
   <depend package="pr2_arm_kinematics"/>
 
-  <rosdep name="liblapack"/>
+  <!--<rosdep name="liblapack"/>-->
 
   <export>
     <kinematics_base plugin="${prefix}/cob_manipulator_plugins.xml" />
