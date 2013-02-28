@@ -24,7 +24,7 @@ def callFK(joint_values, links):
 	req.fk_link_names = links
 	req.robot_state.joint_state.name = ['sdh_knuckle_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint'] + ['arm_%d_joint'%(d+1) for d in range (7)]
 	req.robot_state.joint_state.position = [0]*7 + joint_values
-	fks = rospy.ServiceProxy('/cob_ik_wrapper/get_fk', GetPositionFK)
+	fks = rospy.ServiceProxy('/cob_ik_wrapper/arm/get_fk', GetPositionFK)
 	res = fks(req)
 	#print req
 	#print res
@@ -37,7 +37,7 @@ def callIK(pose_stamped, link):
 	req.ik_request.ik_seed_state.joint_state.name = ['arm_%d_joint'%(d+1) for d in range (7)]
 	req.ik_request.ik_seed_state.joint_state.position = [-1.1572567240035734, -1.9104664691761568, -2.5334780195730255, -1.7853311980377056, -0.072798739390243047, 0.91767934923272776, -1.8876618005378798]
 	req.ik_request.pose_stamped = pose_stamped
-	iks = rospy.ServiceProxy('/cob_ik_wrapper/get_ik', GetPositionIK)
+	iks = rospy.ServiceProxy('/cob_ik_wrapper/arm/get_ik', GetPositionIK)
 	res = iks(req)
 	return res.solution.joint_state.position if res.error_code.val == res.error_code.SUCCESS else None, res.error_code
 
