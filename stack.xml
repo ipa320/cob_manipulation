@@ -12,7 +12,6 @@
   <depend stack="arm_navigation_experimental" /> <!-- collider, move_arm_warehouse -->
   <depend stack="cob_command_tools" /> <!-- cob_script_server -->
   <depend stack="cob_common" /> <!-- cob_srvs, brics_actuator -->
-  <depend stack="cob_robots" /> <!-- cob_hardware_config -->
   <depend stack="common" /> <!-- actionlib, tinyxml -->
   <depend stack="common_msgs" /> <!-- nav_msgs, actionlib_msgs, trajectory_msgs, sensor_msgs, geometry_msgs, visualization_msgs -->
   <depend stack="geometry" /> <!-- tf, tf_conversions -->
