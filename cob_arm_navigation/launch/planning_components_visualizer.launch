@@ -1,5 +1,7 @@
 <launch>
-    <include file="$(find cob_hardware_config)/common/upload_robot.launch" />
+    <include file="$(find cob_hardware_config)/common/upload_robot.launch" >
+	    <arg name="robot" value="$(env ROBOT)" />
+    </include>
     <include file="$(find cob_arm_navigation)/launch/planning_environment.xml" />
     <include file="$(find planning_environment)/launch/planning_environment_visualization_prerequisites.launch" />
     <include file="$(find cob_arm_navigation)/launch/constraint_aware_kinematics.xml" />

@@ -23,6 +23,7 @@
   
   <export>
     <kinematics_base plugin="${prefix}/ikfast/plugins.xml" />
+    <kinematics_base plugin="${prefix}/cob_kinematics_plugins.xml" />
   </export>
 
 </package>

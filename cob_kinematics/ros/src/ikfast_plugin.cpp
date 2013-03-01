@@ -148,6 +148,13 @@ struct JointSpaceStepper {
 
 using namespace ikfast;
 
+template<class A1, class A2>
+std::ostream& operator<<(std::ostream& s, std::vector<A1, A2> const& vec)
+{
+    copy(vec.begin(), vec.end(), std::ostream_iterator<A1>(s, " "));
+    return s;
+}
+
 class IkSolutionListFiltered: public IkSolutionList<double> {
 protected:
     const std::vector<std::pair<double, double> > &min_max;
@@ -169,6 +176,7 @@ protected:
         if (solution_callback) solution_callback(ik_pose, values, error_code);
         return error_code == kinematics::SUCCESS;
     }
+    double  ik_values[12];
 public:
     IkSolutionListFiltered(
             const std::vector<std::pair<double, double> > &min_max,
@@ -178,6 +186,12 @@ public:
             const geometry_msgs::Pose &ik_pose) :
         min_max(min_max), ik_seed_state(ik_seed_state), solution_callback(
                 solution_callback), ik_pose(ik_pose) {
+        KDL::Frame frame;
+        tf::PoseMsgToKDL(ik_pose, frame);
+        ik_values[0] = frame.p[0]; ik_values[1] = frame.p[1];  ik_values[2] = frame.p[2];
+        ik_values[3] = frame.M.data[0]; ik_values[4] = frame.M.data[1]; ik_values[5] = frame.M.data[2];
+        ik_values[6] = frame.M.data[3]; ik_values[7] = frame.M.data[4]; ik_values[8] = frame.M.data[5];
+        ik_values[9] = frame.M.data[6]; ik_values[10] = frame.M.data[7]; ik_values[11] = frame.M.data[8];
     }
 
     virtual size_t AddSolution(const std::vector<
@@ -203,7 +217,7 @@ public:
     static double harmonize(const std::vector<double> &ik_seed_state,
             std::vector<double> &solution) {
         double dist_sqr = 0;
-        for (size_t i = 0; i < ik_seed_state.size(); ++i) {
+        for (size_t i = 0; i < solution.size(); ++i) {
             if (fabs(solution[i] - ik_seed_state[i]) > 2 * M_PI) {
                 if (ik_seed_state[i] < 0) {
                     if (solution[i] > 0) solution[i] -= 2 * M_PI;
@@ -443,6 +457,11 @@ protected:
         KDL::Frame frame;
         tf::PoseMsgToKDL(ik_pose, frame);
         error_code = kinematics::NO_IK_SOLUTION;
+	
+		if(ik_seed_state.size() < GetNumJoints()){
+            ROS_ERROR_STREAM("Needs " << GetNumJoints() << "joint values. but only " << ik_seed_state.size() << "were given.");
+	    	return false;
+		}
 
         // print_frame("IK:", frame.p.data, frame.M.data);
         JointSpaceStepper jss(search_discretization_, ik_seed_state, min_max,
@@ -454,7 +473,7 @@ protected:
         ros::Time maxTime = ros::Time::now() + ros::Duration(timeout);
         do {
             //ROS_ERROR("State: %f", jss.state[0]);
-            if (ComputeIk(frame.p.data, frame.M.data, &jss.state[0], sollist)) {
+            if (ComputeIk(frame.p.data, frame.M.data, indices_.empty()?0:&jss.state[0], sollist)) {
                 error_code = kinematics::STATE_IN_COLLISION; // is reachable but violates constraints
             }
             if (sollist.getMinSolution(solution)) {
