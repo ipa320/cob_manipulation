@@ -203,7 +203,7 @@ public:
     static double harmonize(const std::vector<double> &ik_seed_state,
             std::vector<double> &solution) {
         double dist_sqr = 0;
-        for (size_t i = 0; i < ik_seed_state.size(); ++i) {
+        for (size_t i = 0; i < solution.size(); ++i) {
             if (fabs(solution[i] - ik_seed_state[i]) > 2 * M_PI) {
                 if (ik_seed_state[i] < 0) {
                     if (solution[i] > 0) solution[i] -= 2 * M_PI;
@@ -443,6 +443,11 @@ protected:
         KDL::Frame frame;
         tf::PoseMsgToKDL(ik_pose, frame);
         error_code = kinematics::NO_IK_SOLUTION;
+	
+		if(ik_seed_state.size() < GetNumJoints()){
+            ROS_ERROR_STREAM("Needs " << GetNumJoints() << "joint values. but only " << ik_seed_state.size() << "were given.");
+	    	return false;
+		}
 
         // print_frame("IK:", frame.p.data, frame.M.data);
         JointSpaceStepper jss(search_discretization_, ik_seed_state, min_max,
@@ -454,7 +459,7 @@ protected:
         ros::Time maxTime = ros::Time::now() + ros::Duration(timeout);
         do {
             //ROS_ERROR("State: %f", jss.state[0]);
-            if (ComputeIk(frame.p.data, frame.M.data, &jss.state[0], sollist)) {
+            if (ComputeIk(frame.p.data, frame.M.data, indices_.empty()?0:&jss.state[0], sollist)) {
                 error_code = kinematics::STATE_IN_COLLISION; // is reachable but violates constraints
             }
             if (sollist.getMinSolution(solution)) {
