@@ -23,7 +23,6 @@
   <depend package="mongodb"/>
 
   <depend package="cob_hardware_config"/> <!-- for URDFs -->
-  <depend package="cob_manipulator"/> <!-- pose_transform -->
   <depend package="cob_kinematics"/>
   <depend package="cob_manipulation_config"/>
   <depend package="cob_object_handler"/>
