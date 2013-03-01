@@ -1,0 +1,7 @@
+num_steps: 0
+pos_spacing: 0.02
+rot_spacing: 0.0349065850399
+collision_check_resolution: 0
+consistent_angle: 0.017
+collision_aware: 1
+start_from_end: 0
