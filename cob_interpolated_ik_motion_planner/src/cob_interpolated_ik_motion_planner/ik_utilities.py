@@ -64,8 +64,9 @@ class IKUtilities:
     def __init__(self, whicharm, tf_listener = None, wait_for_services = 1): #whicharm is 'right' or 'left'
         
         #gets the robot_prefix from the parameter server. Default is pr2 
-        robot_prefix = rospy.get_param('~robot_prefix', 'pr2') 
-        self.srvroot = '/'+robot_prefix+'_'+whicharm+'_kinematics/' 
+        robot_prefix = rospy.get_param('~robot_prefix', 'cob') 
+        self.srvroot = '/'+robot_prefix+'_'+whicharm+'_kinematics/'
+	print self.srvroot 
 
         #If collision_aware_ik is set to 0, then collision-aware IK is disabled 
  	self.perception_running = rospy.get_param('~collision_aware_ik', 1) 
