@@ -41,3 +41,5 @@ rosbuild_add_library(cob3_arm_kinematics
   ros/src/kdl_arm_kinematics_plugin.cpp
 )
 
+rosbuild_add_executable(kinematics_node ros/src/kinematics_node.cpp)
+
