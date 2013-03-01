@@ -148,6 +148,13 @@ struct JointSpaceStepper {
 
 using namespace ikfast;
 
+template<class A1, class A2>
+std::ostream& operator<<(std::ostream& s, std::vector<A1, A2> const& vec)
+{
+    copy(vec.begin(), vec.end(), std::ostream_iterator<A1>(s, " "));
+    return s;
+}
+
 class IkSolutionListFiltered: public IkSolutionList<double> {
 protected:
     const std::vector<std::pair<double, double> > &min_max;
@@ -169,6 +176,7 @@ protected:
         if (solution_callback) solution_callback(ik_pose, values, error_code);
         return error_code == kinematics::SUCCESS;
     }
+    double  ik_values[12];
 public:
     IkSolutionListFiltered(
             const std::vector<std::pair<double, double> > &min_max,
@@ -178,6 +186,12 @@ public:
             const geometry_msgs::Pose &ik_pose) :
         min_max(min_max), ik_seed_state(ik_seed_state), solution_callback(
                 solution_callback), ik_pose(ik_pose) {
+        KDL::Frame frame;
+        tf::PoseMsgToKDL(ik_pose, frame);
+        ik_values[0] = frame.p[0]; ik_values[1] = frame.p[1];  ik_values[2] = frame.p[2];
+        ik_values[3] = frame.M.data[0]; ik_values[4] = frame.M.data[1]; ik_values[5] = frame.M.data[2];
+        ik_values[6] = frame.M.data[3]; ik_values[7] = frame.M.data[4]; ik_values[8] = frame.M.data[5];
+        ik_values[9] = frame.M.data[6]; ik_values[10] = frame.M.data[7]; ik_values[11] = frame.M.data[8];
     }
 
     virtual size_t AddSolution(const std::vector<
