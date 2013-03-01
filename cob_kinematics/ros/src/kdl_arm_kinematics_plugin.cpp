@@ -31,7 +31,7 @@
  * Author: Sachin Chitta, David Lu!!, Ugo Cupcic
  */
 
-#include <cob_manipulator/kdl_arm_kinematics_plugin.h>
+#include <cob_kinematics/kdl_arm_kinematics_plugin.h>
 #include <pluginlib/class_list_macros.h>
 
 using namespace KDL;

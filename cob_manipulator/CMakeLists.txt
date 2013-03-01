@@ -38,7 +38,7 @@ include_directories(${PROJECT_SOURCE_DIR}/ros/include)
 
 
 rosbuild_add_library(cob3_arm_kinematics
-  ros/src/ikfast_kinematics_plugin.cpp ros/src/kdl_arm_kinematics_plugin.cpp
+  ros/src/ikfast_kinematics_plugin.cpp
 )
 target_link_libraries(cob3_arm_kinematics lapack)
 #target_link_libraries(example ${PROJECT_NAME})
