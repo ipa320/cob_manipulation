@@ -104,7 +104,7 @@ class InterpolatedIKService:
 
     def __init__(self, which_arm):
         self.which_arm = which_arm 
-        self.node_name = 'cob_interpolated_ik'#which_arm+'_interpolated_ik_motion_planner_server'
+        self.node_name = which_arm+'_interpolated_ik_motion_planner_server'
 
         rospy.init_node(self.node_name)
 
