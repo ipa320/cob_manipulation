@@ -1,6 +1,8 @@
 <?xml version="1.0"?>
 <launch>
 
-	<node name="cob_interpolated_ik" pkg="cob_interpolated_ik_motion_planner" type="interpolated_ik_motion_planner.py" respawn="false" output="screen" args="arm"/>
+	<node name="cob_interpolated_ik" pkg="cob_interpolated_ik_motion_planner" type="interpolated_ik_motion_planner.py" respawn="false" output="screen" args="arm">
+		<rosparam file="$(find cob_interpolated_ik_motion_planner)/config/arm_interpolated_ik.yaml"/>
+	</node>
 	
 </launch>
