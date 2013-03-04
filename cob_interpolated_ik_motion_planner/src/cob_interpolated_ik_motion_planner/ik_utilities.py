@@ -66,7 +66,6 @@ class IKUtilities:
         #gets the robot_prefix from the parameter server. Default is pr2 
         robot_prefix = rospy.get_param('~robot_prefix', 'cob') 
         self.srvroot = '/'+robot_prefix+'_'+whicharm+'_kinematics/'
-	print self.srvroot 
 
         #If collision_aware_ik is set to 0, then collision-aware IK is disabled 
  	self.perception_running = rospy.get_param('~collision_aware_ik', 1) 
@@ -646,7 +645,7 @@ class IKUtilities:
                     trajectory.append(list(solution))
 
                     #first trajectory point, or last point was all 0s, or consistent with previous point
-                    if stepind == 0 or error_codes[-1] == 3 or self.check_consistent(trajectory[-2], solution, consistent_angle):
+                    if stepind == 0 or error_codes[-1] == 3 or self.check_consistent(trajectory[-1], solution, consistent_angle):
                         if not collision_aware_this_step or collision_aware_solution_found:
                             error_codes.append(0)  #0=good
                         else:
@@ -696,7 +695,7 @@ if __name__ == '__main__':
         (trajectory, error_codes) = ik_utilities.check_cartesian_path(start_pose, \
                       end_pose, start_angles, pos_spacing, rot_spacing, consistent_angle, collision_aware, collision_check_resolution, \
                       steps_before_abort, num_steps, use_additional_start_angles = 2)
-        (times, vels) = ik_utilities.trajectory_times_and_vels(trajectory, [.2]*7, [.5]*7) 
+        (times, vels) = ik_utilities.trajectory_times_and_vels(trajectory, [.3]*7, [.5]*7) 
 
         rospy.loginfo("trajectory:")
         for ind in range(len(trajectory)):
