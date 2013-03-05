@@ -15,10 +15,10 @@
         	</include>
     	</group>
 
-<!--
+
 	<group>
 		<include file="$(find cob_arm_navigation)/launch/kinect_perception.launch" />
 	</group>
--->
+
 
 </launch>

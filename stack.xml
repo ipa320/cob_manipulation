@@ -16,7 +16,7 @@
   <depend stack="common" /> <!-- actionlib, tinyxml -->
   <depend stack="common_msgs" /> <!-- nav_msgs, actionlib_msgs, trajectory_msgs, sensor_msgs, geometry_msgs, visualization_msgs -->
   <depend stack="geometry" /> <!-- tf, tf_conversions -->
-  <depend stack="object_manipulation" /> <!-- object_manipulation_msgs -->
+  <!--depend stack="object_manipulation" /--> <!-- object_manipulation_msgs, check if still needed -->
   <depend stack="orocos_kinematics_dynamics" /> <!-- kdl -->
   <depend stack="pluginlib" /> <!-- pluginlib -->
   <depend stack="pr2_controllers" /> <!-- pr2_controllers_msgs -->
@@ -28,7 +28,7 @@
   <depend stack="visualization" /> <!-- rviz -->
   <depend stack="warehousewg" /> <!-- mongodb -->
   <depend stack="common_rosdeps" /> <!-- assimp -->
-  <depend stack="cob_object_perception"/> <!-- cob_object_detection_msgs -->
+  <!--depend stack="cob_object_perception"/--> <!-- cob_object_detection_msgs -->
 
 
 </stack>
