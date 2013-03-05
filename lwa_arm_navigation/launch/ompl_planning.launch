@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-    <include file="$(find lwa_arm_navigation)/launch/lwa_planning_environment.launch" />
-    <node pkg="ompl_ros_interface" type="ompl_ros" name="ompl_planning">
-        <param name="default_planner_config" type="string" value="SBLkConfig1" />
-        <rosparam command="load" file="$(find lwa_arm_navigation)/config/ompl_planning.yaml" />
-    </node>
-</launch>

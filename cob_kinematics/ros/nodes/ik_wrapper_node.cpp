@@ -1,3 +1,54 @@
+/*!
+ *****************************************************************
+ * \note
+ *   Copyright (c) 2012 \n
+ *   Fraunhofer Institute for Manufacturing Engineering
+ *   and Automation (IPA) \n\n
+ *
+ *****************************************************************
+ *
+ * \note
+ *   ROS stack name: cob_manipulation
+ * \note
+ *   ROS package name: cob_kinematics
+ *
+ * \author
+ *   Author: Mathias Lüdtke
+ *
+ * \brief
+ *   IK/FK service wrapper node with support for multiple IK links at the end-effector
+ *
+ *****************************************************************
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *     - Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer. \n
+ *     - Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution. \n
+ *     - Neither the name of the Fraunhofer Institute for Manufacturing
+ *       Engineering and Automation (IPA) nor the names of its
+ *       contributors may be used to endorse or promote products derived from
+ *       this software without specific prior written permission. \n
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License LGPL as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License LGPL for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License LGPL along with this program.
+ * If not, see <http://www.gnu.org/licenses/>.
+ *
+ ****************************************************************/
+
 #include "cob_kinematics/ik_wrapper.h"
 
 #include <kinematics_msgs/GetConstraintAwarePositionIK.h>
@@ -9,6 +60,10 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/scoped_ptr.hpp>
+
+#include <planning_environment/models/collision_models_interface.h>
+
+#include <std_srvs/Empty.h>
 
 class IKWrapperNode{
     boost::scoped_ptr<IKWrapper> wrapper;
@@ -22,7 +77,11 @@ class IKWrapperNode{
     ros::ServiceServer get_constraint_aware_ik_server;    
     ros::ServiceServer get_ik_extended_server;
 
+    planning_environment::CollisionModelsInterface cmi;
 public:    
+    void updateRobotState(const arm_navigation_msgs::PlanningScene &scene){
+	if(wrapper) wrapper->updateRobotState(scene.robot_state);	
+    }
     bool getPositionIK(kinematics_msgs::GetPositionIK::Request &request, 
              kinematics_msgs::GetPositionIK::Response &response){
         response.error_code.val  = wrapper->transformPositionIKRequest(request.ik_request);
@@ -75,7 +134,9 @@ public:
         return wrapper->getPositionFK(request, response, get_fk_client);
     }
 
-    IKWrapperNode():nh("~"){
+    IKWrapperNode():nh("~"),cmi("/robot_description",false){
+	
+    cmi.addSetPlanningSceneCallback(boost::bind(&IKWrapperNode::updateRobotState,this, _1));
     std::string prefix, ik_name, fk_name, constraint_ik_name, info_name,link_names, prefetch_tips;
 
     nh.param<std::string>("srvs_prefix", prefix, "/cob_arm_kinematics/");    
@@ -134,6 +195,11 @@ public:
         if(get_ik_client.exists() || get_constraint_aware_ik_client.exists()){
          get_ik_extended_server = rh.advertiseService("get_ik_extended", &IKWrapperNode::getPositionIKExtended,this);
         }
+	if(ros::service::waitForService("/register_planning_scene", ros::Duration(10.0))){
+	    std_srvs::Empty::Request req;
+	    std_srvs::Empty::Response res;
+	    ros::service::call("/register_planning_scene", req, res);
+	}
     }else{
          nh.shutdown();
      }
