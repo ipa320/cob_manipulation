@@ -21,8 +21,10 @@
   <depend package="pluginlib"/>
   <depend package="kinematics_base"/>  
   
+  <rosdep name="liblapack-dev"/>
+  
   <export>
-    <!--kinematics_base plugin="${prefix}/ikfast/plugins.xml" TODO: find other solution/-->
+    <!-- kinematics_base plugin="${prefix}/ikfast/plugins.xml" TODO: find other solution /-->
     <kinematics_base plugin="${prefix}/cob_kinematics_plugins.xml" />
   </export>
 
