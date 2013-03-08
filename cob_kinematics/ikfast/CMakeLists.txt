@@ -29,5 +29,6 @@ foreach(fname ${yamls})
     file(APPEND plugins.xml "<class name=\"cob_kinematics/IKFast_${bname}\" type=\"${bname}::IKFastPlugin\" base_class_type=\"kinematics::KinematicsBase\"/>\n")
     file(APPEND plugins.xml "</library>\n")
 endforeach()
-
+file(READ ../cob_kinematics_plugins.xml cob_kinematics_plugins)
+file(APPEND plugins.xml "${cob_kinematics_plugins}")
 file(APPEND plugins.xml "</class_libraries>\n")
