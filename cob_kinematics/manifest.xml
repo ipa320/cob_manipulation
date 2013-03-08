@@ -22,8 +22,7 @@
   <depend package="kinematics_base"/>  
   
   <export>
-    <kinematics_base plugin="${prefix}/ikfast/plugins.xml" />
-    <kinematics_base plugin="${prefix}/cob_kinematics_plugins.xml" />
+      <kinematics_base plugin="${prefix}/ikfast/plugins.xml" /> <!-- includes"${prefix}/cob_kinematics_plugins.xml" as well -->
   </export>
 
 </package>
