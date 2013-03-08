@@ -28,7 +28,7 @@
   <depend stack="visualization" /> <!-- rviz -->
   <depend stack="warehousewg" /> <!-- mongodb -->
   <depend stack="common_rosdeps" /> <!-- assimp -->
-  <!--depend stack="cob_object_perception"/--> <!-- cob_object_detection_msgs -->
+  <depend stack="cob_perception_common"/> <!-- cob_object_detection_msgs -->
 
 
 </stack>
