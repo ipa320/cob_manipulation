@@ -51,27 +51,27 @@
 
 #include <ros/ros.h>
 
-#include <cob_kinematics/kinematics_base_wrapper.h>
+#include <moveit/kinematics_base/kinematics_base.h>
+
 #include <tf_conversions/tf_kdl.h>
 
 #define IKFAST_HAS_LIBRARY
 #define IKFAST_NO_MAIN
 #include "ikfast.h"
 
-#include <kinematics_msgs/GetKinematicSolverInfo.h>
-#include <arm_navigation_msgs/ArmNavigationErrorCodes.h>
+#include <moveit_msgs/GetKinematicSolverInfo.h>
+#include <moveit_msgs/MoveItErrorCodes.h>
 #include <urdf/model.h>
 
 void print_frame(const char * str, const double* trans, const double* rot) {
     ROS_ERROR("%s %f %f %f, %f %f %f %f %f %f %f %f %f", str, trans[0], trans[1], trans[2], rot[0],  rot[1], rot[2], rot[3], rot[4], rot[5], rot[6], rot[7], rot[8]);
 }
 void setConsistencyLimit(std::vector<std::pair<double, double> > &min_max,
-        const std::vector<double> &seed, const unsigned int& redundancy,
-        const double &consistency_limit) {
-    min_max[redundancy].first = fmax(min_max[redundancy].first,
-            seed[redundancy] - consistency_limit);
-    min_max[redundancy].second = fmin(min_max[redundancy].second,
-            seed[redundancy] + consistency_limit);
+        const std::vector<double> &seed, const std::vector<double> &consistency_limits) {
+    for(unsigned int i=0; i <min_max.size(); ++i){
+    min_max[i].first = fmax(min_max[i].first, seed[i] - consistency_limits[i]);
+    min_max[i].second = fmin(min_max[i].second, seed[i] + consistency_limits[i]);
+    }
 }
 
 struct Stepper {
@@ -159,9 +159,7 @@ class IkSolutionListFiltered: public IkSolutionList<double> {
 protected:
     const std::vector<std::pair<double, double> > &min_max;
     const std::vector<double> &ik_seed_state;
-    const boost::function<void(const geometry_msgs::Pose &ik_pose,
-            const std::vector<double> &ik_solution, int &error_code)>
-            &solution_callback;
+    const kinematics::KinematicsBase::IKCallbackFn &solution_callback;
     const geometry_msgs::Pose &ik_pose;
     double min_dist;
     std::vector<double> min_solution;
@@ -172,22 +170,22 @@ protected:
                 return false;
             }
 
-        int error_code = kinematics::SUCCESS;
+	moveit_msgs::MoveItErrorCodes error_code;
+        error_code.val = error_code.SUCCESS;
         if (solution_callback) solution_callback(ik_pose, values, error_code);
-        return error_code == kinematics::SUCCESS;
+        return error_code.val == error_code.SUCCESS;
     }
     double  ik_values[12];
 public:
     IkSolutionListFiltered(
             const std::vector<std::pair<double, double> > &min_max,
             const std::vector<double> &ik_seed_state,
-            const boost::function<void(const geometry_msgs::Pose &,
-                    const std::vector<double> &, int &)> &solution_callback,
+            const kinematics::KinematicsBase::IKCallbackFn  &solution_callback,
             const geometry_msgs::Pose &ik_pose) :
         min_max(min_max), ik_seed_state(ik_seed_state), solution_callback(
                 solution_callback), ik_pose(ik_pose) {
         KDL::Frame frame;
-        tf::PoseMsgToKDL(ik_pose, frame);
+        tf::poseMsgToKDL(ik_pose, frame);
         ik_values[0] = frame.p[0]; ik_values[1] = frame.p[1];  ik_values[2] = frame.p[2];
         ik_values[3] = frame.M.data[0]; ik_values[4] = frame.M.data[1]; ik_values[5] = frame.M.data[2];
         ik_values[6] = frame.M.data[3]; ik_values[7] = frame.M.data[4]; ik_values[8] = frame.M.data[5];
@@ -249,8 +247,9 @@ public:
      * @return True if a valid solution was found, false otherwise
      */
     virtual bool getPositionIK(const geometry_msgs::Pose &ik_pose,
-            const std::vector<double> &ik_seed_state,
-            std::vector<double> &solution, int &error_code) {
+                             const std::vector<double> &ik_seed_state,
+                             std::vector<double> &solution,
+                             moveit_msgs::MoveItErrorCodes &error_code) const {
 
         return searchPositionIK(ik_pose, ik_seed_state, solution, min_max_,
                 error_code);
@@ -265,8 +264,10 @@ public:
      * @return True if a valid solution was found, false otherwise
      */
     virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
-            const std::vector<double> &ik_seed_state, const double &timeout,
-            std::vector<double> &solution, int &error_code) {
+                                const std::vector<double> &ik_seed_state,
+                                double timeout,
+                                std::vector<double> &solution,
+                                moveit_msgs::MoveItErrorCodes &error_code) const {
 
         return searchPositionIK(ik_pose, ik_seed_state, solution, min_max_,
                 error_code, timeout);
@@ -282,13 +283,14 @@ public:
      * @return True if a valid solution was found, false otherwise
      */
     virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
-            const std::vector<double> &ik_seed_state, const double &timeout,
-            const unsigned int& redundancy, const double &consistency_limit,
-            std::vector<double> &solution, int &error_code) {
+                                const std::vector<double> &ik_seed_state,
+                                double timeout,
+                                const std::vector<double> &consistency_limits,
+                                std::vector<double> &solution,
+                                moveit_msgs::MoveItErrorCodes &error_code) const {
 
         std::vector<std::pair<double, double> > min_max = min_max_;
-        setConsistencyLimit(min_max, ik_seed_state, redundancy,
-                consistency_limit);
+        setConsistencyLimit(min_max, ik_seed_state, consistency_limits);
         return searchPositionIK(ik_pose, ik_seed_state, solution, min_max,
                 error_code, timeout);
     }
@@ -301,20 +303,12 @@ public:
      * @param ik_seed_state an initial guess solution for the inverse kinematics
      * @return True if a valid solution was found, false otherwise
      */
-    virtual bool searchPositionIK(
-            const geometry_msgs::Pose &ik_pose,
-            const std::vector<double> &ik_seed_state,
-            const double &timeout,
-            std::vector<double> &solution,
-            const boost::function<void(const geometry_msgs::Pose &ik_pose,
-                    const std::vector<double> &ik_solution, int &error_code)> &desired_pose_callback,
-            const boost::function<void(const geometry_msgs::Pose &ik_pose,
-                    const std::vector<double> &ik_solution, int &error_code)> &solution_callback,
-            int &error_code) {
-        if (desired_pose_callback) {
-            desired_pose_callback(ik_pose, ik_seed_state, error_code);
-            if (error_code != kinematics::SUCCESS) return false;
-        }
+    virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
+                                const std::vector<double> &ik_seed_state,
+                                double timeout,
+                                std::vector<double> &solution,
+                                const IKCallbackFn &solution_callback,
+                                moveit_msgs::MoveItErrorCodes &error_code) const {
         return searchPositionIK(ik_pose, ik_seed_state, solution, min_max_,
                 error_code, timeout, solution_callback);
     }
@@ -329,26 +323,15 @@ public:
      * @param consistency_limit the distance that the redundancy can be from the current position
      * @return True if a valid solution was found, false otherwise
      */
-    virtual bool searchPositionIK(
-            const geometry_msgs::Pose &ik_pose,
-            const std::vector<double> &ik_seed_state,
-            const double &timeout,
-            const unsigned int& redundancy,
-            const double &consistency_limit,
-            std::vector<double> &solution,
-            const boost::function<void(const geometry_msgs::Pose &ik_pose,
-                    const std::vector<double> &ik_solution, int &error_code)> &desired_pose_callback,
-            const boost::function<void(const geometry_msgs::Pose &ik_pose,
-                    const std::vector<double> &ik_solution, int &error_code)> &solution_callback,
-            int &error_code) {
-        if (desired_pose_callback) {
-            desired_pose_callback(ik_pose, ik_seed_state, error_code);
-            if (error_code != kinematics::SUCCESS) return false;
-        }
-
-        std::vector<std::pair<double, double> > min_max = min_max_; // local copy
-        setConsistencyLimit(min_max, ik_seed_state, redundancy,
-                consistency_limit);
+    virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
+                                const std::vector<double> &ik_seed_state,
+                                double timeout,
+                                const std::vector<double> &consistency_limits,
+                                std::vector<double> &solution,
+                                const IKCallbackFn &solution_callback,
+                                moveit_msgs::MoveItErrorCodes &error_code) const {
+        std::vector<std::pair<double, double> > min_max = min_max_;
+        setConsistencyLimit(min_max, ik_seed_state, consistency_limits);
         return searchPositionIK(ik_pose, ik_seed_state, solution, min_max,
                 error_code, timeout, solution_callback);
     }
@@ -359,9 +342,9 @@ public:
      * @param response - the response contains stamped pose information for all the requested links
      * @return True if a valid solution was found, false otherwise
      */
-    virtual bool getPositionFK(const std::vector<std::string> &link_names,
-            const std::vector<double> &joint_angles, std::vector<
-                    geometry_msgs::Pose> &poses) {
+	virtual bool getPositionFK(const std::vector<std::string> &link_names,
+                             const std::vector<double> &joint_angles, 
+                             std::vector<geometry_msgs::Pose> &poses) const {
         KDL::Frame p_out;
 
         if (joint_angles.size() != GetNumJoints()) {
@@ -369,15 +352,15 @@ public:
             return false;
         }
 
-        if (link_names.size() != 1 || link_names[0] != tip_name_) {
-            ROS_ERROR("Can compute FK for %s only",tip_name_.c_str());
+        if (link_names.size() != 1 || link_names[0] != tip_frame_) {
+            ROS_ERROR("Can compute FK for %s only",tip_frame_.c_str());
             return false;
         }
 
         ComputeFk(&joint_angles[0], p_out.p.data, p_out.M.data);
         // print_frame("FK:", p_out.p.data, p_out.M.data);
         poses.resize(1);
-        tf::PoseKDLToMsg(p_out, poses[0]);
+        tf::poseKDLToMsg(p_out, poses[0]);
         return true;
     }
 
@@ -385,27 +368,18 @@ public:
      * @brief  Initialization function for the kinematics
      * @return True if initialization was successful, false otherwise
      */
-    virtual bool initialize(const std::string& group_name,
-            const std::string& base_name, const std::string& tip_name,
-            const double& search_discretization) {
-        setValues(group_name, base_name, tip_name, search_discretization);
+    virtual bool initialize(const std::string& robot_description,
+                          const std::string& group_name,
+                          const std::string& base_frame,
+                          const std::string& tip_frame,
+                          double search_discretization){
+        setValues(robot_description, group_name, base_frame, tip_frame, search_discretization);
 
         links_.resize(1);
-        links_[0] = tip_name_;
+        links_[0] = tip_frame_;
 
-        std::string urdf_xml, full_urdf_xml;
-        ros::NodeHandle node_handle;
-        node_handle.param("urdf_xml", urdf_xml,
-                std::string("robot_description"));
-        node_handle.searchParam(urdf_xml, full_urdf_xml);
-        ROS_DEBUG("Reading xml file from parameter server");
-        std::string result;
-        if (!node_handle.getParam(full_urdf_xml, result)) {
-            ROS_FATAL("Could not load the xml from parameter server: %s", urdf_xml.c_str());
-            return false;
-        }
         // Load and Read Models
-        if (!loadModel(result)) {
+        if (!loadModel(robot_description)) {
             ROS_FATAL("Could not load models!");
             return false;
         }
@@ -418,14 +392,14 @@ public:
     /**
      * @brief  Return all the joint names in the order they are used internally
      */
-    virtual WRAPPER_DECLARE_GET_VECTOR(getJointNames) {
+    virtual const std::vector<std::string>& getJointNames() const {
         return joints_;
     }
 
     /**
      * @brief  Return all the link names in the order they are represented internally
      */
-    virtual WRAPPER_DECLARE_GET_VECTOR(getLinkNames) {
+    virtual const std::vector<std::string>& getLinkNames() const {
         return links_;
     }
 
@@ -448,15 +422,13 @@ protected:
             const std::vector<double> &ik_seed_state,
             std::vector<double> &solution,
             const std::vector<std::pair<double, double> > &min_max,
-            int &error_code,
+            moveit_msgs::MoveItErrorCodes &error_code,
             const double timeout = -1,
-            const boost::function<void(const geometry_msgs::Pose &ik_pose,
-                    const std::vector<double> &ik_solution, int &error_code)> &solution_callback =
-                    0) {
+            const IKCallbackFn &solution_callback = 0) const {
 
         KDL::Frame frame;
-        tf::PoseMsgToKDL(ik_pose, frame);
-        error_code = kinematics::NO_IK_SOLUTION;
+        tf::poseMsgToKDL(ik_pose, frame);
+        error_code.val = error_code.NO_IK_SOLUTION;
 	
 		if(ik_seed_state.size() < GetNumJoints()){
             ROS_ERROR_STREAM("Needs " << GetNumJoints() << "joint values. but only " << ik_seed_state.size() << "were given.");
@@ -474,18 +446,18 @@ protected:
         do {
             //ROS_ERROR("State: %f", jss.state[0]);
             if (ComputeIk(frame.p.data, frame.M.data, indices_.empty()?0:&jss.state[0], sollist)) {
-                error_code = kinematics::STATE_IN_COLLISION; // is reachable but violates constraints
+                error_code.val = error_code.START_STATE_IN_COLLISION; // is reachable but violates constraints
             }
             if (sollist.getMinSolution(solution)) {
-                error_code = kinematics::SUCCESS;
+                error_code.val = error_code.SUCCESS;
                 break;
             }
             if (timeout >= 0.0 && ros::Time::now() > maxTime) {
-                error_code = kinematics::TIMED_OUT;
+                error_code.val = error_code.TIMED_OUT;
                 break;
             }
         } while (jss.step());
-        return error_code == kinematics::SUCCESS;
+        return error_code.val == error_code.SUCCESS;
     }
     bool loadModel(const std::string xml) {
         urdf::Model robot_model;
@@ -505,9 +477,9 @@ protected:
         int dimension_ = 0;
         // get joint maxs and mins
         boost::shared_ptr<const urdf::Link> link = robot_model.getLink(
-                tip_name_);
+                tip_frame_);
         boost::shared_ptr<const urdf::Joint> joint;
-        while (link && link->name != base_name_) {
+        while (link && link->name != base_frame_) {
             joint = robot_model.getJoint(link->parent_joint->name);
             if (!joint) {
                 ROS_ERROR("Could not find joint: %s",link->parent_joint->name.c_str());
@@ -528,7 +500,7 @@ protected:
 
         min_max_.resize(dimension_);
         joints_.resize(dimension_);
-        link = robot_model.getLink(tip_name_);
+        link = robot_model.getLink(tip_frame_);
 
         unsigned int i = 0;
         while (link && i < dimension_) {
