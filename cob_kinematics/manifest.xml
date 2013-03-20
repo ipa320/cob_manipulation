@@ -20,7 +20,7 @@
   <depend package="moveit_core"/>  
   
   <export>
-      <kinematics_base plugin="${prefix}/ikfast/plugins.xml" /> <!-- includes"${prefix}/cob_kinematics_plugins.xml" as well -->
+      <moveit_core plugin="${prefix}/ikfast/plugins.xml" /> <!-- includes"${prefix}/cob_kinematics_plugins.xml" as well -->
   </export>
 
 </package>
