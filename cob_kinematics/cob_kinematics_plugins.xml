@@ -1,4 +1,4 @@
-<library path="ros/lib/libcob3_arm_kinematics">
+<library path="/ros/lib/libcob3_arm_kinematics">
   <class name="cob3_arm_kinematics/KDLArmKinematicsPlugin" type="cob3_arm_kinematics::KDLArmKinematicsPlugin" base_class_type="kinematics::KinematicsBase">
     <description>
       A generic implementation of kinematics as a plugin based on KDL.Patched version of arm_kinematics_constraint_aware::KDLArmKinematicsPlugin.
