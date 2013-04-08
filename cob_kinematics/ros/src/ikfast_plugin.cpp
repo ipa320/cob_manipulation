@@ -413,6 +413,7 @@ public:
         for (int i = 0; i < GetNumFreeParameters(); ++i)
             indices_.push_back(GetFreeParameters()[i]);
 
+        return true;
     }
 
     /**
