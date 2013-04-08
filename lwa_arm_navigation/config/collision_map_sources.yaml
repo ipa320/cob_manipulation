@@ -1,9 +1,0 @@
-cloud_sources:
-##name: full_cloud_filtered
-  - name: known_objects_filtered
-    frame_subsample: 1
-    point_subsample: 1
-    sensor_frame: tof_link
-    dynamic_publish: true
-    static_publish: true
-    dynamic_until_static_publish: true
