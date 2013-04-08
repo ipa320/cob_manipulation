@@ -1,0 +1,7 @@
+#urdf_file: cob3-3/urdf/cob3-3.urdf.xacro
+#urdf_pkg: cob_hardware_config
+urdf_path: /opt/ros/electric/stacks/cob_robots/cob_hardware_config/cob3-2/urdf/cob3-2.urdf.xacro
+name: lwa
+base_link: arm_0_link
+tip_link: arm_7_link
+free_joints: [arm_3_joint]
