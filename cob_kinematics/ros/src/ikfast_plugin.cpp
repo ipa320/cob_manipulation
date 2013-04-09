@@ -386,7 +386,7 @@ public:
         indices_.clear();
         for (int i = 0; i < GetNumFreeParameters(); ++i)
             indices_.push_back(GetFreeParameters()[i]);
-
+	return true;
     }
 
     /**
@@ -464,7 +464,7 @@ protected:
 
         if (!robot_model.initString(xml)) {
             ROS_FATAL("Could not initialize robot model");
-            return -1;
+            return false;
         }
         if (!readJoints(robot_model)) {
             ROS_FATAL("Could not read information about the joints");
