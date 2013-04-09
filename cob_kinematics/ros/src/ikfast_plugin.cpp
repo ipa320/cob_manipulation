@@ -68,9 +68,11 @@ void print_frame(const char * str, const double* trans, const double* rot) {
 }
 void setConsistencyLimit(std::vector<std::pair<double, double> > &min_max,
         const std::vector<double> &seed, const std::vector<double> &consistency_limits) {
+    if(min_max.size() != seed.size() || min_max.size() != consistency_limits.size()) return;
+    
     for(unsigned int i=0; i <min_max.size(); ++i){
-    min_max[i].first = fmax(min_max[i].first, seed[i] - consistency_limits[i]);
-    min_max[i].second = fmin(min_max[i].second, seed[i] + consistency_limits[i]);
+	min_max[i].first = fmax(min_max[i].first, seed[i] - consistency_limits[i]);
+	min_max[i].second = fmin(min_max[i].second, seed[i] + consistency_limits[i]);
     }
 }
 
@@ -459,10 +461,10 @@ protected:
         } while (jss.step());
         return error_code.val == error_code.SUCCESS;
     }
-    bool loadModel(const std::string xml) {
+    bool loadModel(const std::string param) {
         urdf::Model robot_model;
 
-        if (!robot_model.initString(xml)) {
+        if (!robot_model.initParam(param)) {
             ROS_FATAL("Could not initialize robot model");
             return false;
         }
