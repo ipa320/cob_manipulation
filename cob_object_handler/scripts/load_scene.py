@@ -57,7 +57,7 @@ if __name__ == '__main__':
     
     pub = rospy.Publisher('/collision_object', CollisionObject)
     rospy.sleep(1.0)
-    pub.publish( createObject(Shape.BOX, "table_ikea", [-0.301, -0.982, 0.375],[0,0,0],[0.9, 0.9, 0.75]) )
+    pub.publish( createObject(Shape.BOX, "table_ikea", [-0.301+0.1, -0.982, 0.34],[0,0,0],[0.9, 0.9, 0.68]) )
     rospy.sleep(1.0)
     #pub.publish( createObject(Shape.CYLINDER, "milk", [-0.8,-0.2,0.9],[0,0,0],[0.05, 0.2]) )
     #rospy.sleep(1.0)
