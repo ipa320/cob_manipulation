@@ -251,7 +251,8 @@ public:
     virtual bool getPositionIK(const geometry_msgs::Pose &ik_pose,
                              const std::vector<double> &ik_seed_state,
                              std::vector<double> &solution,
-                             moveit_msgs::MoveItErrorCodes &error_code) const {
+                             moveit_msgs::MoveItErrorCodes &error_code,
+                             bool lock_redundant_joints = false) const {
 
         return searchPositionIK(ik_pose, ik_seed_state, solution, min_max_,
                 error_code);
@@ -269,7 +270,8 @@ public:
                                 const std::vector<double> &ik_seed_state,
                                 double timeout,
                                 std::vector<double> &solution,
-                                moveit_msgs::MoveItErrorCodes &error_code) const {
+                                moveit_msgs::MoveItErrorCodes &error_code,
+                                bool lock_redundant_joints = false) const {
 
         return searchPositionIK(ik_pose, ik_seed_state, solution, min_max_,
                 error_code, timeout);
@@ -289,7 +291,8 @@ public:
                                 double timeout,
                                 const std::vector<double> &consistency_limits,
                                 std::vector<double> &solution,
-                                moveit_msgs::MoveItErrorCodes &error_code) const {
+                                moveit_msgs::MoveItErrorCodes &error_code,
+                                bool lock_redundant_joints = false) const {
 
         std::vector<std::pair<double, double> > min_max = min_max_;
         setConsistencyLimit(min_max, ik_seed_state, consistency_limits);
@@ -310,7 +313,8 @@ public:
                                 double timeout,
                                 std::vector<double> &solution,
                                 const IKCallbackFn &solution_callback,
-                                moveit_msgs::MoveItErrorCodes &error_code) const {
+                                moveit_msgs::MoveItErrorCodes &error_code,
+                                bool lock_redundant_joints = false) const {
         return searchPositionIK(ik_pose, ik_seed_state, solution, min_max_,
                 error_code, timeout, solution_callback);
     }
@@ -331,7 +335,8 @@ public:
                                 const std::vector<double> &consistency_limits,
                                 std::vector<double> &solution,
                                 const IKCallbackFn &solution_callback,
-                                moveit_msgs::MoveItErrorCodes &error_code) const {
+                                moveit_msgs::MoveItErrorCodes &error_code,
+                                bool lock_redundant_joints = false) const {
         std::vector<std::pair<double, double> > min_max = min_max_;
         setConsistencyLimit(min_max, ik_seed_state, consistency_limits);
         return searchPositionIK(ik_pose, ik_seed_state, solution, min_max,
