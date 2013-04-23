@@ -1,0 +1,7 @@
+#urdf_file: cob3-3/urdf/cob3-3.urdf.xacro
+#urdf_pkg: cob_hardware_config
+urdf_path: /home/mdl/groovy/src/cob_robots/cob_hardware_config/raw3-1/urdf/raw3-1.urdf.xacro
+name: ur10
+base_link: arm_base_link
+tip_link: arm_wrist_3_link
+free_joints: []
