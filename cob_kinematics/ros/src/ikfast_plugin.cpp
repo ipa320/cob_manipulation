@@ -218,7 +218,7 @@ public:
             std::vector<double> &solution, const std::vector<std::pair<double, double> > &min_max) {
         double dist_sqr = 0;
         for (size_t i = 0; i < solution.size(); ++i) {
-            if (fabs(solution[i] - ik_seed_state[i]) > 2 * M_PI) {
+            if (fabs(solution[i] - ik_seed_state[i]) > M_PI) {
                 if (ik_seed_state[i] < solution[i]) {
                     if (solution[i] > 0 && solution[i] - 2 * M_PI >= min_max[i].first) solution[i] -= 2 * M_PI;
                 } else {
