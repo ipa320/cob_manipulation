@@ -205,8 +205,8 @@ public:
         std::vector<double> solvalues;
         sol.GetSolution(solvalues, vsolfree);
 
-        double dist = harmonize(ik_seed_state, solvalues);
 
+        double dist = harmonize(ik_seed_state, solvalues, min_max);
         if (filterSolution(solvalues)) {
             if (min_solution.empty() || dist < min_dist) min_solution
                     = solvalues;
@@ -215,14 +215,14 @@ public:
         return IkSolutionList<double>::AddSolution(vinfos, vfree);
     }
     static double harmonize(const std::vector<double> &ik_seed_state,
-            std::vector<double> &solution) {
+            std::vector<double> &solution, const std::vector<std::pair<double, double> > &min_max) {
         double dist_sqr = 0;
         for (size_t i = 0; i < solution.size(); ++i) {
-            if (fabs(solution[i] - ik_seed_state[i]) > 2 * M_PI) {
-                if (ik_seed_state[i] < 0) {
-                    if (solution[i] > 0) solution[i] -= 2 * M_PI;
+            if (fabs(solution[i] - ik_seed_state[i]) > M_PI) {
+                if (ik_seed_state[i] < solution[i]) {
+                    if (solution[i] > 0 && solution[i] - 2 * M_PI >= min_max[i].first) solution[i] -= 2 * M_PI;
                 } else {
-                    if (solution[i] < 0) solution[i] += 2 * M_PI;
+                    if (solution[i] < 0  && solution[i] + 2 * M_PI <= min_max[i].second) solution[i] += 2 * M_PI;
                 }
             }
 
