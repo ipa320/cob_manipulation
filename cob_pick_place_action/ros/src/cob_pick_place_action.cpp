@@ -45,7 +45,9 @@ void COBPickAction::initialize()
 	cob_pick_action_server->start();   	
 	
 	//~ Grasp Table Initializations################################
-	GraspTableIniFile="/home/fxm-rc/groovy/care-o-bot/cob_manipulation/cob_pick_place_action/files/GraspTable.txt";
+	//~ GraspTableIniFile="/home/fxm-rc/groovy/care-o-bot/cob_manipulation/cob_pick_place_action/files/GraspTable.txt";
+	std::string path = ros::package::getPath("cob_pick_place_action")+std::string("/files/GraspTable.txt");
+	GraspTableIniFile=const_cast<char*>(path.c_str()); 
 	m_GraspTable = new GraspTable();
 	int error = m_GraspTable->Init(GraspTableIniFile);
 }
@@ -227,16 +229,8 @@ void COBPickAction::fillGrasps(unsigned int objectClassId, std::vector<manipulat
 		grasp_posture.position.push_back(current_hand_config[ii]);
 	}
 	g.grasp_posture= MapHandConfiguration(grasp_posture);	
-
-   //current_hand_pose############################################~ 
-	std::vector<double> current_hand_pose = current_grasp->GetTCPGraspPose();
-	geometry_msgs::Pose pose_grasp_wrt_object;	
-	pose_grasp_wrt_object.position.x=current_hand_pose[0];
-	pose_grasp_wrt_object.position.y=current_hand_pose[1];
-	pose_grasp_wrt_object.position.z=current_hand_pose[2];
-	pose_grasp_wrt_object.orientation=tf::createQuaternionMsgFromRollPitchYaw(current_hand_pose[3], current_hand_pose[4], current_hand_pose[5] );
 	
-    //~ get this pose from object recognition. For now put the hard coded values##################
+	    //~ get this pose from object recognition. For now put the hard coded values##################
 	geometry_msgs::Pose pose_of_object_recognition;
 	pose_of_object_recognition.position.x = -0.5;
 	pose_of_object_recognition.position.y = -0.5;  
@@ -246,15 +240,30 @@ void COBPickAction::fillGrasps(unsigned int objectClassId, std::vector<manipulat
 	//~Might have to transform here if frame is not proper for object recognition and  
 	geometry_msgs::Pose object_pose_base_footprint;
 	object_pose_base_footprint=pose_of_object_recognition;
+
+   //current_hand_pose############################################~ 
+	std::vector<double> current_hand_pose = current_grasp->GetTCPGraspPose();
+	geometry_msgs::Pose pose_grasp_wrt_object;	
+	pose_grasp_wrt_object.position.x=current_hand_pose[0];
+	pose_grasp_wrt_object.position.y=current_hand_pose[1];
+	pose_grasp_wrt_object.position.z=current_hand_pose[2];
+	pose_grasp_wrt_object.orientation=tf::createQuaternionMsgFromRollPitchYaw(current_hand_pose[3], current_hand_pose[4], current_hand_pose[5] );
 	
-	g.grasp_pose.header.frame_id = "base_footprint";
 	//~ Get grasp_pose in Base_footprint
-	g.grasp_pose.pose=GraspPoseWRTBaseFootprint(pose_grasp_wrt_object, object_pose_base_footprint);
-	
+	g.grasp_pose.pose=GraspPoseWRTBaseFootprint(pose_grasp_wrt_object, object_pose_base_footprint);		
+	g.grasp_pose.header.frame_id = "base_footprint";
+		
 	//~ ROS_INFO("current_hand_pre_grasp_pose");
     std::vector<double> current_hand_pre_pose = current_grasp->GetTCPPreGraspPose();
+    geometry_msgs::Pose pre_pose_grasp_wrt_object;	
+    pre_pose_grasp_wrt_object.position.x=current_hand_pre_pose[0];
+	pre_pose_grasp_wrt_object.position.y=current_hand_pre_pose[1];
+	pre_pose_grasp_wrt_object.position.z=current_hand_pre_pose[2];
+	pre_pose_grasp_wrt_object.orientation=tf::createQuaternionMsgFromRollPitchYaw(current_hand_pre_pose[3], current_hand_pre_pose[4], current_hand_pre_pose[5] );
+	
+	geometry_msgs::Pose pre_pose_grasp_wrt_baseFootprint=GraspPoseWRTBaseFootprint(pre_pose_grasp_wrt_object, object_pose_base_footprint);
   //~ ROS_INFO("Getting approach direction and pose");
-	g.approach=getGraspApproachData(current_hand_pose, current_hand_pre_pose);
+	g.approach=getGraspApproachData(g.grasp_pose.pose, pre_pose_grasp_wrt_baseFootprint);
 	
 	
 	//~ g.approach.direction.vector.z = 1.0;
@@ -281,17 +290,23 @@ void COBPickAction::fillGrasps(unsigned int objectClassId, std::vector<manipulat
   grasps.resize(grasp_index);
 }
 
-manipulation_msgs::GripperTranslation COBPickAction::getGraspApproachData(std::vector<double> current_hand_pose, std::vector<double> current_hand_pre_pose)
+manipulation_msgs::GripperTranslation COBPickAction::getGraspApproachData(geometry_msgs::Pose current_hand_pose, geometry_msgs::Pose current_hand_pre_pose)
 {
 	manipulation_msgs::GripperTranslation approach;
-	approach.direction.header.frame_id = "sdh_palm_link";
+	approach.direction.header.frame_id = "base_footprint";
 	//~ dis=sqrt((x1-x0)^2+(y1-y0)^2+(z1-z0)^2)
 	//~ direction.x= (x1-x0)/dis and likewise
-	approach.desired_distance=sqrt(pow((current_hand_pose[0]-current_hand_pre_pose[0]),2)+pow((current_hand_pose[1]-current_hand_pre_pose[1]),2)+pow((current_hand_pose[2]-current_hand_pre_pose[2]),2));
-	approach.direction.vector.x = (current_hand_pose[0]-current_hand_pre_pose[0])/approach.desired_distance;
-	approach.direction.vector.y = (current_hand_pose[1]-current_hand_pre_pose[1])/approach.desired_distance;
-	approach.direction.vector.z = (current_hand_pose[2]-current_hand_pre_pose[2])/approach.desired_distance;
-	approach.min_distance = 0.2;
+	approach.desired_distance=sqrt(pow((current_hand_pose.position.x-current_hand_pre_pose.position.x),2)+pow((current_hand_pose.position.y-current_hand_pre_pose.position.y),2)+pow((current_hand_pose.position.z-current_hand_pre_pose.position.z),2));
+	approach.min_distance = 0.1;
+	
+	approach.direction.vector.x = (current_hand_pose.position.x-current_hand_pre_pose.position.x)/approach.desired_distance;
+	approach.direction.vector.y = (current_hand_pose.position.y-current_hand_pre_pose.position.y)/approach.desired_distance;
+	approach.direction.vector.z = (current_hand_pose.position.z-current_hand_pre_pose.position.z)/approach.desired_distance;
+	
+	if((approach.min_distance+0.1)>approach.desired_distance)
+	approach.desired_distance=approach.min_distance+0.1;
+	
+	ROS_WARN_STREAM("approach info : " << approach );
 	return approach;
 }
 
