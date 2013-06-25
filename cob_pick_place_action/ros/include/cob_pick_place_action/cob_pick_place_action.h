@@ -68,6 +68,7 @@ public:
 	void Run();
 	geometry_msgs::Pose GraspPoseWRTBaseFootprint(geometry_msgs::Pose grasp_pose, geometry_msgs::Pose pose_of_object_recognition);
 	sensor_msgs::JointState MapHandConfiguration(sensor_msgs::JointState table_config);
+	manipulation_msgs::GripperTranslation getGraspApproachData(std::vector<double> current_hand_pose, std::vector<double> current_hand_pre_pose);
 
 };
 #endif

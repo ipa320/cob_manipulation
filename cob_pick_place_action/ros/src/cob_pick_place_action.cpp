@@ -32,6 +32,7 @@
 #include <fstream>
 #include <cob_pick_place_action/cob_pick_place_action.h>
 #include <geometric_shapes/shape_operations.h>
+#include <math.h>
 
 //~ COBPickAction::COBPickAction(){}
 
@@ -207,49 +208,26 @@ void COBPickAction::fillGrasps(unsigned int objectClassId, std::vector<manipulat
   {	
 	ROS_INFO("index is %d",grasp_index);	  
 	
-  //######################################################################~ 
-    //~ ROS_INFO("current_hand_pre_config");	
+	//~ ROS_INFO("current_hand_pre_config");	
     std::vector<double> current_hand_pre_config = current_grasp->GetHandPreGraspConfig();
     sensor_msgs::JointState pre_grasp_posture;    
     pre_grasp_posture.position.clear();
 	for (int ii=0; ii< current_hand_pre_config.size();ii++)
 	{
-		//~ ROS_INFO("pre_grasp_posture.position[%d]:%f",ii, current_hand_pre_config[ii] );
 		pre_grasp_posture.position.push_back(current_hand_pre_config[ii]);
 	}	
     g.pre_grasp_posture= MapHandConfiguration(pre_grasp_posture);	
     
-	g.pre_grasp_posture.name.resize(7);
-	g.pre_grasp_posture.name[0]=("sdh_knuckle_joint");
-	g.pre_grasp_posture.name[1]=("sdh_thumb_2_joint");
-	g.pre_grasp_posture.name[2]=("sdh_thumb_3_joint");
-	g.pre_grasp_posture.name[3]=("sdh_finger_12_joint");
-	g.pre_grasp_posture.name[4]=("sdh_finger_13_joint");
-	g.pre_grasp_posture.name[5]=("sdh_finger_22_joint");
-	g.pre_grasp_posture.name[6]=("sdh_finger_23_joint");    
-	//~####################################################################### 
 	//~ ROS_INFO("current_hand_config");
 	std::vector<double> current_hand_config = current_grasp->GetHandGraspConfig();
 	sensor_msgs::JointState grasp_posture;
 	grasp_posture.position.clear();
 	for (int ii=0; ii< current_hand_config.size();ii++)
 	{
-		//~ ROS_INFO("grasp_posture.position[%d]:%f",ii, current_hand_config[ii] );
 		grasp_posture.position.push_back(current_hand_config[ii]);
 	}
 	g.grasp_posture= MapHandConfiguration(grasp_posture);	
-	
-	g.grasp_posture.name.resize(7);
-	g.grasp_posture.name[0]=("sdh_knuckle_joint");
-	g.grasp_posture.name[1]=("sdh_thumb_2_joint");
-	g.grasp_posture.name[2]=("sdh_thumb_3_joint");
-	g.grasp_posture.name[3]=("sdh_finger_12_joint");
-	g.grasp_posture.name[4]=("sdh_finger_13_joint");
-	g.grasp_posture.name[5]=("sdh_finger_22_joint");
-	g.grasp_posture.name[6]=("sdh_finger_23_joint");
 
-  //~ ###################################################################################
-  
    //current_hand_pose############################################~ 
 	std::vector<double> current_hand_pose = current_grasp->GetTCPGraspPose();
 	geometry_msgs::Pose pose_grasp_wrt_object;	
@@ -258,7 +236,7 @@ void COBPickAction::fillGrasps(unsigned int objectClassId, std::vector<manipulat
 	pose_grasp_wrt_object.position.z=current_hand_pose[2];
 	pose_grasp_wrt_object.orientation=tf::createQuaternionMsgFromRollPitchYaw(current_hand_pose[3], current_hand_pose[4], current_hand_pose[5] );
 	
-  //~ get this pose from object recognition. For now put the hard coded values##################
+    //~ get this pose from object recognition. For now put the hard coded values##################
 	geometry_msgs::Pose pose_of_object_recognition;
 	pose_of_object_recognition.position.x = -0.5;
 	pose_of_object_recognition.position.y = -0.5;  
@@ -269,15 +247,20 @@ void COBPickAction::fillGrasps(unsigned int objectClassId, std::vector<manipulat
 	geometry_msgs::Pose object_pose_base_footprint;
 	object_pose_base_footprint=pose_of_object_recognition;
 	
+	g.grasp_pose.header.frame_id = "base_footprint";
 	//~ Get grasp_pose in Base_footprint
 	g.grasp_pose.pose=GraspPoseWRTBaseFootprint(pose_grasp_wrt_object, object_pose_base_footprint);
-	//~ ROS_INFO("PICK CALLED 8");
-
-	g.grasp_pose.header.frame_id = "base_footprint";
-	g.approach.direction.vector.z = 1.0;
-	g.approach.direction.header.frame_id = "sdh_palm_link";
-	g.approach.min_distance = 0.2;
-	g.approach.desired_distance = 0.4;
+	
+	//~ ROS_INFO("current_hand_pre_grasp_pose");
+    std::vector<double> current_hand_pre_pose = current_grasp->GetTCPPreGraspPose();
+  //~ ROS_INFO("Getting approach direction and pose");
+	g.approach=getGraspApproachData(current_hand_pose, current_hand_pre_pose);
+	
+	
+	//~ g.approach.direction.vector.z = 1.0;
+	//~ g.approach.direction.header.frame_id = "sdh_palm_link";
+	//~ g.approach.min_distance = 0.2;
+	//~ g.approach.desired_distance = 0.4;
 
 	g.retreat.direction.header.frame_id = "base_footprint";
 	g.retreat.direction.vector.z = 1.0;
@@ -298,21 +281,26 @@ void COBPickAction::fillGrasps(unsigned int objectClassId, std::vector<manipulat
   grasps.resize(grasp_index);
 }
 
-
+manipulation_msgs::GripperTranslation COBPickAction::getGraspApproachData(std::vector<double> current_hand_pose, std::vector<double> current_hand_pre_pose)
+{
+	manipulation_msgs::GripperTranslation approach;
+	approach.direction.header.frame_id = "sdh_palm_link";
+	//~ dis=sqrt((x1-x0)^2+(y1-y0)^2+(z1-z0)^2)
+	//~ direction.x= (x1-x0)/dis and likewise
+	approach.desired_distance=sqrt(pow((current_hand_pose[0]-current_hand_pre_pose[0]),2)+pow((current_hand_pose[1]-current_hand_pre_pose[1]),2)+pow((current_hand_pose[2]-current_hand_pre_pose[2]),2));
+	approach.direction.vector.x = (current_hand_pose[0]-current_hand_pre_pose[0])/approach.desired_distance;
+	approach.direction.vector.y = (current_hand_pose[1]-current_hand_pre_pose[1])/approach.desired_distance;
+	approach.direction.vector.z = (current_hand_pose[2]-current_hand_pre_pose[2])/approach.desired_distance;
+	approach.min_distance = 0.2;
+	return approach;
+}
 
 void COBPickAction::Run()
 {	
 	ROS_INFO("cob_pick_action...spinning");
     ros::spin();
 }	
-int main(int argc, char **argv)
-{
-	ros::init (argc, argv, "cob_pick_action");
-	COBPickAction*  cob_pick_action= new COBPickAction();
-	cob_pick_action->initialize();
-	cob_pick_action->Run();
-	return 0;
-}
+
 
 sensor_msgs::JointState COBPickAction::MapHandConfiguration(sensor_msgs::JointState table_config)
 {
@@ -325,6 +313,15 @@ sensor_msgs::JointState COBPickAction::MapHandConfiguration(sensor_msgs::JointSt
 	grasp_configuration.position[4]= table_config.position[6];
 	grasp_configuration.position[5]= table_config.position[11];
 	grasp_configuration.position[6]= table_config.position[12];
+	
+	grasp_configuration.name.resize(7);
+	grasp_configuration.name[0]=("sdh_knuckle_joint");
+	grasp_configuration.name[1]=("sdh_thumb_2_joint");
+	grasp_configuration.name[2]=("sdh_thumb_3_joint");
+	grasp_configuration.name[3]=("sdh_finger_12_joint");
+	grasp_configuration.name[4]=("sdh_finger_13_joint");
+	grasp_configuration.name[5]=("sdh_finger_22_joint");
+	grasp_configuration.name[6]=("sdh_finger_23_joint");    
 //#################################################################################################################################################################################
 //                   Joint position brought to 1.57079 from 1.5708 to get proper joint limit check
 //#################################################################################################################################################################################
@@ -365,3 +362,11 @@ geometry_msgs::Pose COBPickAction::GraspPoseWRTBaseFootprint(geometry_msgs::Pose
 	
 }
 
+int main(int argc, char **argv)
+{
+	ros::init (argc, argv, "cob_pick_action");
+	COBPickAction*  cob_pick_action= new COBPickAction();
+	cob_pick_action->initialize();
+	cob_pick_action->Run();
+	return 0;
+}
