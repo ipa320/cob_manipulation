@@ -53,7 +53,8 @@ void CobPickPlaceActionServer::initialize()
 	as_place->start();
 	
 	//~ Grasp Table Initializations################################
-	GraspTableIniFile="/home/fxm/projects/groovy/care-o-bot/cob_manipulation/cob_pick_place_action/files/GraspTable.txt";
+	std::string path = ros::package::getPath("cob_pick_place_action")+std::string("/files/GraspTable.txt");
+	GraspTableIniFile = const_cast<char*>(path.c_str());  
 	m_GraspTable = new GraspTable();
 	int error = m_GraspTable->Init(GraspTableIniFile);
 	

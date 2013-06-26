@@ -30,9 +30,10 @@
 #ifndef COB_PICK_ACTION_H
 #define COB_PICK_ACTION_H
 
-#include <ros/ros.h>
 #include <iostream>
 #include <fstream>
+#include <ros/ros.h>
+#include <ros/package.h>
 #include <actionlib/server/simple_action_server.h>
 
 #include <tf/tf.h>
