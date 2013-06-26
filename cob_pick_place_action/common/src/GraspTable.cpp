@@ -171,7 +171,6 @@ int GraspTable::Init(char* object_table_file,unsigned int table_size)
 			printf("failed\n");
 		}
 	}
-
 	return 5;
 }
 
@@ -190,13 +189,12 @@ void GraspTable::AddGraspTableObject(GraspTableObject* object)
 }
 
 
-
-Grasp* GraspTable::GetNextGrasp(unsigned int objectClassId, bool new_situation)
+Grasp* GraspTable::GetNextGrasp(unsigned int objectClassId)
 {
 	Grasp* retVal = NULL;
 	if (objectClassId < m_GraspTable.size() && m_GraspTable[objectClassId] != NULL)
 	{
-			if ((objectClassId != m_lastObjectClassId)||new_situation)
+			if ((objectClassId != m_lastObjectClassId))
 			{
 					m_lastObjectClassId=objectClassId;
 					m_GraspTable[objectClassId]->ResetGraspReadPtr();
@@ -204,7 +202,6 @@ Grasp* GraspTable::GetNextGrasp(unsigned int objectClassId, bool new_situation)
 			retVal =  m_GraspTable[objectClassId]->GetNextGrasp();
 	}
 	return retVal;
-
 }
 
 void GraspTable::ResetReadPtr(unsigned int object_class_id)
@@ -214,7 +211,6 @@ void GraspTable::ResetReadPtr(unsigned int object_class_id)
 	{
 		m_GraspTable[object_class_id]->ResetGraspReadPtr();
 	} 
-
 }
 
 Grasp * GraspTable::GetGrasp(unsigned int objectClassId, unsigned int & grasp_id)
@@ -225,7 +221,6 @@ Grasp * GraspTable::GetGrasp(unsigned int objectClassId, unsigned int & grasp_id
 		retVal=m_GraspTable[objectClassId]->GetGrasp(grasp_id);
 	}
 	return retVal;
-
 }
 
 

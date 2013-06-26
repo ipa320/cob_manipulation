@@ -1,4 +1,4 @@
-3
-11, /home/fxm-rc/groovy/care-o-bot/cob_manipulation/cob_pick_place_action/files/Sauerkraut_SDH_catch.xml 
-12, /home/fxm-rc/groovy/care-o-bot/cob_manipulation/cob_pick_place_action/files/Sauerkraut_SDH_KIT.xml
-13, /home/fxm-rc/groovy/care-o-bot/cob_manipulation/cob_pick_place_action/files/YellowSaltCube2_SDH.xml
+2
+11, /home/fxm/projects/groovy/care-o-bot/cob_manipulation/cob_pick_place_action/files/grasptables/Sauerkraut_SDH.xml 
+65, /home/fxm/projects/groovy/care-o-bot/cob_manipulation/cob_pick_place_action/files/grasptables/FruitDrink_SDH.xml 
+
