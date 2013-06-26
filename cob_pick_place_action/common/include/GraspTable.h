@@ -47,83 +47,67 @@ class Grasp
 	public:
 		Grasp(){;}
 		
-		/////Set and Get TCP Poses
-		//tf::Transform& GetTCPPreGraspPose(){return m_TCPPreGraspPose;}
-		//AbsPos& GetTCPPreGraspPose(){return m_TCPPreGraspPose;}
-		//void SetTCPPreGraspPose(AbsPos  TCPPreGraspPose){m_TCPPreGraspPose = TCPPreGraspPose;}
-		
-		//AbsPos& GetTCPGraspPose(){return m_TCPGraspPose;}
-		//void SetTCPGraspPose(AbsPos  TCPGraspPose){m_TCPGraspPose = TCPGraspPose;}
-
 		std::vector<double> GetTCPPreGraspPose(){return m_TCPPreGraspPose;}
 		void SetTCPPreGraspPose(std::vector<double> TCPPreGraspPose){m_TCPPreGraspPose = TCPPreGraspPose;}
 		
 		std::vector<double> GetTCPGraspPose(){return m_TCPGraspPose;}
 		void SetTCPGraspPose(std::vector<double> TCPGraspPose){m_TCPGraspPose = TCPGraspPose;}
-
-
+		
 		/////Set and Get Hand Configurations
 		std::vector<double>  GetHandPreGraspConfig(){return m_HandPreGraspConfig;}
 		void SetHandPreGraspConfig(std::vector<double>  HandPreGraspConfig){m_HandPreGraspConfig=HandPreGraspConfig;}
 
 		std::vector<double>  GetHandGraspConfig(){return m_HandGraspConfig;}
 		void SetHandGraspConfig(std::vector<double>  HandGraspConfig){m_HandGraspConfig=HandGraspConfig;}
-		
+
 		std::vector<double>  GetHandOptimalGraspConfig(){return m_HandOptimalGraspConfig;}
 		void SetHandOptimalGraspConfig(std::vector<double>  HandOptimalGraspConfig){m_HandOptimalGraspConfig=HandOptimalGraspConfig;}
-		
+
 		void SetGraspId(int graspId){m_GraspId = graspId;}
 		int GetGraspId(){return m_GraspId;}
-		
-
-		
-		
-		//geometry_msgs::Quaternion GetQuaternionFromRPY(std::vector<double> RPY)
-		//{
-			//btQuaternion orienation_quaternion;
-			//geometry_msgs::Quaternion orienation_quaternion_msg ;
-			//orienation_quaternion.setRPY(RPY[3],RPY[4],RPY[5]);
-			//tf::quaternionTFToMsg(orienation_quaternion,orienation_quaternion_msg);
-			//return orienation_quaternion_msg;
-		//}		
-		
+	
 	private:
-		
-	  //tf::Transform m_TCPPreGraspPose
-      //AbsPos m_TCPPreGraspPose;
-      //AbsPos m_TCPGraspPose;
-      std::vector<double> m_TCPGraspPose;
-      std::vector<double> m_TCPPreGraspPose;
-	  std::vector<double> m_HandPreGraspConfig;
-	  std::vector<double> m_HandGraspConfig;
-	  std::vector<double> m_HandOptimalGraspConfig;
+		std::vector<double> m_TCPGraspPose;
+		std::vector<double> m_TCPPreGraspPose;
+		std::vector<double> m_HandPreGraspConfig;
+		std::vector<double> m_HandGraspConfig;
+		std::vector<double> m_HandOptimalGraspConfig;
 
-	  int m_GraspId;
-	  
+		int m_GraspId;
 };
 
 class GraspTableObject
 {
 public:
-	GraspTableObject():m_GraspReadPtr(0),m_GraspWritePtr(0),m_ObjectClassId(0){m_GraspTableObject.clear();}
+	GraspTableObject():m_GraspReadPtr(0),m_GraspWritePtr(0),m_ObjectClassId(0)
+		{m_GraspTableObject.clear();}
 
-	int Init(int size){m_GraspTableObject.resize(size);return 0;}
+	int Init(int size)
+		{m_GraspTableObject.resize(size);return 0;}
 
 
 	///set and get mehtods
-	std::vector<Grasp*>& Get(){return m_GraspTableObject;}
+	std::vector<Grasp*>& Get()
+		{return m_GraspTableObject;}
 
 	Grasp * GetNextGrasp()
 	{
 		if (m_GraspReadPtr <m_GraspWritePtr)
-		{
 			return m_GraspTableObject[m_GraspReadPtr++];
-		}
-	    else return NULL;
+		else 
+			return NULL;
 	}
-	Grasp * GetGrasp(unsigned int graspId){if (graspId < m_GraspTableObject.size()) return m_GraspTableObject[graspId];else return NULL;}
 	
-	void AddGrasp(Grasp *  grasp){if (m_GraspWritePtr < m_GraspTableObject.size()) m_GraspTableObject[m_GraspWritePtr++]=grasp;}
+	Grasp * GetGrasp(unsigned int graspId)
+	{
+		if (graspId < m_GraspTableObject.size())
+			return m_GraspTableObject[graspId];
+		else
+			return NULL;
+	}
+	
+	void AddGrasp(Grasp *  grasp)
+		{if (m_GraspWritePtr < m_GraspTableObject.size()) m_GraspTableObject[m_GraspWritePtr++]=grasp;}
 
 	unsigned int GetObjectClassId(){return m_ObjectClassId;}
 	void SetObjectClassId(unsigned int ObjectClassId){m_ObjectClassId = ObjectClassId;}
@@ -147,20 +131,18 @@ public:
 	int Init(char * iniFile, unsigned int table_size=MAX_NO_OF_OBJECTS);
 	void AddGraspTableObject(GraspTableObject * graspTableObject);
 
-	Grasp * GetNextGrasp(unsigned int object_class_id, bool new_situation);
+	Grasp * GetNextGrasp(unsigned int object_class_id);
 	Grasp * GetGrasp(unsigned int object_class_id, unsigned int & grasp_id);
 	void ResetReadPtr(unsigned int object_class_id);
 
 private:
-void ReadDoubleValue(TiXmlElement* xml, const char * tag, double * value);
-void ReadJoint(TiXmlElement* xml, const char * tag, std::vector<double> & values);
-void ReadPose(TiXmlElement* xml, const char * tag, std::vector<double> & values);
-int ReadFromFile(const char * filename, GraspTableObject * tableObject);
-	
-std::vector<GraspTableObject*> m_GraspTable;
-unsigned int m_lastObjectClassId;
-
-
+	void ReadDoubleValue(TiXmlElement* xml, const char * tag, double * value);
+	void ReadJoint(TiXmlElement* xml, const char * tag, std::vector<double> & values);
+	void ReadPose(TiXmlElement* xml, const char * tag, std::vector<double> & values);
+	int ReadFromFile(const char * filename, GraspTableObject * tableObject);
+		
+	std::vector<GraspTableObject*> m_GraspTable;
+	unsigned int m_lastObjectClassId;
 };
 
 #endif

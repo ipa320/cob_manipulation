@@ -30,45 +30,61 @@
 #ifndef COB_PICK_ACTION_H
 #define COB_PICK_ACTION_H
 
-#include <ros/ros.h>
 #include <iostream>
 #include <fstream>
+#include <ros/ros.h>
+#include <ros/package.h>
 #include <actionlib/server/simple_action_server.h>
+
+#include <tf/tf.h>
+#include <tf/transform_datatypes.h>
+#include <geometry_msgs/Quaternion.h>
+
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/move_group_interface/move_group.h>
 #include <shape_tools/solid_primitive_dims.h>
-#include <cob_pick_place_action/COBPickUpAction.h>
-#include "geometry_msgs/Quaternion.h"
-#include <tf/tf.h>
-#include <GraspTable.h>
-#include <tf/transform_datatypes.h>
-#include <ros/package.h>
 
-class COBPickAction
+#include <cob_pick_place_action/CobPickAction.h>
+#include <cob_pick_place_action/CobPlaceAction.h>
+#include <GraspTable.h>
+
+
+
+class CobPickPlaceActionServer
 {
 private:
 	ros::NodeHandle nh_;
-    boost::scoped_ptr<actionlib::SimpleActionServer<cob_pick_place_action::COBPickUpAction> > cob_pick_action_server;
-	ros::Publisher pub_co ;
-	ros::Publisher attached_object_publisher ;
+	
+	ros::Publisher pub_co; //publisher for collision_objects
+	ros::Publisher pub_ao; //publisher for attached_collision_objects
+	
+	boost::scoped_ptr<actionlib::SimpleActionServer<cob_pick_place_action::CobPickAction> > as_pick;
+	boost::scoped_ptr<actionlib::SimpleActionServer<cob_pick_place_action::CobPlaceAction> > as_place;
+	
 	moveit::planning_interface::MoveGroup group;
+	
 	char* GraspTableIniFile;
 	GraspTable* m_GraspTable;
 	
 public:
-	COBPickAction() : group("arm") {}
+	CobPickPlaceActionServer() : group("arm") {}
+	~CobPickPlaceActionServer();
+	
 	void initialize();
-	//~ COBPickAction();
-	~COBPickAction();
-	void goalCB(const cob_pick_place_action::COBPickUpGoalConstPtr &goal);
-	void setUpEnvironment();
-	//~ void fillGrasps( std::vector<manipulation_msgs::Grasp> &grasps);
-	void fillGrasps(unsigned int objectClassId, std::vector<manipulation_msgs::Grasp> &grasps);
-	void setCOBPickupResponse(cob_pick_place_action::COBPickUpResult &action_res, bool success);
-	void Run();
-	geometry_msgs::Pose GraspPoseWRTBaseFootprint(geometry_msgs::Pose grasp_pose, geometry_msgs::Pose pose_of_object_recognition);
+	void run();
+
+	void pick_goal_cb(const cob_pick_place_action::CobPickGoalConstPtr &goal);
+	void place_goal_cb(const cob_pick_place_action::CobPlaceGoalConstPtr &goal);
+	
+	void setUpEnvironment(std::string object_name, geometry_msgs::PoseStamped object_pose);
+	void detachObject(std::string object_name);
+	
+	void fillAllGrasps(unsigned int objectClassId, geometry_msgs::PoseStamped object_pose, std::vector<manipulation_msgs::Grasp> &grasps);
+	void fillSingleGrasp(unsigned int objectClassId, unsigned int grasp_id, geometry_msgs::PoseStamped object_pose, std::vector<manipulation_msgs::Grasp> &grasps);
+	
 	sensor_msgs::JointState MapHandConfiguration(sensor_msgs::JointState table_config);
-	manipulation_msgs::GripperTranslation getGraspApproachData(geometry_msgs::Pose current_hand_pose, geometry_msgs::Pose current_hand_pre_pose);
+	geometry_msgs::Pose transformPose(geometry_msgs::Pose grasp_pose_wrt_object, geometry_msgs::Pose object_pose);
+	manipulation_msgs::GripperTranslation calculateApproachDirection(geometry_msgs::Pose grasp_pose_wrt_footprint, geometry_msgs::Pose pre_grasp_pose_wrt_footprint);
 
 };
 #endif
