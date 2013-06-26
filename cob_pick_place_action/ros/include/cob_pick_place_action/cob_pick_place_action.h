@@ -84,7 +84,7 @@ public:
 	
 	sensor_msgs::JointState MapHandConfiguration(sensor_msgs::JointState table_config);
 	geometry_msgs::Pose transformPose(geometry_msgs::Pose grasp_pose_wrt_object, geometry_msgs::Pose object_pose);
-	manipulation_msgs::GripperTranslation calculateApproachDirection(std::vector<double> current_hand_pose, std::vector<double> current_hand_pre_pose);
+	manipulation_msgs::GripperTranslation calculateApproachDirection(geometry_msgs::Pose grasp_pose_wrt_footprint, geometry_msgs::Pose pre_grasp_pose_wrt_footprint);
 
 };
 #endif

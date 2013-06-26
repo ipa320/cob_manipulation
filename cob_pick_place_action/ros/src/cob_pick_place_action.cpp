@@ -295,12 +295,23 @@ void CobPickPlaceActionServer::fillAllGrasps(unsigned int objectClassId, geometr
 		
 		///TODO: VERIFY THIS!!
 		//Get grasp_pose in Base_footprint
-		g.grasp_pose.pose = transformPose(grasp_pose_wrt_object, object_pose.pose);
+		geometry_msgs::Pose grasp_pose_wrt_footprint = transformPose(grasp_pose_wrt_object, object_pose.pose);
+		g.grasp_pose.pose = grasp_pose_wrt_footprint;
 		g.grasp_pose.header.frame_id = "base_footprint";
 		
 		//ApproachDirection
 		std::vector<double> current_pre_grasp_pose = current_grasp->GetTCPPreGraspPose();
-		g.approach = calculateApproachDirection(current_grasp_pose, current_pre_grasp_pose);
+		geometry_msgs::Pose pre_grasp_pose_wrt_object;
+		pre_grasp_pose_wrt_object.position.x=current_pre_grasp_pose[0];
+		pre_grasp_pose_wrt_object.position.y=current_pre_grasp_pose[1];
+		pre_grasp_pose_wrt_object.position.z=current_pre_grasp_pose[2];
+		pre_grasp_pose_wrt_object.orientation=tf::createQuaternionMsgFromRollPitchYaw(current_pre_grasp_pose[3], current_pre_grasp_pose[4], current_pre_grasp_pose[5] );
+		
+		///TODO: VERIFY THIS!!
+		//Get grasp_pose in Base_footprint
+		geometry_msgs::Pose  pre_grasp_pose_wrt_footprint = transformPose(pre_grasp_pose_wrt_object, object_pose.pose);
+		
+		g.approach = calculateApproachDirection(grasp_pose_wrt_footprint, pre_grasp_pose_wrt_footprint);
 		
 		//RetreatDirection
 		g.retreat.direction.header.frame_id = "base_footprint";
@@ -358,12 +369,23 @@ void CobPickPlaceActionServer::fillSingleGrasp(unsigned int objectClassId, unsig
 		
 		///TODO: VERIFY THIS!!
 		//Get grasp_pose in Base_footprint
-		g.grasp_pose.pose = transformPose(grasp_pose_wrt_object, object_pose.pose);
+		geometry_msgs::Pose grasp_pose_wrt_footprint = transformPose(grasp_pose_wrt_object, object_pose.pose);
+		g.grasp_pose.pose = grasp_pose_wrt_footprint;
 		g.grasp_pose.header.frame_id = "base_footprint";
 		
 		//ApproachDirection
 		std::vector<double> current_pre_grasp_pose = current_grasp->GetTCPPreGraspPose();
-		g.approach = calculateApproachDirection(current_grasp_pose, current_pre_grasp_pose);
+		geometry_msgs::Pose pre_grasp_pose_wrt_object;
+		pre_grasp_pose_wrt_object.position.x=current_pre_grasp_pose[0];
+		pre_grasp_pose_wrt_object.position.y=current_pre_grasp_pose[1];
+		pre_grasp_pose_wrt_object.position.z=current_pre_grasp_pose[2];
+		pre_grasp_pose_wrt_object.orientation=tf::createQuaternionMsgFromRollPitchYaw(current_pre_grasp_pose[3], current_pre_grasp_pose[4], current_pre_grasp_pose[5] );
+		
+		///TODO: VERIFY THIS!!
+		//Get grasp_pose in Base_footprint
+		geometry_msgs::Pose  pre_grasp_pose_wrt_footprint = transformPose(pre_grasp_pose_wrt_object, object_pose.pose);
+		
+		g.approach = calculateApproachDirection(grasp_pose_wrt_footprint, pre_grasp_pose_wrt_footprint);
 		
 		//RetreatDirection
 		g.retreat.direction.header.frame_id = "base_footprint";
@@ -436,17 +458,22 @@ geometry_msgs::Pose CobPickPlaceActionServer::transformPose(geometry_msgs::Pose 
 	return grasp_pose_wrt_footprint;
 }
 
-manipulation_msgs::GripperTranslation CobPickPlaceActionServer::calculateApproachDirection(std::vector<double> current_grasp_pose, std::vector<double> current_pre_grasp_pose)
+manipulation_msgs::GripperTranslation CobPickPlaceActionServer::calculateApproachDirection(geometry_msgs::Pose grasp_pose_wrt_footprint, geometry_msgs::Pose pre_grasp_pose_wrt_footprint)
 {
 	manipulation_msgs::GripperTranslation approach;
-	approach.direction.header.frame_id = "sdh_palm_link";
+	approach.direction.header.frame_id = "footprint";
 	//~ dis=sqrt((x1-x0)^2+(y1-y0)^2+(z1-z0)^2)
 	//~ direction.x= (x1-x0)/dis and likewise
-	approach.desired_distance=sqrt(pow((current_grasp_pose[0]-current_pre_grasp_pose[0]),2)+pow((current_grasp_pose[1]-current_pre_grasp_pose[1]),2)+pow((current_grasp_pose[2]-current_pre_grasp_pose[2]),2));
-	approach.direction.vector.x = (current_grasp_pose[0]-current_pre_grasp_pose[0])/approach.desired_distance;
-	approach.direction.vector.y = (current_grasp_pose[1]-current_pre_grasp_pose[1])/approach.desired_distance;
-	approach.direction.vector.z = (current_grasp_pose[2]-current_pre_grasp_pose[2])/approach.desired_distance;
-	approach.min_distance = 0.2;
+	
+	double distance = sqrt(pow((grasp_pose_wrt_footprint.position.x-pre_grasp_pose_wrt_footprint.position.x),2)+pow((grasp_pose_wrt_footprint.position.y-pre_grasp_pose_wrt_footprint.position.y),2)+pow((grasp_pose_wrt_footprint.position.z-pre_grasp_pose_wrt_footprint.position.z),2));
+	
+	approach.direction.vector.x = (grasp_pose_wrt_footprint.position.x-pre_grasp_pose_wrt_footprint.position.x)/distance;
+	approach.direction.vector.y = (grasp_pose_wrt_footprint.position.y-pre_grasp_pose_wrt_footprint.position.y)/distance;
+	approach.direction.vector.z = (grasp_pose_wrt_footprint.position.z-pre_grasp_pose_wrt_footprint.position.z)/distance;
+	
+	approach.min_distance = distance;
+	approach.desired_distance = approach.min_distance + 0.2;
+	
 	return approach;
 }
 
