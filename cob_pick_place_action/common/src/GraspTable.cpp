@@ -158,7 +158,15 @@ int GraspTable::Init(char* object_table_file,unsigned int table_size)
 		char GraspTableFileName[500];
 		int objectClassId = 0;
 		fscanf(f,"%d, %s\n",&objectClassId,GraspTableFileName);
+		std::string cwd = get_current_dir_name();
+		cwd+=GraspTableFileName;
+		strncpy(GraspTableFileName, cwd.c_str(), sizeof(GraspTableFileName));
+		GraspTableFileName[sizeof(GraspTableFileName) - 1] = 0;
 		printf("GraspTable::Init: Trying to read grasp table for object %d from file %s ...\n",objectClassId,GraspTableFileName);
+		ROS_INFO("Working directory is:");
+		ROS_INFO("              %s\n", cwd.c_str());
+		
+		
 		GraspTableObject * graspTableObject = new GraspTableObject();
 		graspTableObject->SetObjectClassId(objectClassId);
 		if (ReadFromFile(GraspTableFileName,graspTableObject)==0)
