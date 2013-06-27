@@ -43,7 +43,7 @@ void CobPickPlaceActionServer::initialize()
 {
 	pub_co = nh_.advertise<moveit_msgs::CollisionObject>("collision_object", 10);
 	pub_ao = nh_.advertise<moveit_msgs::AttachedCollisionObject>("attached_collision_object", 10);
-	
+
 	static const std::string COB_PICKUP_ACTION_NAME = "cob_pick_action";
 	as_pick.reset(new actionlib::SimpleActionServer<cob_pick_place_action::CobPickAction>(nh_, COB_PICKUP_ACTION_NAME, boost::bind(&CobPickPlaceActionServer::pick_goal_cb, this, _1), false));
 	as_pick->start();
@@ -60,6 +60,8 @@ void CobPickPlaceActionServer::initialize()
 	
 	if(error<0)
 		ROS_ERROR("Failed to initialize GraspTables");
+		
+	setupEnvironment();
 }
 
 void CobPickPlaceActionServer::run()
@@ -75,14 +77,14 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 	
 	///Setting up the environment
 	//TODO: This is done somewhere else later. Only update position of grasp_object
-	setUpEnvironment(goal->object_name, goal->object_pose);
+	insertObject(goal->object_name, goal->object_pose);
 	
 	
 	///Get grasps from corresponding GraspTable
 	std::vector<manipulation_msgs::Grasp> grasps;
-	fillAllGrasps(goal->object_id, goal->object_pose, grasps);
-	//unsigned int grasp_id = 23;
-	//fillSingleGrasp(goal->object_id, grasp_id, goal->object_pose, grasps);
+	//fillAllGrasps(goal->object_id, goal->object_pose, grasps);
+	unsigned int grasp_id = goal->grasp_id;
+	fillSingleGrasp(goal->object_id, grasp_id, goal->object_pose, grasps);
 	
 	ROS_INFO("PickGoalCB: Found %d grasps for this object", grasps.size());
 	for(unsigned int i=0; i<grasps.size(); i++)
@@ -143,9 +145,10 @@ void CobPickPlaceActionServer::place_goal_cb(const cob_pick_place_action::CobPla
 
 
 
-void CobPickPlaceActionServer::setUpEnvironment(std::string object_name, geometry_msgs::PoseStamped object_pose)
+void CobPickPlaceActionServer::setupEnvironment()
 {
-	ROS_INFO("Setting up environment..");
+	ros::Duration(1.0).sleep();
+	ROS_INFO("Setting up initial environment..");
 	
 	moveit_msgs::CollisionObject co;
 	co.header.stamp = ros::Time::now();
@@ -166,8 +169,8 @@ void CobPickPlaceActionServer::setUpEnvironment(std::string object_name, geometr
 	co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Y] = 0.1;
 	co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 1.0;
 	co.primitive_poses.resize(1);
-	co.primitive_poses[0].position.x = 0.7;
-	co.primitive_poses[0].position.y = -0.4;  
+	co.primitive_poses[0].position.x = -0.7;
+	co.primitive_poses[0].position.y = 0.4;  
 	co.primitive_poses[0].position.z = 0.85;
 	co.primitive_poses[0].orientation.w = 1.0;
 	pub_co.publish(co);
@@ -183,12 +186,21 @@ void CobPickPlaceActionServer::setUpEnvironment(std::string object_name, geometr
 	co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_X] = 0.5;
 	co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Y] = 1.5;
 	co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 0.35;
-	co.primitive_poses[0].position.x = 0.7;
+	co.primitive_poses[0].position.x = -0.7;
 	co.primitive_poses[0].position.y = -0.2;  
 	co.primitive_poses[0].position.z = 0.175;
 	pub_co.publish(co);
+	ros::Duration(1.0).sleep();
+}
+
+
+void CobPickPlaceActionServer::insertObject(std::string object_name, geometry_msgs::PoseStamped object_pose)
+{
+	ROS_INFO("Setting up environment..");
 	
-	
+	moveit_msgs::CollisionObject co;
+	co.header.stamp = ros::Time::now();
+	//~ co.header.frame_id = "base_footprint";
 	
 	// remove object
 	co.header.frame_id = object_pose.header.frame_id;
@@ -197,23 +209,40 @@ void CobPickPlaceActionServer::setUpEnvironment(std::string object_name, geometr
 	pub_co.publish(co);
 	
 	// add object
-	co.header.frame_id = object_pose.header.frame_id;
+	//~ co.header.frame_id = object_pose.header.frame_id;
 	co.id = object_name;
 	co.operation = co.ADD;
-	
-	//sauerkraut
-	co.primitives[0].type = shape_msgs::SolidPrimitive::CYLINDER;
-	co.primitives[0].dimensions[shape_msgs::SolidPrimitive::CYLINDER_HEIGHT] = 0.12;
-	co.primitives[0].dimensions[shape_msgs::SolidPrimitive::CYLINDER_RADIUS] = 0.05;
-	////fruitdrink
-	//co.primitives[0].type = shape_msgs::SolidPrimitive::BOX;
-	//co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_X] = 0.0768;
-	//co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Y] = 0.0824;
-	//co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 0.1484;
-	
-	co.primitive_poses[0] = object_pose.pose;
+	boost::scoped_ptr<shapes::Mesh> mesh;
+	//~ mesh.reset(shapes::createMeshFromResource("package://cob_pick_place_action/files/meshes/sauerkraut.stl"));
+	mesh.reset(shapes::createMeshFromResource("package://cob_pick_place_action/files/meshes/fruitdrink.stl"));
+	mesh->scale(0.001);
+	shapes::ShapeMsg shape_msg;
+	shapes::constructMsgFromShape(mesh.get(), shape_msg);    
+	co.meshes.push_back(boost::get<shape_msgs::Mesh>(shape_msg));
+	geometry_msgs::Pose mesh_pose;
+	//~ mesh_pose.position.x = -0.5;
+	//~ mesh_pose.position.y = -0.5;  
+	//~ mesh_pose.position.z = 0.6;
+	mesh_pose=object_pose.pose;
+	co.mesh_poses.push_back(mesh_pose);
 	pub_co.publish(co);
 	
+	
+	
+	//~ 
+	//~ //sauerkraut
+	//~ co.primitives[0].type = shape_msgs::SolidPrimitive::CYLINDER;
+	//~ co.primitives[0].dimensions[shape_msgs::SolidPrimitive::CYLINDER_HEIGHT] = 0.12;
+	//~ co.primitives[0].dimensions[shape_msgs::SolidPrimitive::CYLINDER_RADIUS] = 0.05;
+	//~ ////fruitdrink
+	//~ //co.primitives[0].type = shape_msgs::SolidPrimitive::BOX;
+	//~ //co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_X] = 0.0768;
+	//~ //co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Y] = 0.0824;
+	//~ //co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 0.1484;
+	//~ 
+	//~ co.primitive_poses[0] = object_pose.pose;
+	//~ pub_co.publish(co);
+	//~ 
 	//// add object
 	//co = moveit_msgs::CollisionObject();
 	//co.header.stamp = ros::Time::now();
