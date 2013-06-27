@@ -158,15 +158,20 @@ int GraspTable::Init(char* object_table_file,unsigned int table_size)
 		char GraspTableFileName[500];
 		int objectClassId = 0;
 		fscanf(f,"%d, %s\n",&objectClassId,GraspTableFileName);
-		std::string cwd = get_current_dir_name();
+//~ #####################################################################################################################
+		char result[ PATH_MAX ];
+		ssize_t count = readlink( "/proc/self/exe", result, PATH_MAX );
+		std::string cwd=std::string( result, (count > 0) ? count : 0 );
+		std::string::iterator end= cwd.end();
+		std::string str ("/bin/cob_pick_place_action");
+		std::string::iterator begin= cwd.end()-str.size();
+		cwd.erase(begin, end);
+//~ #####################################################################################################################
 		cwd+=GraspTableFileName;
 		strncpy(GraspTableFileName, cwd.c_str(), sizeof(GraspTableFileName));
 		GraspTableFileName[sizeof(GraspTableFileName) - 1] = 0;
 		printf("GraspTable::Init: Trying to read grasp table for object %d from file %s ...\n",objectClassId,GraspTableFileName);
-		ROS_INFO("Working directory is:");
-		ROS_INFO("              %s\n", cwd.c_str());
-		
-		
+
 		GraspTableObject * graspTableObject = new GraspTableObject();
 		graspTableObject->SetObjectClassId(objectClassId);
 		if (ReadFromFile(GraspTableFileName,graspTableObject)==0)
