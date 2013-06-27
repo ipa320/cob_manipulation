@@ -80,9 +80,9 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 	
 	///Get grasps from corresponding GraspTable
 	std::vector<manipulation_msgs::Grasp> grasps;
-	//fillAllGrasps(goal->object_id, goal->object_pose, grasps);
-	unsigned int grasp_id = 23;
-	fillSingleGrasp(goal->object_id, grasp_id, goal->object_pose, grasps);
+	fillAllGrasps(goal->object_id, goal->object_pose, grasps);
+	//unsigned int grasp_id = 23;
+	//fillSingleGrasp(goal->object_id, grasp_id, goal->object_pose, grasps);
 	
 	ROS_INFO("PickGoalCB: Found %d grasps for this object", grasps.size());
 	for(unsigned int i=0; i<grasps.size(); i++)
@@ -93,6 +93,7 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 	group.setSupportSurfaceName("table");
 	
 	
+	group.setPlanningTime(20.0);	//default is 5.0 s
 	success = group.pick(goal->object_name, grasps);
 	
 	
@@ -394,7 +395,6 @@ void CobPickPlaceActionServer::fillSingleGrasp(unsigned int objectClassId, unsig
 		g.retreat.desired_distance = 0.25;
 		
 		grasps.push_back(g);
-		//grasps.push_back(g);
 	}
 	else
 		ROS_ERROR("Grasp %d NOT found", grasp_id);
@@ -461,7 +461,7 @@ geometry_msgs::Pose CobPickPlaceActionServer::transformPose(geometry_msgs::Pose 
 manipulation_msgs::GripperTranslation CobPickPlaceActionServer::calculateApproachDirection(geometry_msgs::Pose grasp_pose_wrt_footprint, geometry_msgs::Pose pre_grasp_pose_wrt_footprint)
 {
 	manipulation_msgs::GripperTranslation approach;
-	approach.direction.header.frame_id = "footprint";
+	approach.direction.header.frame_id = "base_footprint";
 	//~ dis=sqrt((x1-x0)^2+(y1-y0)^2+(z1-z0)^2)
 	//~ direction.x= (x1-x0)/dis and likewise
 	
