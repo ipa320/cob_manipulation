@@ -82,9 +82,9 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 	
 	///Get grasps from corresponding GraspTable
 	std::vector<manipulation_msgs::Grasp> grasps;
-	//fillAllGrasps(goal->object_id, goal->object_pose, grasps);
-	unsigned int grasp_id = goal->grasp_id;
-	fillSingleGrasp(goal->object_id, grasp_id, goal->object_pose, grasps);
+	fillAllGrasps(goal->object_id, goal->object_pose, grasps);
+	//unsigned int grasp_id = goal->grasp_id;
+	//fillSingleGrasp(goal->object_id, grasp_id, goal->object_pose, grasps);
 	
 	ROS_INFO("PickGoalCB: Found %d grasps for this object", grasps.size());
 	for(unsigned int i=0; i<grasps.size(); i++)
@@ -200,68 +200,43 @@ void CobPickPlaceActionServer::insertObject(std::string object_name, geometry_ms
 	
 	moveit_msgs::CollisionObject co;
 	co.header.stamp = ros::Time::now();
-	//~ co.header.frame_id = "base_footprint";
+	co.header.frame_id = object_pose.header.frame_id;
 	
 	// remove object
-	co.header.frame_id = object_pose.header.frame_id;
 	co.id = object_name;
 	co.operation = co.REMOVE;
 	pub_co.publish(co);
 	
-	// add object
-	//~ co.header.frame_id = object_pose.header.frame_id;
+	//// add object as SolidPrimitive
+	//co.id = object_name;
+	//co.operation = co.ADD;
+	//co.primitives.resize(1);
+	////sauerkraut
+	//co.primitives[0].type = shape_msgs::SolidPrimitive::CYLINDER;
+	//co.primitives[0].dimensions.resize(shape_tools::SolidPrimitiveDimCount<shape_msgs::SolidPrimitive::CYLINDER>::value);
+	//co.primitives[0].dimensions[shape_msgs::SolidPrimitive::CYLINDER_HEIGHT] = 0.12;
+	//co.primitives[0].dimensions[shape_msgs::SolidPrimitive::CYLINDER_RADIUS] = 0.05;
+	//////fruitdrink
+	////co.primitives[0].type = shape_msgs::SolidPrimitive::BOX;
+	////co.primitives[0].dimensions.resize(shape_tools::SolidPrimitiveDimCount<shape_msgs::SolidPrimitive::BOX>::value);
+	////co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_X] = 0.0768;
+	////co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Y] = 0.0824;
+	////co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 0.1484;
+	//co.primitive_poses.resize(1);
+	//co.primitive_poses[0] = object_pose.pose;
+	//pub_co.publish(co);
+	
+	
+	// add object as Mesh
 	co.id = object_name;
 	co.operation = co.ADD;
 	boost::scoped_ptr<shapes::Mesh> mesh;
-	//~ mesh.reset(shapes::createMeshFromResource("package://cob_pick_place_action/files/meshes/sauerkraut.stl"));
-	mesh.reset(shapes::createMeshFromResource("package://cob_pick_place_action/files/meshes/fruitdrink.stl"));
-	mesh->scale(0.001);
+	mesh.reset(shapes::createMeshFromResource("package://cob_pick_place_action/files/meshes/"+object_name+".stl"));
 	shapes::ShapeMsg shape_msg;
 	shapes::constructMsgFromShape(mesh.get(), shape_msg);    
 	co.meshes.push_back(boost::get<shape_msgs::Mesh>(shape_msg));
-	geometry_msgs::Pose mesh_pose;
-	//~ mesh_pose.position.x = -0.5;
-	//~ mesh_pose.position.y = -0.5;  
-	//~ mesh_pose.position.z = 0.6;
-	mesh_pose=object_pose.pose;
-	co.mesh_poses.push_back(mesh_pose);
+	co.mesh_poses.push_back(object_pose.pose);
 	pub_co.publish(co);
-	
-	
-	
-	//~ 
-	//~ //sauerkraut
-	//~ co.primitives[0].type = shape_msgs::SolidPrimitive::CYLINDER;
-	//~ co.primitives[0].dimensions[shape_msgs::SolidPrimitive::CYLINDER_HEIGHT] = 0.12;
-	//~ co.primitives[0].dimensions[shape_msgs::SolidPrimitive::CYLINDER_RADIUS] = 0.05;
-	//~ ////fruitdrink
-	//~ //co.primitives[0].type = shape_msgs::SolidPrimitive::BOX;
-	//~ //co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_X] = 0.0768;
-	//~ //co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Y] = 0.0824;
-	//~ //co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 0.1484;
-	//~ 
-	//~ co.primitive_poses[0] = object_pose.pose;
-	//~ pub_co.publish(co);
-	//~ 
-	//// add object
-	//co = moveit_msgs::CollisionObject();
-	//co.header.stamp = ros::Time::now();
-	//co.header.frame_id = "base_footprint";
-	//co.id = object_name;
-	//co.operation = co.ADD;
-	//boost::scoped_ptr<shapes::Mesh> mesh;
-	//mesh.reset(shapes::createMeshFromResource("package://cob_pick_place_action/files/meshes/sauerkraut.stl"));
-	////mesh.reset(shapes::createMeshFromResource("package://cob_pick_place_action/files/meshes/fruitdrink.stl"));
-	//mesh->scale(0.001);
-	//shapes::ShapeMsg shape_msg;
-	//shapes::constructMsgFromShape(mesh.get(), shape_msg);    
-	//co.meshes.push_back(boost::get<shape_msgs::Mesh>(shape_msg));
-	//geometry_msgs::Pose mesh_pose;
-	//mesh_pose.position.x = -0.5;
-	//mesh_pose.position.y = -0.5;  
-	//mesh_pose.position.z = 0.6;
-	//co.mesh_poses.push_back(mesh_pose);
-	//pub_co.publish(co);
 	
 	ros::Duration(1.0).sleep();
 }
