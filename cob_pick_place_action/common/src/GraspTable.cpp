@@ -190,7 +190,6 @@ void GraspTable::AddGraspTableObject(GraspTableObject* object)
 	if (objectClassId < m_GraspTable.size())
 	{
 		m_GraspTable[objectClassId]=object;
-		printf("Success 2\n");
 	}
 	else
 	{
