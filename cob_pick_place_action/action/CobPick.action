@@ -2,10 +2,11 @@
 ##########     Object Information(goal)   ######################
 
 uint32 object_id
-
 string object_name
 
 geometry_msgs/PoseStamped object_pose
+
+uint32 grasp_id
 
 ---
 ##########################################################
