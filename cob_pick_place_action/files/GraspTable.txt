@@ -1,0 +1,6 @@
+4
+11, /grasptables/Sauerkraut_SDH.xml
+13, /grasptables/FruitTea_SDH.xml
+18, /grasptables/YellowSaltCube_SDH.xml
+65, /grasptables/FruitDrink_SDH.xml 
+
