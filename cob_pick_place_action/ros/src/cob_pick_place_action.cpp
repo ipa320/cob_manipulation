@@ -52,22 +52,25 @@ void CobPickPlaceActionServer::initialize()
 	as_place.reset(new actionlib::SimpleActionServer<cob_pick_place_action::CobPlaceAction>(nh_, COB_PLACE_ACTION_NAME, boost::bind(&CobPickPlaceActionServer::place_goal_cb, this, _1), false));
 	as_place->start();
 	
+	last_grasp_valid = false;
+	last_object_name.clear();
+	
 	//~ Grasp Table Initializations################################
 	std::string path = ros::package::getPath("cob_pick_place_action")+std::string("/files/GraspTable.txt");
 	GraspTableIniFile = const_cast<char*>(path.c_str());  
 	m_GraspTable = new GraspTable();
 	int error = m_GraspTable->Init(GraspTableIniFile);
-	
 	if(error<0)
 		ROS_ERROR("Failed to initialize GraspTables");
-		
+	
+	
 	setupEnvironment();
 }
 
 void CobPickPlaceActionServer::run()
-{	
+{
 	ROS_INFO("cob_pick_action...spinning");
-    ros::spin();
+	ros::spin();
 }
 
 void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPickGoalConstPtr &goal)
@@ -75,10 +78,8 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 	ROS_INFO("PickGoalCB: Received new goal: Trying to pick %s", goal->object_name.c_str());
 	bool success = false;
 	
-	///Setting up the environment
-	//TODO: This is done somewhere else later. Only update position of grasp_object
+	///Updating the object collision_object
 	insertObject(goal->object_name, goal->object_pose);
-	
 	
 	///Get grasps from corresponding GraspTable
 	std::vector<manipulation_msgs::Grasp> grasps;
@@ -92,11 +93,18 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 		ROS_DEBUG_STREAM("Grasp "<< i << ": " << grasps[i]);
 	}
 	
+	
 	group.setSupportSurfaceName("table");
+	group.setPlanningTime(60.0);	//default is 5.0 s
 	
 	
-	group.setPlanningTime(20.0);	//default is 5.0 s
-	success = group.pick(goal->object_name, grasps);
+	///Call Pick
+	//success = group.pick(goal->object_name, grasps);
+	
+	///Call Pick with result
+	manipulation_msgs::Grasp grasp_used;
+	success = group.pick(goal->object_name, grasps, grasp_used);
+	ROS_DEBUG_STREAM("Executed Grasp: " << grasp_used);
 	
 	
 	///Setting result
@@ -107,42 +115,79 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 		result.success.data=true;
 		response="Hurray!!! Pickup COMPLETE";
 		as_pick->setSucceeded(result, response);
+		last_grasp_valid = true;
+		last_object_name = goal->object_name;
+		last_grasp = grasp_used;
 	}
 	else
 	{
 		result.success.data=false;
 		response="Alas!!! Pickup FAILED";
 		as_pick->setAborted(result, response);
+		last_grasp_valid = false;
+		last_object_name.clear();
 	}
 }
 
 void CobPickPlaceActionServer::place_goal_cb(const cob_pick_place_action::CobPlaceGoalConstPtr &goal)
 {
-	ROS_INFO("PlaceGoalCB: Received new goal");
-	bool success = false;
-	
-	///reslease object
-	detachObject(goal->object_name);
-	success = true;
-	
-	///Setting result
+	ROS_INFO("PlaceCB: Received new goal: Trying to Place %s", goal->object_name.c_str());
 	cob_pick_place_action::CobPlaceResult result;
 	std::string response;
+	bool success = false;
+	
+	if(!last_grasp_valid || last_object_name.empty() || last_object_name != goal->object_name)
+	{
+		ROS_ERROR("Object %s cannot be placed", goal->object_name.c_str());
+		result.success.data = false;
+		response = "Object has not been picked before";
+		as_place->setAborted(result, response);
+		last_grasp_valid = false;
+		last_object_name.clear();
+		return; 
+	}
+	
+	std::vector<manipulation_msgs::PlaceLocation> locations;
+	manipulation_msgs::PlaceLocation place_location;
+	
+	place_location.id = "Last_"+goal->object_name+"_grasp";
+	place_location.post_place_posture = last_grasp.pre_grasp_posture;
+	place_location.place_pose = goal->destination;
+	place_location.approach.direction.header.frame_id = "/base_footprint";
+	place_location.approach.direction.vector.z = -1.0;
+	place_location.approach.min_distance = 0.1;
+	place_location.approach.desired_distance = 0.2;
+	place_location.retreat.direction.header.frame_id = "/base_footprint";
+	place_location.retreat.direction.vector.z = 1.0;
+	place_location.retreat.min_distance = 0.1;
+	place_location.retreat.desired_distance = 0.25;
+	
+	locations.push_back(place_location);
+	
+	
+	group.setSupportSurfaceName("table");
+	group.setPlanningTime(60.0);	//default is 5.0 s
+	
+	success = group.place(goal->object_name, locations);
+
+	///Setting result
 	if(success)
 	{
 		result.success.data=true;
-		response="PLACE SUCCEEDED";
+		response="Hurray!!! Place COMPLETE";
 		as_place->setSucceeded(result, response);
+		last_grasp_valid = false;
+		last_object_name.clear();
 	}
 	else
 	{
 		result.success.data=false;
-		response="PLACE FAILED";
+		response="Alas!!! Place FAILED";
 		as_place->setAborted(result, response);
+		last_grasp_valid = false;
+		last_object_name.clear();
 	}
 }
-
-
 
 
 void CobPickPlaceActionServer::setupEnvironment()
@@ -152,7 +197,7 @@ void CobPickPlaceActionServer::setupEnvironment()
 	
 	moveit_msgs::CollisionObject co;
 	co.header.stamp = ros::Time::now();
-	co.header.frame_id = "base_footprint";
+	co.header.frame_id = "/base_footprint";
 	
 	// remove pole
 	co.id = "pole";
@@ -263,6 +308,16 @@ void CobPickPlaceActionServer::fillAllGrasps(unsigned int objectClassId, geometr
 	m_GraspTable->ResetReadPtr(objectClassId);
 	Grasp *current_grasp = NULL;
 	unsigned int grasp_index = 0;
+	tf::TransformListener listener;
+	tf::StampedTransform transform_object_frameid_footprint;
+	try
+	{
+		listener.lookupTransform("/base_footprint", object_pose.header.frame_id, ros::Time::now(), transform_object_frameid_footprint);
+	}
+	catch (tf::TransformException ex)
+	{
+		ROS_ERROR("%s",ex.what());
+	}
 	
 	current_grasp = m_GraspTable->GetNextGrasp(objectClassId);
 	
@@ -299,10 +354,9 @@ void CobPickPlaceActionServer::fillAllGrasps(unsigned int objectClassId, geometr
 		grasp_pose_wrt_object.orientation=tf::createQuaternionMsgFromRollPitchYaw(current_grasp_pose[3], current_grasp_pose[4], current_grasp_pose[5] );
 		
 		///TODO: VERIFY THIS!!
-		//Get grasp_pose in Base_footprint
-		geometry_msgs::Pose grasp_pose_wrt_footprint = transformPose(grasp_pose_wrt_object, object_pose.pose);
-		g.grasp_pose.pose = grasp_pose_wrt_footprint;
-		g.grasp_pose.header.frame_id = "base_footprint";
+		//Get grasp_pose in base_footprint
+		geometry_msgs::PoseStamped grasp_pose_wrt_footprint = transformPose(grasp_pose_wrt_object, object_pose, transform_object_frameid_footprint);
+		g.grasp_pose= grasp_pose_wrt_footprint;
 		
 		//ApproachDirection
 		std::vector<double> current_pre_grasp_pose = current_grasp->GetTCPPreGraspPose();
@@ -313,13 +367,13 @@ void CobPickPlaceActionServer::fillAllGrasps(unsigned int objectClassId, geometr
 		pre_grasp_pose_wrt_object.orientation=tf::createQuaternionMsgFromRollPitchYaw(current_pre_grasp_pose[3], current_pre_grasp_pose[4], current_pre_grasp_pose[5] );
 		
 		///TODO: VERIFY THIS!!
-		//Get grasp_pose in Base_footprint
-		geometry_msgs::Pose  pre_grasp_pose_wrt_footprint = transformPose(pre_grasp_pose_wrt_object, object_pose.pose);
+		//Get grasp_pose in base_footprint
+		geometry_msgs::PoseStamped  pre_grasp_pose_wrt_footprint = transformPose(pre_grasp_pose_wrt_object, object_pose, transform_object_frameid_footprint);
 		
-		g.approach = calculateApproachDirection(grasp_pose_wrt_footprint, pre_grasp_pose_wrt_footprint);
+		g.approach = calculateApproachDirection(grasp_pose_wrt_footprint.pose, pre_grasp_pose_wrt_footprint.pose);
 		
 		//RetreatDirection
-		g.retreat.direction.header.frame_id = "base_footprint";
+		g.retreat.direction.header.frame_id = "/base_footprint";
 		g.retreat.direction.vector.z = 1.0;
 		g.retreat.min_distance = 0.1;
 		g.retreat.desired_distance = 0.25;
@@ -335,7 +389,16 @@ void CobPickPlaceActionServer::fillSingleGrasp(unsigned int objectClassId, unsig
 {
 	grasps.clear(); 
 	manipulation_msgs::Grasp g;
-	
+	tf::TransformListener listener;
+	tf::StampedTransform transform_object_frameid_footprint;
+	try
+	{
+		listener.lookupTransform("/base_footprint", object_pose.header.frame_id, ros::Time::now(), transform_object_frameid_footprint);
+	}
+	catch (tf::TransformException ex)
+	{
+		ROS_ERROR("%s",ex.what());
+	}
 	Grasp *current_grasp = NULL;
 	
 	current_grasp = m_GraspTable->GetGrasp(objectClassId, grasp_id);
@@ -373,10 +436,9 @@ void CobPickPlaceActionServer::fillSingleGrasp(unsigned int objectClassId, unsig
 		grasp_pose_wrt_object.orientation=tf::createQuaternionMsgFromRollPitchYaw(current_grasp_pose[3], current_grasp_pose[4], current_grasp_pose[5] );
 		
 		///TODO: VERIFY THIS!!
-		//Get grasp_pose in Base_footprint
-		geometry_msgs::Pose grasp_pose_wrt_footprint = transformPose(grasp_pose_wrt_object, object_pose.pose);
-		g.grasp_pose.pose = grasp_pose_wrt_footprint;
-		g.grasp_pose.header.frame_id = "base_footprint";
+		//Get grasp_pose in base_footprint
+		geometry_msgs::PoseStamped grasp_pose_wrt_footprint = transformPose(grasp_pose_wrt_object, object_pose, transform_object_frameid_footprint);
+		g.grasp_pose= grasp_pose_wrt_footprint;
 		
 		//ApproachDirection
 		std::vector<double> current_pre_grasp_pose = current_grasp->GetTCPPreGraspPose();
@@ -387,10 +449,11 @@ void CobPickPlaceActionServer::fillSingleGrasp(unsigned int objectClassId, unsig
 		pre_grasp_pose_wrt_object.orientation=tf::createQuaternionMsgFromRollPitchYaw(current_pre_grasp_pose[3], current_pre_grasp_pose[4], current_pre_grasp_pose[5] );
 		
 		///TODO: VERIFY THIS!!
-		//Get grasp_pose in Base_footprint
-		geometry_msgs::Pose  pre_grasp_pose_wrt_footprint = transformPose(pre_grasp_pose_wrt_object, object_pose.pose);
+		//Get grasp_pose in base_footprint
+		geometry_msgs::PoseStamped  pre_grasp_pose_wrt_footprint = transformPose(pre_grasp_pose_wrt_object, object_pose, transform_object_frameid_footprint);
 		
-		g.approach = calculateApproachDirection(grasp_pose_wrt_footprint, pre_grasp_pose_wrt_footprint);
+		g.approach = calculateApproachDirection(grasp_pose_wrt_footprint.pose, pre_grasp_pose_wrt_footprint.pose);
+		
 		
 		//RetreatDirection
 		g.retreat.direction.header.frame_id = "base_footprint";
@@ -437,35 +500,39 @@ sensor_msgs::JointState CobPickPlaceActionServer::MapHandConfiguration(sensor_ms
 	return grasp_configuration;
 }
 
-geometry_msgs::Pose CobPickPlaceActionServer::transformPose(geometry_msgs::Pose grasp_pose_wrt_object, geometry_msgs::Pose object_pose)
+geometry_msgs::PoseStamped CobPickPlaceActionServer::transformPose(geometry_msgs::Pose grasp_pose_wrt_object, geometry_msgs::PoseStamped object_pose, tf::StampedTransform transform_object_frameid_footprint)
 {
+	//~ Getting transform for object wrt its header frame
 	tf::Quaternion quat;
-	tf::quaternionMsgToTF(object_pose.orientation, quat);
-	tf::Vector3 vec = tf::Vector3(object_pose.position.x, object_pose.position.y, object_pose.position.z);
-	tf::Transform trans_obj_footprint = tf::Transform(quat, vec);
+	tf::quaternionMsgToTF(object_pose.pose.orientation, quat);
+	tf::Vector3 vec = tf::Vector3(object_pose.pose.position.x, object_pose.pose.position.y, object_pose.pose.position.z);
+	tf::Transform trans_obj_wrt_header = tf::Transform(quat, vec);
 	
+	//~ Getting transform for grasp wrt object
 	tf::quaternionMsgToTF(grasp_pose_wrt_object.orientation, quat);
 	vec = 0.001*tf::Vector3(grasp_pose_wrt_object.position.x, grasp_pose_wrt_object.position.y, grasp_pose_wrt_object.position.z);
 	tf::Transform trans_grasp_obj = tf::Transform(quat, vec);
 	
-	tf::Transform trans_grasp_footprint = trans_obj_footprint.operator*(trans_grasp_obj);
-	
+	//~ Getting transform for grasp wrt footprint
+	tf::Transform trans_grasp_wrt_object_header = trans_obj_wrt_header.operator*(trans_grasp_obj);
+	tf::Transform trans_grasp_wrt_footprint = transform_object_frameid_footprint.operator*(trans_grasp_wrt_object_header);
+
 	geometry_msgs::Transform msg;
-	tf::transformTFToMsg(trans_grasp_footprint, msg);
+	tf::transformTFToMsg(trans_grasp_wrt_footprint, msg);
 	
-	geometry_msgs::Pose grasp_pose_wrt_footprint;
-	grasp_pose_wrt_footprint.position.x = msg.translation.x;
-	grasp_pose_wrt_footprint.position.y = msg.translation.y;
-	grasp_pose_wrt_footprint.position.z = msg.translation.z;
-	grasp_pose_wrt_footprint.orientation = msg.rotation;
-	
-	return grasp_pose_wrt_footprint;
+	geometry_msgs::PoseStamped grasp_pose_wrt_base_footprint;
+	grasp_pose_wrt_base_footprint.header.frame_id=object_pose.header.frame_id;
+	grasp_pose_wrt_base_footprint.pose.position.x = msg.translation.x;
+	grasp_pose_wrt_base_footprint.pose.position.y = msg.translation.y;
+	grasp_pose_wrt_base_footprint.pose.position.z = msg.translation.z;
+	grasp_pose_wrt_base_footprint.pose.orientation = msg.rotation;
+	return grasp_pose_wrt_base_footprint;
 }
 
 manipulation_msgs::GripperTranslation CobPickPlaceActionServer::calculateApproachDirection(geometry_msgs::Pose grasp_pose_wrt_footprint, geometry_msgs::Pose pre_grasp_pose_wrt_footprint)
 {
 	manipulation_msgs::GripperTranslation approach;
-	approach.direction.header.frame_id = "base_footprint";
+	approach.direction.header.frame_id = "/base_footprint";
 	//~ dis=sqrt((x1-x0)^2+(y1-y0)^2+(z1-z0)^2)
 	//~ direction.x= (x1-x0)/dis and likewise
 	
@@ -476,22 +543,11 @@ manipulation_msgs::GripperTranslation CobPickPlaceActionServer::calculateApproac
 	approach.direction.vector.z = (grasp_pose_wrt_footprint.position.z-pre_grasp_pose_wrt_footprint.position.z)/distance;
 	
 	approach.min_distance = distance;
+	ROS_DEBUG("Distance between pre-grasp and grasp: %f", distance);
 	approach.desired_distance = approach.min_distance + 0.2;
 	
 	return approach;
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
