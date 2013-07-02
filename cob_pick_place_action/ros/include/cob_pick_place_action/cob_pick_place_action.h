@@ -66,6 +66,10 @@ private:
 	char* GraspTableIniFile;
 	GraspTable* m_GraspTable;
 	
+	bool last_grasp_valid;
+	std::string last_object_name;
+	manipulation_msgs::Grasp last_grasp;
+	
 public:
 	CobPickPlaceActionServer() : group("arm") {}
 	~CobPickPlaceActionServer();
@@ -84,7 +88,7 @@ public:
 	void fillSingleGrasp(unsigned int objectClassId, unsigned int grasp_id, geometry_msgs::PoseStamped object_pose, std::vector<manipulation_msgs::Grasp> &grasps);
 	
 	sensor_msgs::JointState MapHandConfiguration(sensor_msgs::JointState table_config);
-	geometry_msgs::PoseStamped transformPose(geometry_msgs::Pose grasp_pose_wrt_object, geometry_msgs::PoseStamped object_pose, tf::StampedTransform transform_objHeader_footprint);
+	geometry_msgs::PoseStamped transformPose(geometry_msgs::Pose grasp_pose_wrt_object, geometry_msgs::PoseStamped object_pose, tf::StampedTransform transform_object_frameid_footprint);
 	manipulation_msgs::GripperTranslation calculateApproachDirection(geometry_msgs::Pose grasp_pose_wrt_footprint, geometry_msgs::Pose pre_grasp_pose_wrt_footprint);
 
 };

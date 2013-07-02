@@ -17,19 +17,18 @@ int main (int argc, char **argv)
   ac.waitForServer(); //will wait for infinite time
 
   ROS_INFO("Action server started, sending goal.");
-  // send a goal to the action
+  
+  ///send a goal to the action
   cob_pick_place_action::CobPickGoal goal;
-  //~ goal.object_id = 11;
+  //goal.object_id = 11;
+  //goal.object_name = "sauerkraut";
   goal.object_id = 18;
-  //~ goal.object_name = "sauerkraut";
   goal.object_name = "yellowsaltcube";
-  //~ goal.grasp_id = 23;
   //goal.object_id = 65;
   //goal.object_name = "fruitdrink";
-  
-  /// Fill in pose from object_detection
+
   goal.object_pose.header.stamp = ros::Time::now();
-  goal.object_pose.header.frame_id = "base_footprint";
+  goal.object_pose.header.frame_id = "/base_footprint";
   goal.object_pose.pose.position.x = -0.5;
   goal.object_pose.pose.position.y = -0.5;  
   goal.object_pose.pose.position.z =  0.6;
