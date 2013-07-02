@@ -19,8 +19,11 @@ int main (int argc, char **argv)
   ROS_INFO("Action server started, sending goal.");
   // send a goal to the action
   cob_pick_place_action::CobPickGoal goal;
-  goal.object_id = 11;
-  goal.object_name = "sauerkraut";
+  //~ goal.object_id = 11;
+  goal.object_id = 18;
+  //~ goal.object_name = "sauerkraut";
+  goal.object_name = "yellowsaltcube";
+  //~ goal.grasp_id = 23;
   //goal.object_id = 65;
   //goal.object_name = "fruitdrink";
   
