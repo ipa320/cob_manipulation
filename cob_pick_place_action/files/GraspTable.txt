@@ -12,7 +12,7 @@
 65, /grasptables/FruitDrink_SDH.xml 
 99, /grasptables/RuskWholemeal_SDH.xml
 101, /grasptables/KoalaCandy_SDH.xml
-106, /grasptables/BackingSoda_SDH.xml
+106, /grasptables/BakingSoda_SDH.xml
 107, /grasptables/Sweetener_SDH.xml
 109, /grasptables/ChocoIcing_SDH.xml
 119, /grasptables/TomatoHerbSauce_SDH.xml

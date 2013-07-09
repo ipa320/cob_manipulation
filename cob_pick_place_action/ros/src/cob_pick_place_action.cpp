@@ -38,11 +38,16 @@
 #include "geometric_shapes/mesh_operations.h"
 #include "geometric_shapes/shape_operations.h"
 
+#include <algorithm>
 
 void CobPickPlaceActionServer::initialize()
 {
 	pub_co = nh_.advertise<moveit_msgs::CollisionObject>("collision_object", 10);
 	pub_ao = nh_.advertise<moveit_msgs::AttachedCollisionObject>("attached_collision_object", 10);
+
+	static const std::string COB_COLLISION_OBJECT_NAME = "cob_collision_object_action";
+	as_collision_object.reset(new actionlib::SimpleActionServer<cob_pick_place_action::CobCollisionObjectAction>(nh_, COB_COLLISION_OBJECT_NAME, boost::bind(&CobPickPlaceActionServer::collision_object_goal_cb, this, _1), false));
+	as_collision_object->start();
 
 	static const std::string COB_PICKUP_ACTION_NAME = "cob_pick_action";
 	as_pick.reset(new actionlib::SimpleActionServer<cob_pick_place_action::CobPickAction>(nh_, COB_PICKUP_ACTION_NAME, boost::bind(&CobPickPlaceActionServer::pick_goal_cb, this, _1), false));
@@ -60,17 +65,60 @@ void CobPickPlaceActionServer::initialize()
 	GraspTableIniFile = const_cast<char*>(path.c_str());  
 	m_GraspTable = new GraspTable();
 	int error = m_GraspTable->Init(GraspTableIniFile);
+	
 	if(error<0)
 		ROS_ERROR("Failed to initialize GraspTables");
-	
-	
+		
 	setupEnvironment();
 }
 
 void CobPickPlaceActionServer::run()
 {
 	ROS_INFO("cob_pick_action...spinning");
-	ros::spin();
+    ros::spin();
+}
+
+void CobPickPlaceActionServer::collision_object_goal_cb(const cob_pick_place_action::CobCollisionObjectGoalConstPtr &goal)
+{
+	ROS_INFO("received collision object %s", goal->object.id.c_str());
+	bool success = false;
+	
+
+	pub_co.publish(goal->object);
+	ros::Duration(1.0).sleep();
+
+	// Special handling of keyword 'support_surface'
+	if (goal->object.id == "support_surface" && goal->object.operation != goal->object.REMOVE)
+	{
+		ROS_INFO("Setting support surface");
+		group.setSupportSurfaceName("support_surface");
+	}
+	else if (goal->object.id == "support_surface" && goal->object.operation == goal->object.REMOVE)
+	{
+		ROS_INFO("Removing support surface");
+		group.setSupportSurfaceName("");
+	}
+	
+	// Special handling of keyword 'all'
+	if (goal->object.id == "all" && goal->object.operation == goal->object.REMOVE)
+	{
+		ROS_INFO("Detaching and removing all collision models");
+		resetEnvironment();
+	}
+	
+	// Setting result
+	success = true;
+	cob_pick_place_action::CobCollisionObjectResult result;
+	if(success)
+	{
+		result.success.data=true;
+                as_collision_object->setSucceeded(result);
+	}
+	else
+	{
+		result.success.data=false;
+                as_collision_object->setAborted(result);
+	}
 }
 
 void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPickGoalConstPtr &goal)
@@ -78,6 +126,8 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 	ROS_INFO("PickGoalCB: Received new goal: Trying to pick %s", goal->object_name.c_str());
 	bool success = false;
 	
+	ROS_DEBUG_STREAM(*(goal.get()));
+
 	///Updating the object collision_object
 	insertObject(goal->object_name, goal->object_pose);
 	
@@ -94,12 +144,9 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 	}
 	
 	
-	group.setSupportSurfaceName("table");
+	//group.setSupportSurfaceName("table");
 	group.setPlanningTime(60.0);	//default is 5.0 s
 	
-	
-	///Call Pick
-	//success = group.pick(goal->object_name, grasps);
 	
 	///Call Pick with result
 	manipulation_msgs::Grasp grasp_used;
@@ -163,9 +210,8 @@ void CobPickPlaceActionServer::place_goal_cb(const cob_pick_place_action::CobPla
 	place_location.retreat.desired_distance = 0.25;
 	
 	locations.push_back(place_location);
-	
-	
-	group.setSupportSurfaceName("table");
+
+	//group.setSupportSurfaceName("table");
 	group.setPlanningTime(60.0);	//default is 5.0 s
 	
 	success = group.place(goal->object_name, locations);
@@ -174,7 +220,7 @@ void CobPickPlaceActionServer::place_goal_cb(const cob_pick_place_action::CobPla
 	if(success)
 	{
 		result.success.data=true;
-		response="Hurray!!! Place COMPLETE";
+		response="PLACE SUCCEEDED";
 		as_place->setSucceeded(result, response);
 		last_grasp_valid = false;
 		last_object_name.clear();
@@ -182,7 +228,7 @@ void CobPickPlaceActionServer::place_goal_cb(const cob_pick_place_action::CobPla
 	else
 	{
 		result.success.data=false;
-		response="Alas!!! Place FAILED";
+		response="PLACE FAILED";
 		as_place->setAborted(result, response);
 		last_grasp_valid = false;
 		last_object_name.clear();
@@ -190,61 +236,37 @@ void CobPickPlaceActionServer::place_goal_cb(const cob_pick_place_action::CobPla
 }
 
 
+
+
 void CobPickPlaceActionServer::setupEnvironment()
 {
 	ros::Duration(1.0).sleep();
-	ROS_INFO("Setting up initial environment..");
-	
-	moveit_msgs::CollisionObject co;
-	co.header.stamp = ros::Time::now();
-	co.header.frame_id = "/base_footprint";
-	
-	// remove pole
-	co.id = "pole";
-	co.operation = co.REMOVE;
-	pub_co.publish(co);
-
-	// add pole
-	co.id = "pole";
-	co.operation = co.ADD;
-	co.primitives.resize(1);
-	co.primitives[0].type = shape_msgs::SolidPrimitive::BOX;
-	co.primitives[0].dimensions.resize(shape_tools::SolidPrimitiveDimCount<shape_msgs::SolidPrimitive::BOX>::value);
-	co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_X] = 0.3;
-	co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Y] = 0.1;
-	co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 1.0;
-	co.primitive_poses.resize(1);
-	co.primitive_poses[0].position.x = -0.7;
-	co.primitive_poses[0].position.y = 0.4;  
-	co.primitive_poses[0].position.z = 0.85;
-	co.primitive_poses[0].orientation.w = 1.0;
-	pub_co.publish(co);
-
-	// remove table
-	co.id = "table";
-	co.operation = co.REMOVE;
-	pub_co.publish(co);
-
-	// add table
-	co.id = "table";
-	co.operation = co.ADD;
-	co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_X] = 0.5;
-	co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Y] = 1.5;
-	co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 0.35;
-	co.primitive_poses[0].position.x = -0.7;
-	co.primitive_poses[0].position.y = -0.2;  
-	co.primitive_poses[0].position.z = 0.175;
-	pub_co.publish(co);
-	ros::Duration(1.0).sleep();
 }
 
+void CobPickPlaceActionServer::resetEnvironment()
+{
+	ros::Duration(1.0).sleep();
+	
+	ROS_INFO("Detaching all objects");
+	moveit_msgs::AttachedCollisionObject object;
+	//object.object.id = "";
+	object.link_name = "arm_7_link";
+	object.object.operation = object.object.REMOVE;
+	pub_ao.publish(object);
+	
+	ROS_INFO("Removing all objects");
+	moveit_msgs::CollisionObject co;
+	//co.id = object_name;
+	co.operation = co.REMOVE;
+	pub_co.publish(co);
+}
 
 void CobPickPlaceActionServer::insertObject(std::string object_name, geometry_msgs::PoseStamped object_pose)
 {
-	ROS_INFO("Setting up environment..");
+	ROS_INFO("Adding object to MoveIt! environment..");
 	
 	moveit_msgs::CollisionObject co;
-	co.header.stamp = ros::Time::now();
+	co.header.stamp = object_pose.header.stamp;//ros::Time::now();
 	co.header.frame_id = object_pose.header.frame_id;
 	
 	// remove object
@@ -275,8 +297,12 @@ void CobPickPlaceActionServer::insertObject(std::string object_name, geometry_ms
 	// add object as Mesh
 	co.id = object_name;
 	co.operation = co.ADD;
+	
+	std::string mesh_name = object_name;
+	std::transform(mesh_name.begin(), mesh_name.end(), mesh_name.begin(), ::tolower);
+	
 	boost::scoped_ptr<shapes::Mesh> mesh;
-	mesh.reset(shapes::createMeshFromResource("package://cob_pick_place_action/files/meshes/"+object_name+".stl"));
+	mesh.reset(shapes::createMeshFromResource("package://cob_pick_place_action/files/meshes/"+mesh_name+".stl"));
 	shapes::ShapeMsg shape_msg;
 	shapes::constructMsgFromShape(mesh.get(), shape_msg);    
 	co.meshes.push_back(boost::get<shape_msgs::Mesh>(shape_msg));
@@ -293,6 +319,17 @@ void CobPickPlaceActionServer::detachObject(std::string object_name)
 	object.link_name = "arm_7_link";
 	object.object.operation = object.object.REMOVE;
 	pub_ao.publish(object);
+	
+	ros::Duration(1.0).sleep();
+	
+	moveit_msgs::CollisionObject co;
+	
+	// remove object
+	co.id = object_name;
+	co.operation = co.REMOVE;
+	pub_co.publish(co);
+	
+	ros::Duration(1.0).sleep();
 }
 
 
@@ -323,7 +360,7 @@ void CobPickPlaceActionServer::fillAllGrasps(unsigned int objectClassId, geometr
 	
 	while(current_grasp)
 	{
-		ROS_INFO("GraspIndex: %d",grasp_index);
+		ROS_DEBUG("GraspIndex: %d",grasp_index);
 		
 		//HandPreGraspConfig
 		std::vector<double> current_hand_pre_config = current_grasp->GetHandPreGraspConfig();
@@ -336,7 +373,7 @@ void CobPickPlaceActionServer::fillAllGrasps(unsigned int objectClassId, geometr
 		g.pre_grasp_posture = MapHandConfiguration(pre_grasp_posture);
 		
 		//HandGraspConfig
-		std::vector<double> current_hand_config = current_grasp->GetHandGraspConfig();
+		std::vector<double> current_hand_config = current_grasp->GetHandOptimalGraspConfig();
 		sensor_msgs::JointState grasp_posture;
 		grasp_posture.position.clear();
 		for (unsigned int i=0; i<current_hand_config.size(); i++)
@@ -548,6 +585,18 @@ manipulation_msgs::GripperTranslation CobPickPlaceActionServer::calculateApproac
 	
 	return approach;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

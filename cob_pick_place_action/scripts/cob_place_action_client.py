@@ -22,13 +22,15 @@ def cob_place_action_client():
 	
 	# Creates a goal to send to the action server.
 	goal = cob_pick_place_action.msg.CobPlaceGoal()
-	goal.object_id = 18;
-	goal.object_name = "yellowsaltcube";
+	#goal.object_id = 18
+	#goal.object_name = "yellowsaltcube"
+	goal.object_id = 50
+	goal.object_name = "instantsoup"
 	goal.destination.header.stamp = rospy.Time.now()
 	goal.destination.header.frame_id = "base_footprint"
-	goal.destination.pose.position.x = -0.5
-	goal.destination.pose.position.y = -0.5  
-	goal.destination.pose.position.z =  0.6
+	goal.destination.pose.position.x = -0.7
+	goal.destination.pose.position.y =  0.0  
+	goal.destination.pose.position.z =  0.85
 	goal.destination.pose.orientation.w = 1.0
 	goal.destination.pose.orientation.x = 0.0
 	goal.destination.pose.orientation.y = 0.0

@@ -44,6 +44,7 @@
 #include <moveit/move_group_interface/move_group.h>
 #include <shape_tools/solid_primitive_dims.h>
 
+#include <cob_pick_place_action/CobCollisionObjectAction.h>
 #include <cob_pick_place_action/CobPickAction.h>
 #include <cob_pick_place_action/CobPlaceAction.h>
 #include <GraspTable.h>
@@ -58,6 +59,7 @@ private:
 	ros::Publisher pub_co; //publisher for collision_objects
 	ros::Publisher pub_ao; //publisher for attached_collision_objects
 	
+	boost::scoped_ptr<actionlib::SimpleActionServer<cob_pick_place_action::CobCollisionObjectAction> > as_collision_object;
 	boost::scoped_ptr<actionlib::SimpleActionServer<cob_pick_place_action::CobPickAction> > as_pick;
 	boost::scoped_ptr<actionlib::SimpleActionServer<cob_pick_place_action::CobPlaceAction> > as_place;
 	
@@ -77,10 +79,12 @@ public:
 	void initialize();
 	void run();
 
+	void collision_object_goal_cb(const cob_pick_place_action::CobCollisionObjectGoalConstPtr &goal);
 	void pick_goal_cb(const cob_pick_place_action::CobPickGoalConstPtr &goal);
 	void place_goal_cb(const cob_pick_place_action::CobPlaceGoalConstPtr &goal);
 	
 	void setupEnvironment();
+	void resetEnvironment();
 	void insertObject(std::string object_name, geometry_msgs::PoseStamped object_pose);
 	void detachObject(std::string object_name);
 	
