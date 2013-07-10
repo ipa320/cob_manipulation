@@ -18,6 +18,10 @@
  *
  * \author
  *   Author: Rohit Chandra, email:rohit.chandra@ipa.fhg.de
+ *   Author: Felix Messmer, email:felix.messmer@ipa.fhg.de
+ *
+ * \maintainer
+ *   Author: Felix Messmer, email:felix.messmer@ipa.fhg.de
  *
  * \date Date of creation: March, 2013
  *
@@ -69,7 +73,7 @@ void CobPickPlaceActionServer::initialize()
 	if(error<0)
 		ROS_ERROR("Failed to initialize GraspTables");
 		
-	setupEnvironment();
+	//setupEnvironment();
 }
 
 void CobPickPlaceActionServer::run()
@@ -143,8 +147,11 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 		ROS_DEBUG_STREAM("Grasp "<< i << ": " << grasps[i]);
 	}
 	
-	
-	//group.setSupportSurfaceName("table");
+	if(!(goal->support_surface.empty()))
+	{
+		ROS_INFO("Setting SupportSurface to %s", goal->support_surface.c_str());
+		group.setSupportSurfaceName(goal->support_surface);
+	}
 	group.setPlanningTime(60.0);	//default is 5.0 s
 	
 	
@@ -548,6 +555,7 @@ geometry_msgs::PoseStamped CobPickPlaceActionServer::transformPose(geometry_msgs
 	//~ Getting transform for grasp wrt object
 	tf::quaternionMsgToTF(grasp_pose_wrt_object.orientation, quat);
 	vec = 0.001*tf::Vector3(grasp_pose_wrt_object.position.x, grasp_pose_wrt_object.position.y, grasp_pose_wrt_object.position.z);
+	vec = vec + tf::Vector3(0,0,-0.032);	//transform from sdh_palm_link to arm_7_link
 	tf::Transform trans_grasp_obj = tf::Transform(quat, vec);
 	
 	//~ Getting transform for grasp wrt footprint

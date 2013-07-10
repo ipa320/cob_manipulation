@@ -8,6 +8,8 @@ geometry_msgs/PoseStamped object_pose
 
 uint32 grasp_id
 
+string support_surface
+
 ---
 ##########################################################
 ##########     Pickup Result (result)   ######################
