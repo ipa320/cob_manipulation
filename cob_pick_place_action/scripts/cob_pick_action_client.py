@@ -5,28 +5,28 @@ import rospy
 import actionlib
 
 from geometry_msgs.msg import PoseStamped
-import cob_moveit_interface
-from simple_moveit_interface import *
-
+import simple_moveit_interface as smi_
 import cob_pick_place_action.msg 
 
 
 def setup_environment():
-	psi = get_planning_scene_interface()
+	psi = smi_.get_planning_scene_interface()
 	rospy.sleep(1.0)
 
 	### Add a floor
-	add_ground()
+	smi_.add_ground()
 
 	### Add table
-	pose = geometry_msgs.msg.Pose()
-	pose.position.x = -0.9
-	pose.position.y = 0
-	pose.position.z = 0.38
-	pose.orientation.x = 0
-	pose.orientation.y = 0
-	pose.orientation.z = 0
-	pose.orientation.w = 1
+	pose = PoseStamped()
+	pose.header.frame_id = "base_footprint"
+	pose.header.stamp = rospy.Time.now()	
+	pose.pose.position.x = -0.9
+	pose.pose.position.y = 0
+	pose.pose.position.z = 0.38
+	pose.pose.orientation.x = 0
+	pose.pose.orientation.y = 0
+	pose.pose.orientation.z = 0
+	pose.pose.orientation.w = 1
 	psi.add_box("support_surface", pose, size=(0.5, 1.5, 0.8))
 	
 	rospy.sleep(1.0)	
@@ -45,17 +45,10 @@ def cob_pick_action_client():
 	
 	# Creates a goal to send to the action server.
 	goal = cob_pick_place_action.msg.CobPickGoal()
-<<<<<<< Updated upstream
 	goal.object_id = 18
 	goal.object_name = "yellowsaltcube"
 	#goal.object_id = 50
 	#goal.object_name = "instantsoup"
-=======
-	#goal.object_id = 18
-	#goal.object_name = "yellowsaltcube"
-	goal.object_id = 50
-	goal.object_name = "instantsoup"
->>>>>>> Stashed changes
 	goal.object_pose.header.stamp = rospy.Time.now()
 	goal.object_pose.header.frame_id = "base_footprint"
 	goal.object_pose.pose.position.x = -0.7
@@ -68,17 +61,17 @@ def cob_pick_action_client():
 	goal.support_surface = "support_surface"
 
 	
-	# Sends the goal to the action server.
-	pick_action_client.send_goal(goal)
-
-	# Waits for the server to finish performing the action.
-	finished_before_timeout=pick_action_client.wait_for_result(rospy.Duration(300, 0))
-
-	if finished_before_timeout:
-		state=pick_action_client.get_state()
-		print "Action finished: %s"%state
-	# Prints out the result of executing the action
-	return state  # State after waiting for PickupAction
+#	# Sends the goal to the action server.
+#	pick_action_client.send_goal(goal)
+#
+#	# Waits for the server to finish performing the action.
+#	finished_before_timeout=pick_action_client.wait_for_result(rospy.Duration(300, 0))
+#
+#	if finished_before_timeout:
+#		state=pick_action_client.get_state()
+#		print "Action finished: %s"%state
+#	# Prints out the result of executing the action
+#	return state  # State after waiting for PickupAction
 
 if __name__ == '__main__':
 	try:
