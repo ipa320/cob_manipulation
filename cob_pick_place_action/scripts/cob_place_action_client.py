@@ -2,13 +2,9 @@
 
 import roslib; roslib.load_manifest('cob_pick_place_action')
 import rospy
-import geometry_msgs.msg
-from geometry_msgs.msg import PoseStamped
-# Brings in the SimpleActionClient
 import actionlib
 
-# Brings in the messages used by the fibonacci action, including the
-# goal message and the result message.
+from geometry_msgs.msg import PoseStamped
 import cob_pick_place_action.msg 
 
 def cob_place_action_client():
@@ -22,14 +18,14 @@ def cob_place_action_client():
 	
 	# Creates a goal to send to the action server.
 	goal = cob_pick_place_action.msg.CobPlaceGoal()
-	#goal.object_id = 18
-	#goal.object_name = "yellowsaltcube"
-	goal.object_id = 50
-	goal.object_name = "instantsoup"
+	goal.object_id = 18
+	goal.object_name = "yellowsaltcube"
+	#goal.object_id = 50
+	#goal.object_name = "instantsoup"
 	goal.destination.header.stamp = rospy.Time.now()
 	goal.destination.header.frame_id = "base_footprint"
 	goal.destination.pose.position.x = -0.7
-	goal.destination.pose.position.y =  0.0  
+	goal.destination.pose.position.y = -0.3  
 	goal.destination.pose.position.z =  0.85
 	goal.destination.pose.orientation.w = 1.0
 	goal.destination.pose.orientation.x = 0.0

@@ -92,8 +92,8 @@ public:
 	void fillSingleGrasp(unsigned int objectClassId, unsigned int grasp_id, geometry_msgs::PoseStamped object_pose, std::vector<manipulation_msgs::Grasp> &grasps);
 	
 	sensor_msgs::JointState MapHandConfiguration(sensor_msgs::JointState table_config);
-	geometry_msgs::PoseStamped transformPose(geometry_msgs::Pose grasp_pose_wrt_object, geometry_msgs::PoseStamped object_pose, tf::StampedTransform transform_object_frameid_footprint);
-	manipulation_msgs::GripperTranslation calculateApproachDirection(geometry_msgs::Pose grasp_pose_wrt_footprint, geometry_msgs::Pose pre_grasp_pose_wrt_footprint);
+	tf::Transform transformPose(tf::Transform transform_O_from_SDH, tf::Transform transform_HEADER_from_OBJECT, std::string object_frame_id);
+	manipulation_msgs::GripperTranslation calculateApproachDirection(geometry_msgs::Pose msg_pose_grasp_FOOTPRINT_from_ARM7, geometry_msgs::Pose msg_pose_pre_FOOTPRINT_from_ARM7);
 
 };
 #endif

@@ -22,12 +22,12 @@ def setup_environment():
 	pose.header.stamp = rospy.Time.now()	
 	pose.pose.position.x = -0.9
 	pose.pose.position.y = 0
-	pose.pose.position.z = 0.38
+	pose.pose.position.z = 0.39
 	pose.pose.orientation.x = 0
 	pose.pose.orientation.y = 0
 	pose.pose.orientation.z = 0
 	pose.pose.orientation.w = 1
-	psi.add_box("support_surface", pose, size=(0.5, 1.5, 0.8))
+	psi.add_box("support_surface", pose, size=(0.5, 1.5, 0.78))
 	
 	rospy.sleep(1.0)	
 
@@ -40,8 +40,8 @@ def cob_pick_action_client():
 	# Waits until the action server has started up and started
 	# listening for goals.
 	pick_action_client.wait_for_server()
-
-        setup_environment()
+	
+	#setup_environment()
 	
 	# Creates a goal to send to the action server.
 	goal = cob_pick_place_action.msg.CobPickGoal()
@@ -53,25 +53,26 @@ def cob_pick_action_client():
 	goal.object_pose.header.frame_id = "base_footprint"
 	goal.object_pose.pose.position.x = -0.7
 	goal.object_pose.pose.position.y =  0.0  
-	goal.object_pose.pose.position.z =  0.85
+	goal.object_pose.pose.position.z =  0.815
 	goal.object_pose.pose.orientation.w = 1.0
 	goal.object_pose.pose.orientation.x = 0.0
 	goal.object_pose.pose.orientation.y = 0.0
 	goal.object_pose.pose.orientation.z = 0.0
-	goal.support_surface = "support_surface"
+	goal.grasp_id = 21
+	#goal.support_surface = "support_surface"
 
 	
-#	# Sends the goal to the action server.
-#	pick_action_client.send_goal(goal)
-#
-#	# Waits for the server to finish performing the action.
-#	finished_before_timeout=pick_action_client.wait_for_result(rospy.Duration(300, 0))
-#
-#	if finished_before_timeout:
-#		state=pick_action_client.get_state()
-#		print "Action finished: %s"%state
-#	# Prints out the result of executing the action
-#	return state  # State after waiting for PickupAction
+	# Sends the goal to the action server.
+	pick_action_client.send_goal(goal)
+
+	# Waits for the server to finish performing the action.
+	finished_before_timeout=pick_action_client.wait_for_result(rospy.Duration(300, 0))
+
+	if finished_before_timeout:
+		state=pick_action_client.get_state()
+		print "Action finished: %s"%state
+	# Prints out the result of executing the action
+	return state  # State after waiting for PickupAction
 
 if __name__ == '__main__':
 	try:
