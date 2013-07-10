@@ -73,7 +73,11 @@ void CobPickPlaceActionServer::initialize()
 	if(error<0)
 		ROS_ERROR("Failed to initialize GraspTables");
 		
+<<<<<<< Updated upstream
 	//setupEnvironment();
+=======
+	setupEnvironment();
+>>>>>>> Stashed changes
 }
 
 void CobPickPlaceActionServer::run()
@@ -147,11 +151,16 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 		ROS_DEBUG_STREAM("Grasp "<< i << ": " << grasps[i]);
 	}
 	
+<<<<<<< Updated upstream
 	if(!(goal->support_surface.empty()))
 	{
 		ROS_INFO("Setting SupportSurface to %s", goal->support_surface.c_str());
 		group.setSupportSurfaceName(goal->support_surface);
 	}
+=======
+	
+	//group.setSupportSurfaceName("table");
+>>>>>>> Stashed changes
 	group.setPlanningTime(60.0);	//default is 5.0 s
 	
 	

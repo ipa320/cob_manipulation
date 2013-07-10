@@ -45,10 +45,17 @@ def cob_pick_action_client():
 	
 	# Creates a goal to send to the action server.
 	goal = cob_pick_place_action.msg.CobPickGoal()
+<<<<<<< Updated upstream
 	goal.object_id = 18
 	goal.object_name = "yellowsaltcube"
 	#goal.object_id = 50
 	#goal.object_name = "instantsoup"
+=======
+	#goal.object_id = 18
+	#goal.object_name = "yellowsaltcube"
+	goal.object_id = 50
+	goal.object_name = "instantsoup"
+>>>>>>> Stashed changes
 	goal.object_pose.header.stamp = rospy.Time.now()
 	goal.object_pose.header.frame_id = "base_footprint"
 	goal.object_pose.pose.position.x = -0.7
