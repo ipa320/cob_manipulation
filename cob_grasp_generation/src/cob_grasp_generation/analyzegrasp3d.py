@@ -8,28 +8,18 @@ import roslib.packages
 #input-first-line (meta-info): name, time (@todo: add planner infos)
 #input-struct: number, jointconf, trafo, epsilon, volume, forceclosure, validindicees, direction
 def or_to_csv(validgrasps, time):
-	
-	tag_for_id = "Openrave"
 	meta_info = validgrasps[0]
 	name = meta_info[0]
 
 	#create directories
-	directory = roslib.packages.get_pkg_dir('cob_offline_grasping')+'/grasping/grasp_tests/'+tag_for_id+'/'+name
+	directory = roslib.packages.get_pkg_dir('cob_grasp_generation')+'/common/files/database/'+name
 	if not os.path.exists(directory):
     		os.makedirs(directory)
 	pathname_out = directory+'/'+name+'.csv'
-	pathname_meta = directory+'/'+name+'_meta.txt'
-
 	f_out = open(pathname_out, 'w+')
-	f_meta = open(pathname_meta, 'w+')
-	wr = csv.writer(f_out, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL) #quoting=csv.QUOTE_MINIMAL)
-	
-	#write the meta-information into a seperate file first
-	#Name, Time, (@todo: add planner infos)
-	f_meta.write(tag_for_id+', '+str(name)+', '+', '+str(time))
-	f_meta.close()
 
-	wr.writerow(['id', 'object', 'sdh_knuckle_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint', 'direction', 'qw', 'qx', 'qy', 'qz','pos-x', 'pos-y', 'pos-z', 'eps_l1', 'vol_l1', 'indicee'])
+	wr = csv.writer(f_out, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL) 
+	wr.writerow(['id', 'object', 'sdh_knuckle_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint', 'direction', 'qw', 'qx', 'qy', 'qz','pos-x', 'pos-y', 'pos-z', 'eps_l1', 'vol_l1'])
 
 	for i in range (1,len(validgrasps)): #because line 0 is meta-info
 		row = [] #create/empty row for new grasp

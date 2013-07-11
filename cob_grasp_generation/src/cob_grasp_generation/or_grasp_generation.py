@@ -4,7 +4,7 @@
 from openravepy import *
 import numpy, time, analyzegrasp3d, scipy 
 
-def generate_grasps(object_name):
+def generate_grasps(object_name,replan=True):
 
 	#env setup
 	#@TODO: replace hardcoded part
@@ -44,7 +44,8 @@ def generate_grasps(object_name):
 	now_plan = time.time()
 
 	#if not gmodel.load():
-	gmodel.autogenerate(options)
+	if replan == True:
+		gmodel.autogenerate(options)
 
 	#time diff
 	end_plan = time.time()
@@ -126,9 +127,11 @@ def generate_grasps(object_name):
 		grasps_to_file.append(grasp_to_file)
 
 		gmodel.getGlobalApproachDir(validgrasps[graspnmb])
-
+	
+	#Create a csv file if needed
 	analyzegrasp3d.or_to_csv(grasps_to_file, time_difference) 
 
-	raw_input('Finished...')
-	databases.grasping.RaveDestroy()
+	print('Finished.')
 	return grasps_to_file
+	databases.grasping.RaveDestroy()
+	
