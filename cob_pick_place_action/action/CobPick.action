@@ -1,0 +1,26 @@
+##########################################################
+##########     Object Information(goal)   ######################
+
+uint32 object_id
+string object_name
+
+geometry_msgs/PoseStamped object_pose
+
+uint32 grasp_id
+
+---
+##########################################################
+##########     Pickup Result (result)   ######################
+
+std_msgs/Bool success
+
+string cob_pick_error_string
+
+---
+
+##########################################################
+##########     Pickup Feedback (feedback)   ######################
+
+std_msgs/Bool success
+
+string cob_pick_error_string

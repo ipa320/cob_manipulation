@@ -1,0 +1,18 @@
+<package>
+  <description brief="cob_moveit_interface">
+
+     cob_moveit_interface
+
+  </description>
+  <author>Felix Messmer</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cob_moveit_interface</url>
+  <depend package="rospy"/>
+  <depend package="geometry_msgs"/>
+  <depend package="tf"/>
+  <depend package="moveit_commander"/>
+
+</package>
+
+

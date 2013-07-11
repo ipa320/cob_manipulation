@@ -1,0 +1,9 @@
+#goal definition
+string object_name
+---
+#result definition
+bool success
+manipulation_msgs/Grasp[] grasp_list
+---
+#feedback
+bool status

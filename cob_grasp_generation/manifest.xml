@@ -1,0 +1,17 @@
+<package>
+  <description brief="cob_grasp_generation">
+
+     cob_grasp_generation
+
+  </description>
+  <author>Felix Messmer</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cob_grasp_generation</url>
+  <depend package="rospy"/>
+  <depend package="actionlib"/>
+  <depend package="manipulation_msgs"/>
+
+</package>
+
+
