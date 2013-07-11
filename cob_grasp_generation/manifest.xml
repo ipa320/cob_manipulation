@@ -11,7 +11,7 @@
   <depend package="rospy"/>
   <depend package="actionlib"/>
   <depend package="manipulation_msgs"/>
-
+  <!--depend package="openrave_scripts" /-->
 </package>
 
 
