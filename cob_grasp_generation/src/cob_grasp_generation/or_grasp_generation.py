@@ -18,8 +18,6 @@ def generate_grasps(object_name):
 	robot = env.GetRobots()[0]
 
 	#choose object for planning
-	#@TODO: object name here, will be replaced by service call param
-	object_name = 'salt'
 	target = env.GetKinBody(object_name)
 
 	manip = robot.GetManipulator('arm')
@@ -126,14 +124,11 @@ def generate_grasps(object_name):
 		#SDH Joint Values - Beginnend mit Daumen(1) und die Zwei Finger GUZS nummeriert(2)(3)
 		#[Fingerwinkel(2), Fingerknick(2), Fingerrotation(2)(3), Fingerwinkel(3), Fingerknick(3), Fingerwinkel(1), Fingerknick(1)]
 		grasps_to_file.append(grasp_to_file)
-		#@toDo: side or top grasp?
+
 		gmodel.getGlobalApproachDir(validgrasps[graspnmb])
 
 	analyzegrasp3d.or_to_csv(grasps_to_file, time_difference) 
-	#analyzegrasp3d.simox_output(graspnmb,mindist,volume,transf,finalconfig[0][manip.GetGripperIndices()]) 
-
-
 
 	raw_input('Finished...')
 	databases.grasping.RaveDestroy()
-	return 'test complete'
+	return grasps_to_file

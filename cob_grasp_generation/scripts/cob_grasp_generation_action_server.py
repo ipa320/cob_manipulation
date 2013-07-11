@@ -6,8 +6,7 @@ import rospy
 import actionlib
 import manipulation_msgs.msg
 import cob_grasp_generation.msg
-
-from cob_grasp_generation.or_grasp_generation import * 
+from cob_grasp_generation import or_grasp_generation 
 
 class CobGraspGenerationActionServer(object):
   # create messages that are used to publish feedback/result
@@ -31,7 +30,7 @@ class CobGraspGenerationActionServer(object):
     
     # Do Witalij's fancy grasp_generation
     rospy.sleep(5.0)
-    test_string = generate_grasps('test')
+    or_grasp_generation.generate_grasps(goal.object_name)
     
     
     #Fill result
