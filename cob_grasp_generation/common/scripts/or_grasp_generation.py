@@ -20,7 +20,7 @@ robot = env.GetRobots()[0]
 
 #choose object for planning
 #@TODO: object name here, will be replaced by service call param
-object_name = 'mildessa'
+object_name = 'salt'
 target = env.GetKinBody(object_name)
 
 manip = robot.GetManipulator('arm')
