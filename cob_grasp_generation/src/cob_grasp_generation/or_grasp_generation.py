@@ -9,7 +9,7 @@ def generate_grasps(object_name,replan=True):
 	#env setup
 	#@TODO: replace hardcoded part
 	env=Environment()
-	env.Load('../../../home/mdl-ws/git/care-o-bot/cob_manipulation/cob_grasp_generation/common/files/env/target_scene.env.xml')
+	env.Load('./../common/files/env/target_scene.env.xml')
 
 	#Viewer - Toggle GUI 
 	#env.SetViewer('qtcoin')

@@ -10,8 +10,8 @@
       <!--com>0</com-->
     </Mass>
     <Geom type="trimesh">
-      <Data>../../../home/mdl-ws/git/care-o-bot/cob_manipulation/cob_grasp_generation/common/files/mesh/salt/YellowSaltCube_Orig_mod.wrl 0.001</Data>
-      <collision>../../../home/mdl-ws/git/care-o-bot/cob_manipulation/cob_grasp_generation/common/files/mesh/salt/YellowSaltCube_Orig_mod.wrl 0.001</collision>
+      <Data>./../mesh/salt/YellowSaltCube_Orig_mod.wrl 0.001</Data>
+      <collision>./../mesh/salt/YellowSaltCube_Orig_mod.wrl 0.001</collision>
       <transparency>0.0</transparency>
     </Geom>      
   </Body>
