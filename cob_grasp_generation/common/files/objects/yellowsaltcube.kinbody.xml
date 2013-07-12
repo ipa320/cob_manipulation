@@ -1,4 +1,4 @@
-<KinBody name="salt">
+<KinBody name="yellowsaltcylinder">
   <RotationAxis>1 0 0 90</RotationAxis>
   <Body name = "saltbase" type="static">
     <Mass>
@@ -10,8 +10,8 @@
       <!--com>0</com-->
     </Mass>
     <Geom type="trimesh">
-      <Data>./../mesh/salt/YellowSaltCube_Orig_mod.wrl 0.001</Data>
-      <collision>./../mesh/salt/YellowSaltCube_Orig_mod.wrl 0.001</collision>
+      <Data>./../../../../cob_pick_place_action/files/meshes/yellowsaltcube.stl 0.001</Data>
+      <collision>./../../../../cob_pick_place_action/files/meshes/yellowsaltcube.stl 0.001</collision>
       <transparency>0.0</transparency>
     </Geom>      
   </Body>
