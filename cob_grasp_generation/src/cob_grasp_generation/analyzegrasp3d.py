@@ -65,4 +65,3 @@ def or_to_csv(validgrasps, time):
 	
 	f_out.close()
 	print "Finished."
-

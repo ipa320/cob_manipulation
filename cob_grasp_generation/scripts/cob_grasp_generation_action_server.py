@@ -30,8 +30,9 @@ class CobGraspGenerationActionServer(object):
     
     # Do Witalij's fancy grasp_generation
     rospy.sleep(5.0)
-    or_grasp_generation.generate_grasps(goal.object_name)
-    
+    #or_grasp_generation.generate_grasps(goal.object_name)
+    grasp_list = or_grasp_generation.get_grasps(goal.object_name)
+    print len(grasp_list)
     
     #Fill result
     self._result.success = success
