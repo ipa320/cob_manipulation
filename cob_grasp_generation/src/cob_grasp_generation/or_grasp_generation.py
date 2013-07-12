@@ -136,10 +136,7 @@ def generate_grasps(object_name,replan=True):
 	return grasps_to_file
 	databases.grasping.RaveDestroy()
 
-#
-
-
-#Get the grasps
+#get the grasps
 def get_grasps(object_name):
 	#Begins here to read the grasp .csv-Files
 	path_in = roslib.packages.get_pkg_dir('cob_grasp_generation')+'/common/files/database/'+object_name+'/'+object_name+'.csv'
@@ -201,4 +198,15 @@ def get_grasps(object_name):
 		grasp_list.append(grasp)
 
 	return grasp_list
-	
+
+#check if a database with the object_id exists
+def check_database(object_name):
+	#Begins here to read the grasp .csv-Files
+	path_in = roslib.packages.get_pkg_dir('cob_grasp_generation')+'/common/files/database/'+object_name+'/'+object_name+'.csv'
+
+	#Check if path exists
+	if os.path.exists(path_in):
+		return True
+	else: 
+		return False
+

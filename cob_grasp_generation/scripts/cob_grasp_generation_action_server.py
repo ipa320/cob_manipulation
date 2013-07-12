@@ -25,15 +25,22 @@ class CobGraspGenerationActionServer(object):
     grasp_list = []
     
     # publish info to the console for the user
-    rospy.loginfo('%s: Executing, generating grasps for %s' % (self._action_name, goal.object_name))
+    rospy.loginfo('%s: Trying to get some grasps for object: >> %s <<' % (self._action_name, goal.object_name))
     
     
     # Do Witalij's fancy grasp_generation
     rospy.sleep(5.0)
-    #or_grasp_generation.generate_grasps(goal.object_name)
-    grasp_list = or_grasp_generation.get_grasps(goal.object_name)
-    print len(grasp_list)
-    
+
+    #check if database of object is available
+    if or_grasp_generation.check_database(goal.object_name):
+	#return grasp_list
+	grasp_list = or_grasp_generation.get_grasps(goal.object_name)
+    else:
+	#plan first, then return grasp list
+	rospy.loginfo('Database for object %s does not exist. Now planning Grasps for the object',goal.object_name)
+    	or_grasp_generation.generate_grasps(goal.object_name)
+    	grasp_list = or_grasp_generation.get_grasps(goal.object_name)
+    	
     #Fill result
     self._result.success = success
     self._result.grasp_list = grasp_list
