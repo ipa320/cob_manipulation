@@ -8,7 +8,7 @@ rospy.init_node("tray_fake_pub")
 p = rospy.Publisher('joint_states', JointState)
 
 msg = JointState()
-msg.name = ['tray_joint']
+msg.name = ['tray_1_joint', 'tray_2_joint', 'tray_3_joint']
 msg.position = [0.0 for name in msg.name]
 msg.velocity = [0.0 for name in msg.name]
 

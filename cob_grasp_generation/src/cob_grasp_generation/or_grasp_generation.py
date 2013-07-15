@@ -1,0 +1,212 @@
+"""Generates a database of grasps
+"""
+#other libs
+from openravepy import *
+import numpy, time, analyzegrasp3d, scipy
+import tf, csv, os
+import rospy, roslib
+import operator, random
+
+from manipulation_msgs.msg import * 
+from geometry_msgs.msg import * 
+from sensor_msgs.msg import *
+
+def generate_grasps(object_name,replan=True):
+
+	#env setup
+	#@TODO: replace hardcoded part
+	env=Environment()
+	env.Load('./../common/files/env/target_scene.env.xml')
+
+	#Viewer - Toggle GUI 
+	#env.SetViewer('qtcoin')
+
+	#robot
+	robot = env.GetRobots()[0]
+
+	#choose object for planning
+	target = env.GetKinBody(object_name)
+
+	manip = robot.GetManipulator('arm')
+	gmodel = databases.grasping.GraspingModel(robot,target)
+
+	#TCP - transformed to hand wrist
+	tool_trafo = manip.GetLocalToolTransform()
+	tool_trafo[2,3] = 0.0
+	manip.SetLocalToolTransform(tool_trafo)
+
+	#fricion
+	options.friction = 0.6 #coefficient of static friction in graspit: rubber-<xobject> = 1
+
+	#preshape
+	preshape1 = '0.755 -1.57079633 0.0 -1.57079633 0.0 -1.57079633 0.0' # Cycle Open
+	preshape2 = '0.0 -1.57079633 0.0 -1.57079633 0.0 -1.57079633 0.0' # Standard Preshape
+	options.preshapes = numpy.array([preshape1,preshape2])
+
+	now_plan = time.time()
+
+	#if not gmodel.load():
+	if replan == True:
+		gmodel.autogenerate(options)
+
+	#time diff
+	end_plan = time.time()
+	time_difference = int(end_plan - now_plan)
+
+	###GRASP-PLANNING
+	#Return all validgrasps
+	#@OPTIONAL: We can return a desired number of grasps
+	validgrasps, validindicees = gmodel.computeValidGrasps(checkik=False,checkcollision=True)
+
+	##Write all validgrasps to file
+	grasps_to_file = []
+	meta_info = []
+	meta_info.append(object_name)
+	meta_info.append(time)
+	grasps_to_file.append(meta_info)
+
+	#@todo: for debug, remove
+	for graspnmb in range(0,len(validgrasps)):
+
+		#for segmentation fault purposes
+		auto_fill_rest = False
+
+		grasp_to_file = []
+		grasp_to_file.append(graspnmb) #to file grasp number for id
+		grasp_num = int(graspnmb)
+
+		#calculate metric and final joint configuration	
+		try:
+			print "Grasp: ",graspnmb
+			contacts,finalconfig,mindist,volume = gmodel.runGrasp(grasp=validgrasps[grasp_num], forceclosure=True)
+		except:
+			print "something went wrong"
+			mindist = 0.0
+			volume = 0.0
+	
+		#show grasp before calculating the correct transformation
+		direction = gmodel.getGlobalApproachDir(validgrasps[graspnmb])
+		#gmodel.showgrasp(validgrasps[graspnmb],collisionfree=True)
+		transf = []
+
+		with gmodel.GripperVisibility(manip):
+			with env:
+				gmodel.setPreshape(validgrasps[graspnmb])
+				Tgrasp = gmodel.getGlobalGraspTransform(validgrasps[graspnmb],collisionfree=True)
+				Tdelta = numpy.dot(Tgrasp,numpy.linalg.inv(manip.GetEndEffectorTransform()))
+				DOFValues = robot.GetActiveDOFValues()
+				DOFValues[manip.GetGripperIndices()] = finalconfig[0][manip.GetGripperIndices()]
+				robot.SetDOFValues(DOFValues)
+				robot.SetTransform(numpy.dot(Tdelta,robot.GetTransform()))
+				env.UpdatePublishedBodies()
+		with target:
+			target.SetTransform(numpy.eye(4))
+			with gmodel.GripperVisibility(manip):
+				with env:
+					gmodel.setPreshape(validgrasps[graspnmb])
+					Tgrasp = gmodel.getGlobalGraspTransform(validgrasps[graspnmb],collisionfree=True)
+					Tdelta = numpy.dot(Tgrasp,numpy.linalg.inv(manip.GetEndEffectorTransform()))
+					for link in manip.GetChildLinks():
+						link.SetTransform(numpy.dot(Tdelta,link.GetTransform()))
+					env.UpdatePublishedBodies()
+					# wait while environment is locked?
+					transf = manip.GetEndEffectorTransform()
+
+		grasp_to_file.append(finalconfig[0][manip.GetGripperIndices()])
+		grasp_to_file.append(transf)
+		#gmodel.showgrasp(validgrasps[graspnmb],collisionfree=True)
+		grasp_to_file.append(mindist)
+		grasp_to_file.append(volume)
+
+		forceclosure = validgrasps[graspnmb][gmodel.graspindices['forceclosure']]
+		grasp_to_file.append(forceclosure) 
+		grasp_to_file.append(validindicees[graspnmb])
+		grasp_to_file.append(direction)
+		#print "GlobApproachDir: ",gmodel.getGlobalApproachDir(validgrasps[i])
+		#SDH Joint Values - Beginnend mit Daumen(1) und die Zwei Finger GUZS nummeriert(2)(3)
+		#[Fingerwinkel(2), Fingerknick(2), Fingerrotation(2)(3), Fingerwinkel(3), Fingerknick(3), Fingerwinkel(1), Fingerknick(1)]
+		grasps_to_file.append(grasp_to_file)
+
+		gmodel.getGlobalApproachDir(validgrasps[graspnmb])
+	
+	#Create a csv file if needed
+	analyzegrasp3d.or_to_csv(grasps_to_file, time_difference) 
+
+	print('Finished.')
+	return grasps_to_file
+	databases.grasping.RaveDestroy()
+
+#get the grasps
+def get_grasps(object_name):
+	#Begins here to read the grasp .csv-Files
+	path_in = roslib.packages.get_pkg_dir('cob_grasp_generation')+'/common/files/database/'+object_name+'/'+object_name+'.csv'
+
+	#Check if path exists
+	try:
+		with open(path_in) as f: pass
+	except IOError as e:
+		rospy.logerr("The path or file does not exist: "+path_in)
+
+	#If exists open with dictreader
+	reader = csv.DictReader( open(path_in, "rb"), delimiter=',')
+
+	#sort the list with eps_l1 ascending
+	sorted_list = sorted(reader, key=operator.itemgetter('eps_l1'), reverse=True)
+
+	#grasp output
+	grasp_list = []
+	for i in range(0,len(sorted_list)):
+		#grasp posture
+		joint_config = JointState()
+		joint_config.header.stamp = rospy.Time.now()
+		joint_config.header.frame_id = "object_link"
+		joint_config.name = ['sdh_knuckle_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint']
+		joint_config.position = [float(sorted_list[i]['sdh_knuckle_joint']), float(sorted_list[i]['sdh_finger_12_joint']), float(sorted_list[i]['sdh_finger_13_joint']), float(sorted_list[i]['sdh_finger_22_joint']), float(sorted_list[i]['sdh_finger_23_joint']), float(sorted_list[i]['sdh_thumb_2_joint']), float(sorted_list[i]['sdh_thumb_3_joint'])]
+		
+		#pregrasp posture
+		pre_joint_config = JointState()
+		pre_joint_config.header.stamp = rospy.Time.now()
+		pre_joint_config.header.frame_id = "object_link"
+		pre_joint_config.name = joint_config.name
+		if sorted_list[i]['sdh_knuckle_joint'] > 0.1:
+			pre_joint_config.position = [0.755, -1.57079633, 0.0, -1.57079633, 0.0, -1.57079633, 0.0]
+		else:
+			pre_joint_config.position = [0.0, -1.57079633, 0.0, -1.57079633, 0.0, -1.57079633, 0.0]
+
+		#grasp pose
+		grasp_pose = PoseStamped()
+		grasp_pose.header.stamp = rospy.Time.now()
+		grasp_pose.header.frame_id = "object_link"
+		grasp_pose.pose.position.x = float(sorted_list[i]['pos-x'])/1000 #mm to m
+		grasp_pose.pose.position.y = float(sorted_list[i]['pos-y'])/1000 #mm to m
+		grasp_pose.pose.position.z = float(sorted_list[i]['pos-z'])/1000 #mm to m
+		grasp_pose.pose.orientation.x = float(sorted_list[i]['qx'])
+		grasp_pose.pose.orientation.y = float(sorted_list[i]['qy'])
+		grasp_pose.pose.orientation.z = float(sorted_list[i]['qz'])
+		grasp_pose.pose.orientation.w =	float(sorted_list[i]['qw'])
+   
+		#grasp
+		grasp = Grasp()
+		grasp.id = sorted_list[i]['id']
+		grasp.pre_grasp_posture = pre_joint_config
+		grasp.grasp_posture = joint_config
+		grasp.grasp_pose = grasp_pose
+		grasp.grasp_quality = float(sorted_list[i]['eps_l1'])
+		grasp.max_contact_force = 0
+
+		#add to grasp_list
+		grasp_list.append(grasp)
+
+	return grasp_list
+
+#check if a database with the object_id exists
+def check_database(object_name):
+	#Begins here to read the grasp .csv-Files
+	path_in = roslib.packages.get_pkg_dir('cob_grasp_generation')+'/common/files/database/'+object_name+'/'+object_name+'.csv'
+
+	#Check if path exists
+	if os.path.exists(path_in):
+		return True
+	else: 
+		return False
+

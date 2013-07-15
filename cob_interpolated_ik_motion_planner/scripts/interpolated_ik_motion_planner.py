@@ -111,34 +111,34 @@ class InterpolatedIKService:
         #get parameters from the parameter server
 
         #the number of steps to use when interpolating (including start and finish)
-        self.num_steps = rospy.get_param(self.node_name+'/num_steps', 6)
+        self.num_steps = rospy.get_param('/'+self.node_name+'/num_steps', 6)
 
         #the max angle distance (in any joint) before we declare that the path is inconsistent
-        self.consistent_angle = rospy.get_param(self.node_name+'/consistent_angle', math.pi/9) 
+        self.consistent_angle = rospy.get_param('/'+self.node_name+'/consistent_angle', math.pi/9) 
 
         #how many steps between collision checks (0 or 1 is check every step; 2 is every other, etc.)
-        self.collision_check_resolution = rospy.get_param(self.node_name+'/collision_check_resolution', 1)
+        self.collision_check_resolution = rospy.get_param('/'+self.node_name+'/collision_check_resolution', 1)
 
         #how many steps in the plan can be invalid before aborting
-        self.steps_before_abort = rospy.get_param(self.node_name+'/steps_before_abort', 0)
+        self.steps_before_abort = rospy.get_param('/'+self.node_name+'/steps_before_abort', 0)
 
         #the max translation (m) to move the wrist between waypoints (only used if num_steps is 0)
-        self.pos_spacing = rospy.get_param(self.node_name+'/pos_spacing', 0.01)
+        self.pos_spacing = rospy.get_param('/'+self.node_name+'/pos_spacing', 0.01)
 
         #the max rotation (rad) to move the wrist between waypoints (only used if num_steps is 0)
-        self.rot_spacing = rospy.get_param(self.node_name+'/rot_spacing', .1)
+        self.rot_spacing = rospy.get_param('/'+self.node_name+'/rot_spacing', .1)
 
         #whether to check for collisions or not
-        self.collision_aware = rospy.get_param(self.node_name+'/collision_aware', 1)
+        self.collision_aware = rospy.get_param('/'+self.node_name+'/collision_aware', 1)
 
         #if 1, starts the IK calculation from the end and works backwards (if 0, starts from the start)
-        self.start_from_end = rospy.get_param(self.node_name+'/start_from_end', 0)
+        self.start_from_end = rospy.get_param('/'+self.node_name+'/start_from_end', 0)
 
         #max joint velocities to use when calculating times and vels for the trajectory
-        self.max_joint_vels = rospy.get_param(self.node_name+'/max_joint_vels', [.1]*7)
+        self.max_joint_vels = rospy.get_param('/'+self.node_name+'/max_joint_vels', [.28]*7)
 
         #max joint accelerations to use when calculating times and vels for the trajectory
-        self.max_joint_accs = rospy.get_param(self.node_name+'/max_joint_vels', [.25]*7)
+        self.max_joint_accs = rospy.get_param('/'+self.node_name+'/max_joint_accs', [.4]*7)
 
         #initialize an IKUtilities class object
         self.ik_utils = ik_utilities.IKUtilities(which_arm)
