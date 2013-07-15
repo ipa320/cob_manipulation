@@ -74,6 +74,7 @@ void CobPickPlaceActionServer::initialize()
 		ROS_ERROR("Failed to initialize GraspTables");
 		
 	//setupEnvironment();
+	resetEnvironment();
 }
 
 void CobPickPlaceActionServer::run()
@@ -393,14 +394,18 @@ void CobPickPlaceActionServer::fillAllGrasps(unsigned int objectClassId, geometr
 		
 		// O_from_SDH
 		std::vector<double> current_grasp_pose = current_grasp->GetTCPGraspPose();
-		tf::Transform transform_grasp_O_from_SDH = tf::Transform(tf::createQuaternionFromRPY(current_grasp_pose[3], current_grasp_pose[4], current_grasp_pose[5] ),0.001*tf::Vector3(current_grasp_pose[0],current_grasp_pose[1],current_grasp_pose[2]));
+		tf::Transform transform_grasp_O_from_SDH = tf::Transform(
+			tf::createQuaternionFromRPY(current_grasp_pose[3], current_grasp_pose[4], current_grasp_pose[5] ),
+			0.001*tf::Vector3(current_grasp_pose[0],current_grasp_pose[1],current_grasp_pose[2]));
 		//debug
 		geometry_msgs::Transform msg_grasp_O_from_SDH;
 		tf::transformTFToMsg(transform_grasp_O_from_SDH, msg_grasp_O_from_SDH);
 		ROS_INFO_STREAM("msg_grasp_O_from_SDH:" << msg_grasp_O_from_SDH);
 		
 		// HEADER_from_O (given)
-		tf::Transform transform_HEADER_from_O = tf::Transform(tf::Quaternion(object_pose.pose.orientation.x, object_pose.pose.orientation.y, object_pose.pose.orientation.z, object_pose.pose.orientation.w),tf::Vector3(object_pose.pose.position.x, object_pose.pose.position.y, object_pose.pose.position.z));
+		tf::Transform transform_HEADER_from_O = tf::Transform(
+			tf::Quaternion(object_pose.pose.orientation.x, object_pose.pose.orientation.y, object_pose.pose.orientation.z, object_pose.pose.orientation.w),
+			tf::Vector3(object_pose.pose.position.x, object_pose.pose.position.y, object_pose.pose.position.z));
 		//debug
 		geometry_msgs::Transform msg_HEADER_from_O;
 		tf::transformTFToMsg(transform_HEADER_from_O, msg_HEADER_from_O);
@@ -458,10 +463,13 @@ void CobPickPlaceActionServer::fillAllGrasps(unsigned int objectClassId, geometr
 		g.approach = calculateApproachDirection(msg_pose_grasp_FOOTPRINT_from_ARM7.pose, msg_pose_pre_FOOTPRINT_from_ARM7.pose);
 		
 		//~~~ RetreatDirection ~~~
-		g.retreat.direction.header.frame_id = "/base_footprint";
-		g.retreat.direction.vector.z = 1.0;
-		g.retreat.min_distance = 0.1;
-		g.retreat.desired_distance = 0.25;
+		g.retreat.direction.header.frame_id = g.approach.direction.header.frame_id;
+		g.retreat.direction.vector.x = -g.approach.direction.vector.x;
+		g.retreat.direction.vector.y = -g.approach.direction.vector.y;
+		g.retreat.direction.vector.z = -g.approach.direction.vector.z;
+		
+		g.retreat.min_distance = g.approach.min_distance;
+		g.retreat.desired_distance = g.approach.desired_distance;
 		
 		grasps.push_back(g);
 		current_grasp = m_GraspTable->GetNextGrasp(objectClassId);
@@ -546,7 +554,9 @@ void CobPickPlaceActionServer::fillSingleGrasp(unsigned int objectClassId, unsig
 		//~~~ ApproachDirection ~~~
 		// O_from_SDH
 		std::vector<double> current_pre_grasp_pose = current_grasp->GetTCPPreGraspPose();
-		tf::Transform transform_pre_O_from_SDH = tf::Transform(tf::createQuaternionFromRPY(current_pre_grasp_pose[3], current_pre_grasp_pose[4], current_pre_grasp_pose[5] ),0.001*tf::Vector3(current_pre_grasp_pose[0],current_pre_grasp_pose[1],current_pre_grasp_pose[2]));
+		tf::Transform transform_pre_O_from_SDH = tf::Transform(
+			tf::createQuaternionFromRPY(current_pre_grasp_pose[3], current_pre_grasp_pose[4], current_pre_grasp_pose[5] ),
+			0.001*tf::Vector3(current_pre_grasp_pose[0],current_pre_grasp_pose[1],current_pre_grasp_pose[2]));
 		//debug
 		geometry_msgs::Transform msg_pre_O_from_SDH;
 		tf::transformTFToMsg(transform_pre_O_from_SDH, msg_pre_O_from_SDH);
@@ -574,10 +584,13 @@ void CobPickPlaceActionServer::fillSingleGrasp(unsigned int objectClassId, unsig
 		g.approach = calculateApproachDirection(msg_pose_grasp_FOOTPRINT_from_ARM7.pose, msg_pose_pre_FOOTPRINT_from_ARM7.pose);
 		
 		//~~~ RetreatDirection ~~~
-		g.retreat.direction.header.frame_id = "base_footprint";
-		g.retreat.direction.vector.z = 1.0;
-		g.retreat.min_distance = 0.1;
-		g.retreat.desired_distance = 0.25;
+		g.retreat.direction.header.frame_id = g.approach.direction.header.frame_id;
+		g.retreat.direction.vector.x = -g.approach.direction.vector.x;
+		g.retreat.direction.vector.y = -g.approach.direction.vector.y;
+		g.retreat.direction.vector.z = -g.approach.direction.vector.z;
+		
+		g.retreat.min_distance = g.approach.min_distance;
+		g.retreat.desired_distance = g.approach.desired_distance;
 		
 		grasps.push_back(g);
 	}
@@ -671,15 +684,18 @@ manipulation_msgs::GripperTranslation CobPickPlaceActionServer::calculateApproac
 	//~ dis=sqrt((x1-x0)^2+(y1-y0)^2+(z1-z0)^2)
 	//~ direction.x= (x1-x0)/dis and likewise
 	
-	double distance = sqrt(pow((msg_pose_grasp_FOOTPRINT_from_ARM7.position.x-msg_pose_pre_FOOTPRINT_from_ARM7.position.x),2)+pow((msg_pose_grasp_FOOTPRINT_from_ARM7.position.y-msg_pose_pre_FOOTPRINT_from_ARM7.position.y),2)+pow((msg_pose_grasp_FOOTPRINT_from_ARM7.position.z-msg_pose_pre_FOOTPRINT_from_ARM7.position.z),2));
+	double distance = sqrt(
+		pow((msg_pose_grasp_FOOTPRINT_from_ARM7.position.x-msg_pose_pre_FOOTPRINT_from_ARM7.position.x),2) +
+		pow((msg_pose_grasp_FOOTPRINT_from_ARM7.position.y-msg_pose_pre_FOOTPRINT_from_ARM7.position.y),2) +
+		pow((msg_pose_grasp_FOOTPRINT_from_ARM7.position.z-msg_pose_pre_FOOTPRINT_from_ARM7.position.z),2));
 	
 	approach.direction.vector.x = (msg_pose_grasp_FOOTPRINT_from_ARM7.position.x-msg_pose_pre_FOOTPRINT_from_ARM7.position.x)/distance;
 	approach.direction.vector.y = (msg_pose_grasp_FOOTPRINT_from_ARM7.position.y-msg_pose_pre_FOOTPRINT_from_ARM7.position.y)/distance;
 	approach.direction.vector.z = (msg_pose_grasp_FOOTPRINT_from_ARM7.position.z-msg_pose_pre_FOOTPRINT_from_ARM7.position.z)/distance;
 	
-	approach.min_distance = distance;
+	approach.min_distance = distance-0.01;
 	ROS_DEBUG("Distance between pre-grasp and grasp: %f", distance);
-	approach.desired_distance = approach.min_distance + 0.2;
+	approach.desired_distance = distance;
 	
 	return approach;
 }
