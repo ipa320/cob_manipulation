@@ -589,13 +589,13 @@ sensor_msgs::JointState CobPickPlaceActionServer::MapHandConfiguration(sensor_ms
 
 tf::Transform CobPickPlaceActionServer::transformPose(tf::Transform transform_O_from_SDH, tf::Transform transform_HEADER_from_O, std::string object_frame_id)
 {
-	tf::TransformListener listener;
-	
 	// SDH_from_ARM7
 	tf::StampedTransform transform_SDH_from_ARM7;
 	try
 	{
-		listener.lookupTransform("/sdh_palm_link", "/arm_7_link", ros::Time(), transform_SDH_from_ARM7);
+		ros::Time now = ros::Time::now();
+		tf_listener_.waitForTransform("/sdh_palm_link", "/arm_7_link", now, ros::Duration(10.0));
+		tf_listener_.lookupTransform("/sdh_palm_link", "/arm_7_link", now, transform_SDH_from_ARM7);
 	}
 	catch (tf::TransformException ex)
 	{
@@ -613,7 +613,9 @@ tf::Transform CobPickPlaceActionServer::transformPose(tf::Transform transform_O_
 	tf::StampedTransform transform_FOOTPRINT_from_HEADER;
 	try
 	{
-		listener.lookupTransform("/base_footprint", object_frame_id, ros::Time(), transform_FOOTPRINT_from_HEADER);
+		ros::Time now = ros::Time::now();
+		tf_listener_.waitForTransform("/base_footprint", object_frame_id, now, ros::Duration(10.0));
+		tf_listener_.lookupTransform("/base_footprint", object_frame_id, now, transform_FOOTPRINT_from_HEADER);
 	}
 	catch (tf::TransformException ex)
 	{
