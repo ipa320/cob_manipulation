@@ -21,6 +21,7 @@
   <depend package="kinematics_msgs"/>
   <depend package="joint_trajectory_action"/>
   <depend package="cob_moveit_interface"/>
+  <depend package="cob_grasp_generation"/>
 
 </package>
 

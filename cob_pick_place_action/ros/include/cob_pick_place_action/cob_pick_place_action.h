@@ -35,6 +35,8 @@
 #include <ros/ros.h>
 #include <ros/package.h>
 #include <actionlib/server/simple_action_server.h>
+#include <actionlib/client/simple_action_client.h>
+#include <actionlib/client/terminal_state.h>
 
 #include <tf/tf.h>
 #include <tf/transform_datatypes.h>
@@ -47,6 +49,7 @@
 #include <cob_pick_place_action/CobCollisionObjectAction.h>
 #include <cob_pick_place_action/CobPickAction.h>
 #include <cob_pick_place_action/CobPlaceAction.h>
+#include <cob_grasp_generation/GenerateGraspsAction.h>
 #include <GraspTable.h>
 
 
@@ -62,6 +65,8 @@ private:
 	boost::scoped_ptr<actionlib::SimpleActionServer<cob_pick_place_action::CobCollisionObjectAction> > as_collision_object;
 	boost::scoped_ptr<actionlib::SimpleActionServer<cob_pick_place_action::CobPickAction> > as_pick;
 	boost::scoped_ptr<actionlib::SimpleActionServer<cob_pick_place_action::CobPlaceAction> > as_place;
+	
+	boost::scoped_ptr<actionlib::SimpleActionClient<cob_grasp_generation::GenerateGraspsAction> > ac_grasps_or;
 	
 	moveit::planning_interface::MoveGroup group;
 	
@@ -88,8 +93,11 @@ public:
 	void insertObject(std::string object_name, geometry_msgs::PoseStamped object_pose);
 	void detachObject(std::string object_name);
 	
-	void fillAllGrasps(unsigned int objectClassId, geometry_msgs::PoseStamped object_pose, std::vector<manipulation_msgs::Grasp> &grasps);
-	void fillSingleGrasp(unsigned int objectClassId, unsigned int grasp_id, geometry_msgs::PoseStamped object_pose, std::vector<manipulation_msgs::Grasp> &grasps);
+	void fillAllGraspsKIT(unsigned int objectClassId, geometry_msgs::PoseStamped object_pose, std::vector<manipulation_msgs::Grasp> &grasps);
+	void fillSingleGraspKIT(unsigned int objectClassId, unsigned int grasp_id, geometry_msgs::PoseStamped object_pose, std::vector<manipulation_msgs::Grasp> &grasps);
+	void convertGraspKIT(Grasp* current_grasp, geometry_msgs::PoseStamped object_pose, std::vector<manipulation_msgs::Grasp> &grasps);
+	
+	void fillGraspsOR(std::string object_name, geometry_msgs::PoseStamped object_pose, std::vector<manipulation_msgs::Grasp> &grasps);
 	
 	sensor_msgs::JointState MapHandConfiguration(sensor_msgs::JointState table_config);
 	tf::Transform transformPose(tf::Transform transform_O_from_SDH, tf::Transform transform_HEADER_from_OBJECT, std::string object_frame_id);

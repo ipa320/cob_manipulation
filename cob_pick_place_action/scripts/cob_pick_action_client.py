@@ -19,7 +19,7 @@ def setup_environment():
 	### Add table
 	pose = PoseStamped()
 	pose.header.frame_id = "base_footprint"
-	pose.header.stamp = rospy.Time.now()	
+	pose.header.stamp = rospy.Time.now()
 	pose.pose.position.x = -0.9
 	pose.pose.position.y = 0
 	pose.pose.position.z = 0.39
@@ -29,7 +29,7 @@ def setup_environment():
 	pose.pose.orientation.w = 1
 	psi.add_box("support_surface", pose, size=(0.5, 1.5, 0.78))
 	
-	rospy.sleep(1.0)	
+	rospy.sleep(1.0)
 
 
 def cob_pick_action_client():
@@ -41,7 +41,7 @@ def cob_pick_action_client():
 	# listening for goals.
 	pick_action_client.wait_for_server()
 	
-	#setup_environment()
+	setup_environment()
 	
 	# Creates a goal to send to the action server.
 	goal = cob_pick_place_action.msg.CobPickGoal()
@@ -59,7 +59,8 @@ def cob_pick_action_client():
 	goal.object_pose.pose.orientation.y = 0.0
 	goal.object_pose.pose.orientation.z = 0.0
 	goal.grasp_id = 21
-	#goal.support_surface = "support_surface"
+	goal.grasp_database = "KIT"
+	goal.support_surface = "support_surface"
 
 	
 	# Sends the goal to the action server.
