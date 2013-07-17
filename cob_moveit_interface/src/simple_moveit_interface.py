@@ -84,9 +84,8 @@ def add_ground():
 
 def clear_objects():
     psi = get_planning_scene_interface()
-    #psi.remove_attached_object()
+    psi.remove_attached_object("arm_7_link")
     psi.remove_world_object("")
-    
 
 def attach_mesh_to_link(link, name, path):
     psi = get_planning_scene_interface()
