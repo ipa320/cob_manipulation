@@ -49,10 +49,6 @@ void CobPickPlaceActionServer::initialize()
 	pub_co = nh_.advertise<moveit_msgs::CollisionObject>("collision_object", 10);
 	pub_ao = nh_.advertise<moveit_msgs::AttachedCollisionObject>("attached_collision_object", 10);
 
-	static const std::string COB_COLLISION_OBJECT_NAME = "cob_collision_object_action";
-	as_collision_object.reset(new actionlib::SimpleActionServer<cob_pick_place_action::CobCollisionObjectAction>(nh_, COB_COLLISION_OBJECT_NAME, boost::bind(&CobPickPlaceActionServer::collision_object_goal_cb, this, _1), false));
-	as_collision_object->start();
-
 	static const std::string COB_PICKUP_ACTION_NAME = "cob_pick_action";
 	as_pick.reset(new actionlib::SimpleActionServer<cob_pick_place_action::CobPickAction>(nh_, COB_PICKUP_ACTION_NAME, boost::bind(&CobPickPlaceActionServer::pick_goal_cb, this, _1), false));
 	as_pick->start();
@@ -76,61 +72,15 @@ void CobPickPlaceActionServer::initialize()
 	
 	static const std::string GENERATE_GRASPS_OR_ACTION_NAME = "generate_grasps";
 	ac_grasps_or.reset(new actionlib::SimpleActionClient<cob_grasp_generation::GenerateGraspsAction>(nh_,GENERATE_GRASPS_OR_ACTION_NAME, true));
-	ROS_INFO("Waiting for action server \"%s\" to start...", GENERATE_GRASPS_OR_ACTION_NAME.c_str());
-	ac_grasps_or->waitForServer(); //will wait for infinite time
-	ROS_INFO("Action server \"%s\" started.", GENERATE_GRASPS_OR_ACTION_NAME.c_str());
-	
-	//setupEnvironment();
-	resetEnvironment();
+	//ROS_INFO("Waiting for action server \"%s\" to start...", GENERATE_GRASPS_OR_ACTION_NAME.c_str());
+	//ac_grasps_or->waitForServer(); //will wait for infinite time
+	//ROS_INFO("Action server \"%s\" started.", GENERATE_GRASPS_OR_ACTION_NAME.c_str());
 }
 
 void CobPickPlaceActionServer::run()
 {
 	ROS_INFO("cob_pick_action...spinning");
 	ros::spin();
-}
-
-void CobPickPlaceActionServer::collision_object_goal_cb(const cob_pick_place_action::CobCollisionObjectGoalConstPtr &goal)
-{
-	ROS_INFO("received collision object %s", goal->object.id.c_str());
-	bool success = false;
-	
-
-	pub_co.publish(goal->object);
-	ros::Duration(1.0).sleep();
-
-	// Special handling of keyword 'support_surface'
-	if (goal->object.id == "support_surface" && goal->object.operation != goal->object.REMOVE)
-	{
-		ROS_INFO("Setting support surface");
-		group.setSupportSurfaceName("support_surface");
-	}
-	else if (goal->object.id == "support_surface" && goal->object.operation == goal->object.REMOVE)
-	{
-		ROS_INFO("Removing support surface");
-		group.setSupportSurfaceName("");
-	}
-	
-	// Special handling of keyword 'all'
-	if (goal->object.id == "all" && goal->object.operation == goal->object.REMOVE)
-	{
-		ROS_INFO("Detaching and removing all collision models");
-		resetEnvironment();
-	}
-	
-	// Setting result
-	success = true;
-	cob_pick_place_action::CobCollisionObjectResult result;
-	if(success)
-	{
-		result.success.data=true;
-                as_collision_object->setSucceeded(result);
-	}
-	else
-	{
-		result.success.data=false;
-                as_collision_object->setAborted(result);
-	}
 }
 
 void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPickGoalConstPtr &goal)
@@ -243,7 +193,6 @@ void CobPickPlaceActionServer::place_goal_cb(const cob_pick_place_action::CobPla
 	
 	locations.push_back(place_location);
 
-	//group.setSupportSurfaceName("table");
 	group.setPlanningTime(60.0);	//default is 5.0 s
 	
 	success = group.place(goal->object_name, locations);
@@ -265,32 +214,6 @@ void CobPickPlaceActionServer::place_goal_cb(const cob_pick_place_action::CobPla
 		last_grasp_valid = false;
 		last_object_name.clear();
 	}
-}
-
-
-
-
-void CobPickPlaceActionServer::setupEnvironment()
-{
-	ros::Duration(1.0).sleep();
-}
-
-void CobPickPlaceActionServer::resetEnvironment()
-{
-	ros::Duration(1.0).sleep();
-	
-	ROS_INFO("Detaching all objects");
-	moveit_msgs::AttachedCollisionObject object;
-	//object.object.id = "";
-	object.link_name = "arm_7_link";
-	object.object.operation = object.object.REMOVE;
-	pub_ao.publish(object);
-	
-	ROS_INFO("Removing all objects");
-	moveit_msgs::CollisionObject co;
-	//co.id = object_name;
-	co.operation = co.REMOVE;
-	pub_co.publish(co);
 }
 
 void CobPickPlaceActionServer::insertObject(std::string object_name, geometry_msgs::PoseStamped object_pose)
@@ -343,29 +266,6 @@ void CobPickPlaceActionServer::insertObject(std::string object_name, geometry_ms
 	
 	ros::Duration(1.0).sleep();
 }
-
-void CobPickPlaceActionServer::detachObject(std::string object_name)
-{
-	moveit_msgs::AttachedCollisionObject object;
-	object.object.id = object_name;
-	object.link_name = "arm_7_link";
-	object.object.operation = object.object.REMOVE;
-	pub_ao.publish(object);
-	
-	ros::Duration(1.0).sleep();
-	
-	moveit_msgs::CollisionObject co;
-	
-	// remove object
-	co.id = object_name;
-	co.operation = co.REMOVE;
-	pub_co.publish(co);
-	
-	ros::Duration(1.0).sleep();
-}
-
-
-
 
 
 
@@ -422,7 +322,7 @@ void CobPickPlaceActionServer::convertGraspKIT(Grasp* current_grasp, geometry_ms
 	g.pre_grasp_posture = MapHandConfiguration(pre_grasp_posture);
 	
 	//HandGraspConfig
-	std::vector<double> current_hand_config = current_grasp->GetHandOptimalGraspConfig();
+	std::vector<double> current_hand_config = current_grasp->GetHandGraspConfig();
 	sensor_msgs::JointState grasp_posture;
 	grasp_posture.position.clear();
 	for (unsigned int i=0; i<current_hand_config.size(); i++)
@@ -432,7 +332,6 @@ void CobPickPlaceActionServer::convertGraspKIT(Grasp* current_grasp, geometry_ms
 	g.grasp_posture= MapHandConfiguration(grasp_posture);
 	
 	//~~~ TCPGraspPose ~~~
-	///TODO: VERIFY THIS!!
 	///GOAL: -> Get TCPGraspPose for arm_7_link wrt base_footprint
 	
 	// O_from_SDH
