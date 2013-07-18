@@ -1,0 +1,18 @@
+<KinBody name="hotpot">
+  <RotationAxis>1 0 0 90</RotationAxis>
+  <Body name = "hotpotbase" type="static">
+    <Mass>
+      <!-- specify the total mass-->
+      <!--total>0.2</total-->
+      <!-- specify the 3x3 inertia matrix-->
+      <!--inertia>1.5843 -0.017107 0.0 -0.017107 1.9106  0.0 0.0 0.0 1.7465</inertia-->
+      <!-- specify the center of mass (if using ODE physics engine, should be 0)-->
+      <!--com>0</com-->
+    </Mass>
+    <Geom type="trimesh">
+      <Data>./../../../../cob_pick_place_action/files/meshes/hotpot.stl </Data>
+      <collision>./../../../../cob_pick_place_action/files/meshes/hotpot.stl </collision>
+      <transparency>0.0</transparency>
+    </Geom>      
+  </Body>
+</KinBody>
