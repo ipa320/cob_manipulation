@@ -506,8 +506,11 @@ void CobPickPlaceActionServer::fillGraspsOR(std::string object_name, geometry_ms
 			current_grasp.approach.direction.vector.y = 0.0;
 			current_grasp.approach.direction.vector.z = -1.0;
 	
-			current_grasp.approach.min_distance = 0.1;
-			current_grasp.approach.desired_distance = 0.2;
+			//current_grasp.approach.direction.vector.x = msg_pose_grasp_FOOTPRINT_from_ARM7.pose.position.x+object_pose.pose.position.x;
+			//current_grasp.approach.direction.vector.y = msg_pose_grasp_FOOTPRINT_from_ARM7.pose.position.y+object_pose.pose.position.y;
+			//current_grasp.approach.direction.vector.z = msg_pose_grasp_FOOTPRINT_from_ARM7.pose.position.z+object_pose.pose.position.z;
+			current_grasp.approach.min_distance = 0.28;
+			current_grasp.approach.desired_distance = 0.38;
 			
 			//~~~ RetreatDirection ~~~
 			current_grasp.retreat.direction.header.frame_id = "/base_footprint";
