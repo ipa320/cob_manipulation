@@ -449,10 +449,10 @@ void CobPickPlaceActionServer::fillGraspsOR(std::string object_name, geometry_ms
 		for(unsigned int i=0; i<result_generate_grasps.get()->grasp_list.size(); i++)
 		{
 			manipulation_msgs::Grasp current_grasp;
-			//~~~ HandPreGraspConfig ~~~
-			current_grasp.pre_grasp_posture = result_generate_grasps.get()->grasp_list[i].pre_grasp_posture;
 			//~~~ HandGraspConfig ~~~
 			current_grasp.grasp_posture = result_generate_grasps.get()->grasp_list[i].grasp_posture;
+			//~~~ HandPreGraspConfig ~~~
+			current_grasp.pre_grasp_posture = result_generate_grasps.get()->grasp_list[i].pre_grasp_posture;
 			
 			//~~~ TCPGraspPose ~~~
 			///GOAL: -> Get TCPGraspPose for arm_7_link wrt base_footprint
