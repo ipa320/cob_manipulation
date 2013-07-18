@@ -19,7 +19,7 @@ def generate_grasps(object_name,replan=True):
 	env.Load('./../common/files/env/target_scene.env.xml')
 
 	#Viewer - Toggle GUI 
-	#env.SetViewer('qtcoin')
+	env.SetViewer('qtcoin')
 
 	#robot
 	robot = env.GetRobots()[0]
@@ -36,11 +36,11 @@ def generate_grasps(object_name,replan=True):
 	manip.SetLocalToolTransform(tool_trafo)
 
 	#fricion
-	options.friction = 0.6 #coefficient of static friction in graspit: rubber-<xobject> = 1
+	options.friction = 1.0 #coefficient of static friction in graspit: rubber-<xobject> = 1
 
 	#preshape
-	preshape1 = '0.755 -1.57079633 0.0 -1.57079633 0.0 -1.57079633 0.0' # Cycle Open
-	preshape2 = '0.0 -1.57079633 0.0 -1.57079633 0.0 -1.57079633 0.0' # Standard Preshape
+	preshape1 = '1.047 -0.785 1.047 -0.785 1.047 -0.785 1.047' # Cycle Open
+	preshape2 = '0.0 -0.9854 0.9472 -0.9854 0.9472 -0.9854 0.9472' # Standard Preshape
 	options.preshapes = numpy.array([preshape1,preshape2])
 
 	now_plan = time.time()
@@ -169,9 +169,9 @@ def get_grasps(object_name):
 		#pre_joint_config.header.frame_id = ""
 		pre_joint_config.name = joint_config.name
 		if sorted_list[i]['sdh_knuckle_joint'] > 0.1:
-			pre_joint_config.position = [0.755, -1.57079633, 0.0, -1.57079633, 0.0, -1.57079633, 0.0]
+			pre_joint_config.position = [1.047, -0.785, 1.047, -0.785, 1.047, -0.785, 1.047]
 		else:
-			pre_joint_config.position = [0.0, -1.57079633, 0.0, -1.57079633, 0.0, -1.57079633, 0.0]
+			pre_joint_config.position = [0.0, -0.9854, 0.9472, -0.9854, 0.9472, -0.9854, 0.9472]
 
 		#grasp pose
 		grasp_pose = PoseStamped()

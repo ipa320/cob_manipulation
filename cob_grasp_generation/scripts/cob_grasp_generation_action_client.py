@@ -11,7 +11,7 @@ def generate_grasps_client():
     client = actionlib.SimpleActionClient('generate_grasps', cob_grasp_generation.msg.GenerateGraspsAction)
     client.wait_for_server()
 
-    goal = cob_grasp_generation.msg.GenerateGraspsGoal(object_name="salty")
+    goal = cob_grasp_generation.msg.GenerateGraspsGoal(object_name="hotpot")
 
     # Sends the goal to the action server.
     client.send_goal(goal)
