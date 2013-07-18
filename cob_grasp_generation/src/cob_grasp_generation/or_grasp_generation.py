@@ -159,14 +159,14 @@ def get_grasps(object_name):
 		#grasp posture
 		joint_config = JointState()
 		joint_config.header.stamp = rospy.Time.now()
-		joint_config.header.frame_id = "object_link"
+		#joint_config.header.frame_id = ""
 		joint_config.name = ['sdh_knuckle_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint']
 		joint_config.position = [float(sorted_list[i]['sdh_knuckle_joint']), float(sorted_list[i]['sdh_finger_12_joint']), float(sorted_list[i]['sdh_finger_13_joint']), float(sorted_list[i]['sdh_finger_22_joint']), float(sorted_list[i]['sdh_finger_23_joint']), float(sorted_list[i]['sdh_thumb_2_joint']), float(sorted_list[i]['sdh_thumb_3_joint'])]
 		
 		#pregrasp posture
 		pre_joint_config = JointState()
 		pre_joint_config.header.stamp = rospy.Time.now()
-		pre_joint_config.header.frame_id = "object_link"
+		#pre_joint_config.header.frame_id = ""
 		pre_joint_config.name = joint_config.name
 		if sorted_list[i]['sdh_knuckle_joint'] > 0.1:
 			pre_joint_config.position = [0.755, -1.57079633, 0.0, -1.57079633, 0.0, -1.57079633, 0.0]
@@ -176,10 +176,10 @@ def get_grasps(object_name):
 		#grasp pose
 		grasp_pose = PoseStamped()
 		grasp_pose.header.stamp = rospy.Time.now()
-		grasp_pose.header.frame_id = "object_link"
-		grasp_pose.pose.position.x = float(sorted_list[i]['pos-x'])/1000 #mm to m
-		grasp_pose.pose.position.y = float(sorted_list[i]['pos-y'])/1000 #mm to m
-		grasp_pose.pose.position.z = float(sorted_list[i]['pos-z'])/1000 #mm to m
+		#grasp_pose.header.frame_id = ""
+		grasp_pose.pose.position.x = float(sorted_list[i]['pos-x'])*0.001 #mm to m
+		grasp_pose.pose.position.y = float(sorted_list[i]['pos-y'])*0.001 #mm to m
+		grasp_pose.pose.position.z = float(sorted_list[i]['pos-z'])*0.001 #mm to m
 		grasp_pose.pose.orientation.x = float(sorted_list[i]['qx'])
 		grasp_pose.pose.orientation.y = float(sorted_list[i]['qy'])
 		grasp_pose.pose.orientation.z = float(sorted_list[i]['qz'])

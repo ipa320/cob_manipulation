@@ -127,7 +127,7 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 		ROS_INFO("Setting SupportSurface to %s", goal->support_surface.c_str());
 		group.setSupportSurfaceName(goal->support_surface);
 	}
-	group.setPlanningTime(60.0);	//default is 5.0 s
+	group.setPlanningTime(70.0);	//default is 5.0 s
 	
 	
 	///Call Pick with result
@@ -425,7 +425,7 @@ void CobPickPlaceActionServer::convertGraspKIT(Grasp* current_grasp, geometry_ms
 void CobPickPlaceActionServer::fillGraspsOR(std::string object_name, geometry_msgs::PoseStamped object_pose, std::vector<manipulation_msgs::Grasp> &grasps)
 {
 	bool finished_before_timeout;
-	grasps.clear(); 
+	grasps.clear();
 	
 	cob_grasp_generation::GenerateGraspsGoal goal_generate_grasps;
 	goal_generate_grasps.object_name = object_name;
@@ -433,7 +433,7 @@ void CobPickPlaceActionServer::fillGraspsOR(std::string object_name, geometry_ms
 	ac_grasps_or->sendGoal(goal_generate_grasps);
 	
 	ROS_INFO("Generating grasps...");
-	finished_before_timeout = ac_grasps_or->waitForResult(ros::Duration(60.0));
+	finished_before_timeout = ac_grasps_or->waitForResult(ros::Duration(70.0));
 	actionlib::SimpleClientGoalState state_grasps_or = ac_grasps_or->getState();
 	boost::shared_ptr<const cob_grasp_generation::GenerateGraspsResult> result_generate_grasps = ac_grasps_or->getResult();
 	if (finished_before_timeout)
@@ -445,10 +445,88 @@ void CobPickPlaceActionServer::fillGraspsOR(std::string object_name, geometry_ms
 		{
 			ROS_DEBUG_STREAM("Grasp "<< i << ": " << result_generate_grasps.get()->grasp_list[i]);
 		}
-		grasps = result_generate_grasps.get()->grasp_list;
+		
+		for(unsigned int i=0; i<result_generate_grasps.get()->grasp_list.size(); i++)
+		{
+			manipulation_msgs::Grasp current_grasp;
+			//~~~ HandPreGraspConfig ~~~
+			current_grasp.pre_grasp_posture = result_generate_grasps.get()->grasp_list[i].pre_grasp_posture;
+			//~~~ HandGraspConfig ~~~
+			current_grasp.grasp_posture = result_generate_grasps.get()->grasp_list[i].grasp_posture;
+			
+			//~~~ TCPGraspPose ~~~
+			///GOAL: -> Get TCPGraspPose for arm_7_link wrt base_footprint
+			
+			// O_from_SDH
+			geometry_msgs::Pose current_grasp_pose = result_generate_grasps.get()->grasp_list[i].grasp_pose.pose;
+			tf::Transform transform_grasp_O_from_SDH = tf::Transform(
+				tf::Quaternion(current_grasp_pose.orientation.x, current_grasp_pose.orientation.y, current_grasp_pose.orientation.z, current_grasp_pose.orientation.w),
+				tf::Vector3(current_grasp_pose.position.x, current_grasp_pose.position.y, current_grasp_pose.position.z));
+			
+			//debug
+			geometry_msgs::Transform msg_grasp_O_from_SDH;
+			tf::transformTFToMsg(transform_grasp_O_from_SDH, msg_grasp_O_from_SDH);
+			ROS_INFO_STREAM("msg_grasp_O_from_SDH:" << msg_grasp_O_from_SDH);
+			
+			// HEADER_from_O (given)
+			tf::Transform transform_HEADER_from_O = tf::Transform(
+				tf::Quaternion(object_pose.pose.orientation.x, object_pose.pose.orientation.y, object_pose.pose.orientation.z, object_pose.pose.orientation.w),
+				tf::Vector3(object_pose.pose.position.x, object_pose.pose.position.y, object_pose.pose.position.z));
+			//debug
+			geometry_msgs::Transform msg_HEADER_from_O;
+			tf::transformTFToMsg(transform_HEADER_from_O, msg_HEADER_from_O);
+			ROS_INFO_STREAM("msg_HEADER_from_O:" << msg_HEADER_from_O);
+			
+			// FOOTPRINT_from_ARM7
+			tf::Transform transform_grasp_FOOTPRINT_from_ARM7 = transformPose(transform_grasp_O_from_SDH, transform_HEADER_from_O, object_pose.header.frame_id);
+			//debug
+			geometry_msgs::Transform msg_grasp_FOOTPRINT_from_ARM7;
+			tf::transformTFToMsg(transform_grasp_FOOTPRINT_from_ARM7, msg_grasp_FOOTPRINT_from_ARM7);
+			ROS_INFO_STREAM("msg_grasp_FOOTPRINT_from_ARM7:" << msg_grasp_FOOTPRINT_from_ARM7);
+			
+			// convert to PoseStamped
+			geometry_msgs::Transform msg_transform_grasp_FOOTPRINT_from_ARM7;
+			tf::transformTFToMsg(transform_grasp_FOOTPRINT_from_ARM7, msg_transform_grasp_FOOTPRINT_from_ARM7);
+			geometry_msgs::PoseStamped msg_pose_grasp_FOOTPRINT_from_ARM7;
+			msg_pose_grasp_FOOTPRINT_from_ARM7.header.stamp = ros::Time::now();
+			msg_pose_grasp_FOOTPRINT_from_ARM7.header.frame_id = "/base_footprint";
+			msg_pose_grasp_FOOTPRINT_from_ARM7.pose.position.x = msg_transform_grasp_FOOTPRINT_from_ARM7.translation.x;
+			msg_pose_grasp_FOOTPRINT_from_ARM7.pose.position.y = msg_transform_grasp_FOOTPRINT_from_ARM7.translation.y;
+			msg_pose_grasp_FOOTPRINT_from_ARM7.pose.position.z = msg_transform_grasp_FOOTPRINT_from_ARM7.translation.z;
+			msg_pose_grasp_FOOTPRINT_from_ARM7.pose.orientation = msg_transform_grasp_FOOTPRINT_from_ARM7.rotation;
+			ROS_INFO_STREAM("msg_pose_grasp_FOOTPRINT_from_ARM7:" << msg_pose_grasp_FOOTPRINT_from_ARM7);
+			
+			current_grasp.grasp_pose = msg_pose_grasp_FOOTPRINT_from_ARM7;	
+
+			
+			
+			//~~~ ApproachDirection ~~~
+			current_grasp.approach.direction.header.frame_id = "/base_footprint";
+			current_grasp.approach.direction.vector.x = 0.0;
+			current_grasp.approach.direction.vector.y = 0.0;
+			current_grasp.approach.direction.vector.z = -1.0;
+	
+			//current_grasp.approach.direction.vector.x = msg_pose_grasp_FOOTPRINT_from_ARM7.pose.position.x+object_pose.pose.position.x;
+			//current_grasp.approach.direction.vector.y = msg_pose_grasp_FOOTPRINT_from_ARM7.pose.position.y+object_pose.pose.position.y;
+			//current_grasp.approach.direction.vector.z = msg_pose_grasp_FOOTPRINT_from_ARM7.pose.position.z+object_pose.pose.position.z;
+			current_grasp.approach.min_distance = 0.28;
+			current_grasp.approach.desired_distance = 0.38;
+			
+			//~~~ RetreatDirection ~~~
+			current_grasp.retreat.direction.header.frame_id = "/base_footprint";
+			current_grasp.retreat.direction.vector.x = 0.0;
+			current_grasp.retreat.direction.vector.y = 0.0;
+			current_grasp.retreat.direction.vector.z = 1.0;
+	
+			current_grasp.retreat.min_distance = 0.1;
+			current_grasp.retreat.desired_distance = 0.2;
+			
+			grasps.push_back(current_grasp);
+		}
+		
 	}
 	else
-		ROS_ERROR("Grasps not generated within timout");
+		ROS_ERROR("Grasps not generated within timeout");
 }
 
 

@@ -58,8 +58,9 @@ def cob_pick_action_client():
 	goal.object_pose.pose.orientation.x = 0.0
 	goal.object_pose.pose.orientation.y = 0.0
 	goal.object_pose.pose.orientation.z = 0.0
-	goal.grasp_id = 21
-	goal.grasp_database = "KIT"
+	#goal.grasp_id = 21
+	#goal.grasp_database = "KIT"
+	goal.grasp_database = "OpenRAVE"
 	goal.support_surface = "support_surface"
 
 	
