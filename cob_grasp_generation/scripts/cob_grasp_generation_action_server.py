@@ -26,13 +26,14 @@ class CobGraspGenerationActionServer(object):
     
     # publish info to the console for the user
     rospy.loginfo('%s: Trying to get some grasps for object: >> %s <<' % (self._action_name, goal.object_name))
-    
-    
+      
     # Do Witalij's fancy grasp_generation
-    rospy.sleep(5.0)
-
+    rospy.sleep(2.0)
+    
     #check if database of object is available
     if or_grasp_generation.check_database(goal.object_name):
+		rospy.loginfo('Grasps for object %s exist in the database.', goal.object_name)
+		rospy.loginfo('Returning grasp list for selected object.')
 		#return grasp_list
 		grasp_list = or_grasp_generation.get_grasps(goal.object_name)
     else:
@@ -44,6 +45,11 @@ class CobGraspGenerationActionServer(object):
     #Fill result
     self._result.success = success
     self._result.grasp_list = grasp_list
+    
+    #check if grasp_list is filled and return success
+    if len(grasp_list) > 1:
+		success = True
+    
     #Set action state
     if success:
       rospy.loginfo('%s: Succeeded' % self._action_name)
