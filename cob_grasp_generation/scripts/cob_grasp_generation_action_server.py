@@ -54,5 +54,5 @@ class CobGraspGenerationActionServer(object):
       
 if __name__ == '__main__':
   rospy.init_node('generate_grasps')
-  CobGraspGenerationActionServer(rospy.get_name())
+  CobGraspGenerationActionServer('generate_grasps')
   rospy.spin()
