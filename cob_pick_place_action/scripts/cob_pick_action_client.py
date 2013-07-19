@@ -18,7 +18,7 @@ def setup_environment():
 
 	### Add table
 	pose = PoseStamped()
-	pose.header.frame_id = "base_footprint"
+	pose.header.frame_id = "/base_footprint"
 	pose.header.stamp = rospy.Time.now()
 	pose.pose.position.x = -0.9
 	pose.pose.position.y = 0
@@ -50,7 +50,7 @@ def cob_pick_action_client():
 	#goal.object_id = 50
 	#goal.object_name = "instantsoup"
 	goal.object_pose.header.stamp = rospy.Time.now()
-	goal.object_pose.header.frame_id = "base_footprint"
+	goal.object_pose.header.frame_id = "/base_footprint"
 	goal.object_pose.pose.position.x = -0.7
 	goal.object_pose.pose.position.y =  0.0  
 	goal.object_pose.pose.position.z =  0.815
