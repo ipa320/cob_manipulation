@@ -72,9 +72,9 @@ void CobPickPlaceActionServer::initialize()
 	
 	static const std::string GENERATE_GRASPS_OR_ACTION_NAME = "generate_grasps";
 	ac_grasps_or.reset(new actionlib::SimpleActionClient<cob_grasp_generation::GenerateGraspsAction>(nh_,GENERATE_GRASPS_OR_ACTION_NAME, true));
-	//ROS_INFO("Waiting for action server \"%s\" to start...", GENERATE_GRASPS_OR_ACTION_NAME.c_str());
-	//ac_grasps_or->waitForServer(); //will wait for infinite time
-	//ROS_INFO("Action server \"%s\" started.", GENERATE_GRASPS_OR_ACTION_NAME.c_str());
+	ROS_INFO("Waiting for action server \"%s\" to start...", GENERATE_GRASPS_OR_ACTION_NAME.c_str());
+	ac_grasps_or->waitForServer(); //will wait for infinite time
+	ROS_INFO("Action server \"%s\" started.", GENERATE_GRASPS_OR_ACTION_NAME.c_str());
 }
 
 void CobPickPlaceActionServer::run()
