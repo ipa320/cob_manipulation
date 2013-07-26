@@ -1,0 +1,5 @@
+<launch>
+   <node name="cob_grasp_generation_OR" pkg="cob_grasp_generation" type="cob_grasp_generation_action_server.py" respawn="false" output="screen"/>
+   
+   <node name="cob_pick_place_action" pkg="cob_pick_place_action" type="cob_pick_place_action" respawn="false" output="screen"/>
+</launch>

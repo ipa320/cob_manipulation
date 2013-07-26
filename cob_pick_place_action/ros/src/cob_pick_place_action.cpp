@@ -72,9 +72,9 @@ void CobPickPlaceActionServer::initialize()
 	
 	static const std::string GENERATE_GRASPS_OR_ACTION_NAME = "generate_grasps";
 	ac_grasps_or.reset(new actionlib::SimpleActionClient<cob_grasp_generation::GenerateGraspsAction>(nh_,GENERATE_GRASPS_OR_ACTION_NAME, true));
-	//ROS_INFO("Waiting for action server \"%s\" to start...", GENERATE_GRASPS_OR_ACTION_NAME.c_str());
-	//ac_grasps_or->waitForServer(); //will wait for infinite time
-	//ROS_INFO("Action server \"%s\" started.", GENERATE_GRASPS_OR_ACTION_NAME.c_str());
+	ROS_INFO("Waiting for action server \"%s\" to start...", GENERATE_GRASPS_OR_ACTION_NAME.c_str());
+	ac_grasps_or->waitForServer(); //will wait for infinite time
+	ROS_INFO("Action server \"%s\" started.", GENERATE_GRASPS_OR_ACTION_NAME.c_str());
 }
 
 void CobPickPlaceActionServer::run()
@@ -411,7 +411,7 @@ void CobPickPlaceActionServer::convertGraspKIT(Grasp* current_grasp, geometry_ms
 	g.retreat.direction.header.frame_id = g.approach.direction.header.frame_id;
 	g.retreat.direction.vector.x = -g.approach.direction.vector.x;
 	g.retreat.direction.vector.y = -g.approach.direction.vector.y;
-	g.retreat.direction.vector.z = -g.approach.direction.vector.z;
+	g.retreat.direction.vector.z = -g.approach.direction.vector.z + 0.5; //also lift the object a little bit
 	
 	g.retreat.min_distance = g.approach.min_distance;
 	g.retreat.desired_distance = g.approach.desired_distance;
@@ -614,6 +614,7 @@ tf::Transform CobPickPlaceActionServer::transformPose(tf::Transform transform_O_
 
 manipulation_msgs::GripperTranslation CobPickPlaceActionServer::calculateApproachDirection(geometry_msgs::Pose msg_pose_grasp_FOOTPRINT_from_ARM7, geometry_msgs::Pose msg_pose_pre_FOOTPRINT_from_ARM7)
 {
+	double hand_length = 0.28; //this is the lenght of the sdh ('home' configuration)
 	manipulation_msgs::GripperTranslation approach;
 	approach.direction.header.frame_id = "/base_footprint";
 	//~ dis=sqrt((x1-x0)^2+(y1-y0)^2+(z1-z0)^2)
@@ -624,13 +625,22 @@ manipulation_msgs::GripperTranslation CobPickPlaceActionServer::calculateApproac
 		pow((msg_pose_grasp_FOOTPRINT_from_ARM7.position.y-msg_pose_pre_FOOTPRINT_from_ARM7.position.y),2) +
 		pow((msg_pose_grasp_FOOTPRINT_from_ARM7.position.z-msg_pose_pre_FOOTPRINT_from_ARM7.position.z),2));
 	
+	ROS_DEBUG("Distance between pre-grasp and grasp: %f", distance);
+	
 	approach.direction.vector.x = (msg_pose_grasp_FOOTPRINT_from_ARM7.position.x-msg_pose_pre_FOOTPRINT_from_ARM7.position.x)/distance;
 	approach.direction.vector.y = (msg_pose_grasp_FOOTPRINT_from_ARM7.position.y-msg_pose_pre_FOOTPRINT_from_ARM7.position.y)/distance;
 	approach.direction.vector.z = (msg_pose_grasp_FOOTPRINT_from_ARM7.position.z-msg_pose_pre_FOOTPRINT_from_ARM7.position.z)/distance;
 	
-	approach.min_distance = distance-0.01;
-	ROS_DEBUG("Distance between pre-grasp and grasp: %f", distance);
-	approach.desired_distance = distance;
+	//min_distance means that we want to follow at least this length along the apporach_vector
+	if(distance < hand_length)
+	{
+		approach.min_distance = hand_length;
+	}
+	else
+	{
+		approach.min_distance = distance;
+	}
+	approach.desired_distance = approach.min_distance + 0.2;
 	
 	return approach;
 }
