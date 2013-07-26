@@ -1,12 +1,13 @@
 """Generates a database of grasps
 """
-#other libs
+#libs and modules
 from openravepy import *
 import numpy, time, analyzegrasp3d, scipy
 import tf, csv, os
-import rospy, roslib
 import operator, random
 
+#ROS
+import rospy, roslib
 from manipulation_msgs.msg import * 
 from geometry_msgs.msg import * 
 from sensor_msgs.msg import *
@@ -14,19 +15,19 @@ from sensor_msgs.msg import *
 def generate_grasps(object_name,replan=True):
 
 	#env setup
-	#@TODO: replace hardcoded part
 	env=Environment()
 	env.Load('./../common/files/env/target_scene.env.xml')
 
 	#Viewer - Toggle GUI 
-	env.SetViewer('qtcoin')
+	#env.SetViewer('qtcoin')
+
+	#target object
+	with env:
+		target = env.ReadKinBodyURI('./../../cob_pick_place_action/files/meshes/'+str(object_name)+'.stl')
+		env.Add(target,True)
 
 	#robot
 	robot = env.GetRobots()[0]
-
-	#choose object for planning
-	target = env.GetKinBody(object_name)
-
 	manip = robot.GetManipulator('arm')
 	gmodel = databases.grasping.GraspingModel(robot,target)
 
