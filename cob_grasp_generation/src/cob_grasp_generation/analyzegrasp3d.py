@@ -31,6 +31,13 @@ def or_to_csv(validgrasps, time):
 		#SDH Joint Values - Beginnend mit Daumen(1) und die Zwei Finger GUZS nummeriert(2)(3)
 		#[Fingerwinkel(2)(3), Fingerwinkel(2), Fingerknick(2), Fingerwinkel(3), Fingerknick(3), Fingerwinkel(1), Fingerknick(1)]
 		joint_values = actual_grasp[1]
+
+		#Check Knuckle_joint of SDH for values < 0
+		#Reason: Openrave generates some zero values that are slighlty below zero
+		if joint_values[0] < 0:
+			joint_values[0] = 0
+
+		#assign joint values in the right order 
 		joint_values_sorted = [joint_values[0], joint_values[3], joint_values[4], joint_values[1], joint_values[2], joint_values[5], joint_values[6]]
 		for i in range(0,len(joint_values)):
 			row.append(joint_values_sorted[i])
