@@ -185,11 +185,11 @@ void CobPickPlaceActionServer::place_goal_cb(const cob_pick_place_action::CobPla
 	place_location.approach.direction.header.frame_id = "/base_footprint";
 	place_location.approach.direction.vector.z = -1.0;
 	place_location.approach.min_distance = 0.1;
-	place_location.approach.desired_distance = 0.2;
+	place_location.approach.desired_distance = 0.15;
 	place_location.retreat.direction.header.frame_id = "/base_footprint";
 	place_location.retreat.direction.vector.z = 1.0;
 	place_location.retreat.min_distance = 0.1;
-	place_location.retreat.desired_distance = 0.25;
+	place_location.retreat.desired_distance = 0.15;
 	
 	locations.push_back(place_location);
 
