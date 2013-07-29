@@ -19,7 +19,7 @@ def generate_grasps(object_name,replan=True):
 	env.Load(roslib.packages.get_pkg_dir('cob_grasp_generation')+'/common/files/env/target_scene.env.xml')
 	
 	#Viewer - Toggle GUI 
-	env.SetViewer('qtcoin')
+	#env.SetViewer('qtcoin')
 
 	#target object
 	with env:
@@ -169,10 +169,7 @@ def get_grasps(object_name):
 		pre_joint_config.header.stamp = rospy.Time.now()
 		#pre_joint_config.header.frame_id = ""
 		pre_joint_config.name = joint_config.name
-		if sorted_list[i]['sdh_knuckle_joint'] > 0.1:
-			pre_joint_config.position = [1.047, -0.785, 1.047, -0.785, 1.047, -0.785, 1.047]
-		else:
-			pre_joint_config.position = [0.0, -0.9854, 0.9472, -0.9854, 0.9472, -0.9854, 0.9472]
+		pre_joint_config.position = [0.0, -0.9854, 0.9472, -0.9854, 0.9472, -0.9854, 0.9472]
 
 		#grasp pose
 		grasp_pose = PoseStamped()
