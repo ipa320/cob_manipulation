@@ -221,13 +221,12 @@ def show_grasp(object_name,grasp_id):
 
 	#Viewer - Toggle GUI 
 	env.SetViewer('qtcoin')
-	time.sleep(2)
 
 	#target object
 	with env:
 		target = env.ReadKinBodyURI(roslib.packages.get_pkg_dir('cob_pick_place_action')+'/files/meshes/'+str(object_name)+'.stl')
 		env.Add(target,True)
-	time.sleep(2)
+	#time.sleep(0.5)
 	
 	#robot
 	robot = env.GetRobots()[0]
@@ -239,39 +238,35 @@ def show_grasp(object_name,grasp_id):
 	tool_trafo[2,3] = 0.0
 	manip.SetLocalToolTransform(tool_trafo)
 
-	#show the grasps
+	#Show the grasps
+	#SetDOFValues
+	grasp = sorted_list[int(grasp_id)]
+	print 'Grasp ID: '+str(grasp['id'])
+	print 'Grasp Quality epsilon: '+str(grasp['eps_l1'])
+
 	with gmodel.GripperVisibility(manip):
-		with env:
+		dof_array = [0]*27
+		dof_array[7:13] =[float(grasp['sdh_finger_22_joint']),float(grasp['sdh_finger_23_joint']),float(grasp['sdh_knuckle_joint']),float(grasp['sdh_finger_12_joint']),float(grasp['sdh_finger_13_joint']),float(grasp['sdh_thumb_2_joint']),float(grasp['sdh_thumb_3_joint'])]
+		robot.SetDOFValues(numpy.array(dof_array))			
 
-			#SetDOFValues
-			grasp = sorted_list[int(grasp_id)]
-	
-			dof_array = [0]*27
-			dof_array[7:13] =[float(grasp['sdh_knuckle_joint']),float(grasp['sdh_finger_22_joint']),float(grasp['sdh_finger_23_joint']),float(grasp['sdh_finger_12_joint']),float(grasp['sdh_finger_13_joint']),float(grasp['sdh_thumb_2_joint']),float(grasp['sdh_thumb_3_joint'])]
-			robot.SetDOFValues(numpy.array(dof_array))			
-		
-			#matrix from pose
-			mm_in_m = 0.001
-			pos = [float(grasp['pos-x'])*mm_in_m, float(grasp['pos-y'])*mm_in_m, float(grasp['pos-z'])*mm_in_m]  
-			quat = [float(grasp['qw']), float(grasp['qx']), float(grasp['qy']), float(grasp['qz'])]
-			Trobot = matrixFromPose(quat+pos)
+		#matrix from pose
+		mm_in_m = 0.001
+		pos = [float(grasp['pos-x'])*mm_in_m, float(grasp['pos-y'])*mm_in_m, float(grasp['pos-z'])*mm_in_m]  
+		quat = [float(grasp['qw']), float(grasp['qx']), float(grasp['qy']), float(grasp['qz'])]
+		Tgrasp = matrixFromPose(quat+pos)
 
-			#Tgrasp = gmodel.getGlobalGraspTransform(validgrasps[i],collisionfree=True)
+		#transform robot
+		Tdelta = numpy.dot(Tgrasp,numpy.linalg.inv(manip.GetEndEffectorTransform()))
+		for link in manip.GetChildLinks():
+			link.SetTransform(numpy.dot(Tdelta,link.GetTransform()))
 
-			#Tdelta = numpy.dot(Tgrasp,numpy.linalg.inv(manip.GetEndEffectorTransform()))
+		#publish update of scene
+		time.sleep(1)
+		env.UpdatePublishedBodies()
+			 
+		#wait
+		raw_input('[Enter] to close...')
 
-
-			#publish update of scene
-			raw_input('...')
-			env.UpdatePublishedBodies()
-			
-			#take snapshot
-			#scipy.misc.imsave('grasp_'+str(i)+'.jpg', v.GetCameraImage(800,600,v.GetCameraTransform(),[200,200,320,240]))
-				 
-			#wait
-			raw_input('...')
-	raw_input('...')
-	time.sleep(2)
 
 #check if a database with the object_id exists
 def check_database(object_name):
