@@ -16,14 +16,14 @@ def generate_grasps(object_name,replan=True):
 
 	#env setup
 	env=Environment()
-	env.Load('./../common/files/env/target_scene.env.xml')
-
+	env.Load(roslib.packages.get_pkg_dir('cob_grasp_generation')+'/common/files/env/target_scene.env.xml')
+	
 	#Viewer - Toggle GUI 
 	#env.SetViewer('qtcoin')
 
 	#target object
 	with env:
-		target = env.ReadKinBodyURI('./../../cob_pick_place_action/files/meshes/'+str(object_name)+'.stl')
+		target = env.ReadKinBodyURI(roslib.packages.get_pkg_dir('cob_pick_place_action')+'/files/meshes/'+str(object_name)+'.stl')
 		env.Add(target,True)
 
 	#robot
