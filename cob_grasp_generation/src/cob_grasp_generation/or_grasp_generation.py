@@ -40,9 +40,9 @@ def generate_grasps(object_name,replan=True):
 	options.friction = 1.0 #coefficient of static friction in graspit: rubber-<xobject> = 1
 
 	#preshape
-	preshape1 = '1.047 -0.785 1.047 -0.785 1.047 -0.785 1.047' # Cycle Open
+	#preshape1 = '1.047 -0.785 1.047 -0.785 1.047 -0.785 1.047' # Cycle Open
 	preshape2 = '0.0 -0.9854 0.9472 -0.9854 0.9472 -0.9854 0.9472' # Standard Preshape
-	options.preshapes = numpy.array([preshape1,preshape2])
+	options.preshapes = numpy.array([preshape2])
 
 	now_plan = time.time()
 
