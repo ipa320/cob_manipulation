@@ -1,0 +1,9 @@
+#goal definition
+string object_name
+int32 grasp_id
+---
+#result definition
+bool success
+---
+#feedback
+bool status
