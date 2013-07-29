@@ -153,8 +153,7 @@ def get_grasps(object_name):
 	reader = csv.DictReader( open(path_in, "rb"), delimiter=',')
 
 	#sort the list with eps_l1 ascending
-	groups = groupby(reader, lambda d: d['eps_l1'])
-	sorted_list = sorted_list = sorted(reader, key=lambda d: float(d['eps_l1']), reverse=True)
+	sorted_list = sorted(reader, key=lambda d: float(d['eps_l1']), reverse=True)
 
 	#grasp output
 	grasp_list = []
@@ -218,7 +217,7 @@ def show_grasp(object_name,grasp_id):
 	
 	#env setup
 	env=Environment()
-	env.Load('./../common/files/env/target_scene.env.xml')
+	env.Load(roslib.packages.get_pkg_dir('cob_grasp_generation')+'/common/files/env/target_scene.env.xml')
 
 	#Viewer - Toggle GUI 
 	env.SetViewer('qtcoin')
@@ -226,7 +225,7 @@ def show_grasp(object_name,grasp_id):
 
 	#target object
 	with env:
-		target = env.ReadKinBodyURI('./../../cob_pick_place_action/files/meshes/'+str(object_name)+'.stl')
+		target = env.ReadKinBodyURI(roslib.packages.get_pkg_dir('cob_pick_place_action')+'/files/meshes/'+str(object_name)+'.stl')
 		env.Add(target,True)
 	time.sleep(2)
 	
