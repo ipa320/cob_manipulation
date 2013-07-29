@@ -2,6 +2,7 @@
 """
 #libs and modules
 from openravepy import *
+from itertools import groupby
 import numpy, time, analyzegrasp3d, scipy
 import tf, csv, os
 import operator, random
@@ -152,7 +153,8 @@ def get_grasps(object_name):
 	reader = csv.DictReader( open(path_in, "rb"), delimiter=',')
 
 	#sort the list with eps_l1 ascending
-	sorted_list = sorted(reader, key=operator.itemgetter('eps_l1'), reverse=True)
+	groups = groupby(reader, lambda d: d['eps_l1'])
+	sorted_list = sorted_list = sorted(reader, key=lambda d: float(d['eps_l1']), reverse=True)
 
 	#grasp output
 	grasp_list = []
@@ -212,20 +214,22 @@ def show_grasp(object_name,grasp_id):
 	reader = csv.DictReader( open(path_in, "rb"), delimiter=',')
 
 	#sort the list with eps_l1 ascending
-	sorted_list = sorted(reader, key=operator.itemgetter('eps_l1'), reverse=True)
-
+	sorted_list = sorted(reader, key=lambda d: float(d['id']), reverse=False)
+	
 	#env setup
 	env=Environment()
 	env.Load('./../common/files/env/target_scene.env.xml')
 
 	#Viewer - Toggle GUI 
 	env.SetViewer('qtcoin')
+	time.sleep(2)
 
 	#target object
 	with env:
 		target = env.ReadKinBodyURI('./../../cob_pick_place_action/files/meshes/'+str(object_name)+'.stl')
 		env.Add(target,True)
-
+	time.sleep(2)
+	
 	#robot
 	robot = env.GetRobots()[0]
 	manip = robot.GetManipulator('arm')
@@ -239,31 +243,36 @@ def show_grasp(object_name,grasp_id):
 	#show the grasps
 	with gmodel.GripperVisibility(manip):
 		with env:
-			for i in range(0,len(validgrasps)):
-				gmodel.setPreshape(validgrasps[i])
 
-				#SetDOFValues
-				fingerpos = sorted_list[int(grasp_id)]
+			#SetDOFValues
+			grasp = sorted_list[int(grasp_id)]
+	
+			dof_array = [0]*27
+			dof_array[7:13] =[float(grasp['sdh_knuckle_joint']),float(grasp['sdh_finger_22_joint']),float(grasp['sdh_finger_23_joint']),float(grasp['sdh_finger_12_joint']),float(grasp['sdh_finger_13_joint']),float(grasp['sdh_thumb_2_joint']),float(grasp['sdh_thumb_3_joint'])]
+			robot.SetDOFValues(numpy.array(dof_array))			
+		
+			#matrix from pose
+			mm_in_m = 0.001
+			pos = [float(grasp['pos-x'])*mm_in_m, float(grasp['pos-y'])*mm_in_m, float(grasp['pos-z'])*mm_in_m]  
+			quat = [float(grasp['qw']), float(grasp['qx']), float(grasp['qy']), float(grasp['qz'])]
+			Trobot = matrixFromPose(quat+pos)
 
-				dof_array = [0]*27
-				dof_array[7:13] =[fingerpos['sdh_knuckle_joint'],fingerpos['sdh_finger_22_joint'],fingerpos['sdh_finger_23_joint'],fingerpos['sdh_finger_12_joint'],fingerpos['sdh_finger_13_joint'],fingerpos['sdh_thumb_2_joint'],fingerpos['sdh_thumb_3_joint']]
-				robot.SetDOFValues(numpy.array(dof_array))			
+			#Tgrasp = gmodel.getGlobalGraspTransform(validgrasps[i],collisionfree=True)
 
-				#Tgrasp = gmodel.getGlobalGraspTransform(validgrasps[i],collisionfree=True)
+			#Tdelta = numpy.dot(Tgrasp,numpy.linalg.inv(manip.GetEndEffectorTransform()))
 
-				#Tdelta = numpy.dot(Tgrasp,numpy.linalg.inv(manip.GetEndEffectorTransform()))
-				#for link in manip.GetChildLinks():
-				#	link.SetTransform(numpy.dot(Tdelta,link.GetTransform()))
 
-				#publish update of scene
-				env.UpdatePublishedBodies()
+			#publish update of scene
+			raw_input('...')
+			env.UpdatePublishedBodies()
 			
-				#take snapshot
-				#scipy.misc.imsave('grasp_'+str(i)+'.jpg', v.GetCameraImage(800,600,v.GetCameraTransform(),[200,200,320,240]))
+			#take snapshot
+			#scipy.misc.imsave('grasp_'+str(i)+'.jpg', v.GetCameraImage(800,600,v.GetCameraTransform(),[200,200,320,240]))
 				 
-				#wait
-				raw_input('...')
-	reader.close()
+			#wait
+			raw_input('...')
+	raw_input('...')
+	time.sleep(2)
 
 #check if a database with the object_id exists
 def check_database(object_name):
