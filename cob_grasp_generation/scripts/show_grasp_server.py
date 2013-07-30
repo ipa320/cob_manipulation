@@ -6,7 +6,8 @@ import rospy
 import actionlib
 import manipulation_msgs.msg
 import cob_grasp_generation.msg
-from cob_grasp_generation import or_grasp_generation 
+
+from cob_grasp_generation import or_grasp_generation
 
 class ShowGraspServer(object):
   # create messages that are used to publish feedback/result
@@ -18,25 +19,28 @@ class ShowGraspServer(object):
     self._as = actionlib.SimpleActionServer(self._action_name, cob_grasp_generation.msg.ShowGraspAction, execute_cb=self.execute_cb)
     self._as.start()
     
+    self.orgg = or_grasp_generation.ORGraspGeneration()
+    
   def execute_cb(self, goal):
     # helper variables
-    r = rospy.Rate(1)
     success = False
-    grasp_list = []
+    
+    self.orgg.setup_environment(goal.object_name, viewer=True)
     
     # publish info to the console for the user
     rospy.loginfo('%s: Opening qtcoin-Viewer to show grasp for object %s with ID %i.' % (self._action_name, goal.object_name, goal.grasp_id))
     
     # Show the Grasps
-    rospy.sleep(2.0)
+    #rospy.sleep(2.0)
     
     #check if database of object is available
     if or_grasp_generation.check_database(goal.object_name):
-	rospy.loginfo('Display Grasp. Object: %s | ID: %i' % (goal.object_name, goal.grasp_id))
-    	or_grasp_generation.show_grasp(goal.object_name, goal.grasp_id)
-	success = True
+      rospy.loginfo('Display Grasp. Object: %s | ID: %i' % (goal.object_name, goal.grasp_id))
+      #or_grasp_generation.show_grasp(goal.object_name, goal.grasp_id)
+      self.orgg.show_grasp(goal.object_name, goal.grasp_id)
+      success = True
     else:
-	rospy.logerr('Database for Object %s does not exist!' % (goal.object_name))	
+      rospy.logerr('Database for Object %s does not exist!' % (goal.object_name))
 
     #Fill result
     self._result.success = success

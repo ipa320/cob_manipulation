@@ -14,7 +14,6 @@ from geometry_msgs.msg import *
 from sensor_msgs.msg import *
 
 def generate_grasps(object_name,replan=True):
-
 	#env setup
 	env=Environment()
 	env.Load(roslib.packages.get_pkg_dir('cob_grasp_generation')+'/common/files/env/target_scene.env.xml')
@@ -198,6 +197,98 @@ def get_grasps(object_name):
 
 	return grasp_list
 
+
+
+class ORGraspGeneration:
+	def __init__(self, viewer=False):
+		self.env = None
+		self.target = None
+		self.sorted_list = None
+	
+	def setup_environment(self, object_name, viewer=False):
+		if self.env == None:
+			self.env = Environment()
+			self.env.Load(roslib.packages.get_pkg_dir('cob_grasp_generation')+'/common/files/env/target_scene.env.xml')
+		
+			if self.env.GetViewer() == None:
+				self.env.SetViewer('qtcoin')
+			else:
+				print "Viewer already loaded"
+				
+			#target object
+			with self.env:
+				self.target = self.env.ReadKinBodyURI(roslib.packages.get_pkg_dir('cob_pick_place_action')+'/files/meshes/'+str(object_name)+'.stl')
+				self.env.Add(self.target,True)
+		else:
+			print "Environment already set up!"
+	
+	def get_grasp_list(self, object_name):
+		if self.sorted_list == None:
+			#Begins here to read the grasp .csv-Files
+			path_in = roslib.packages.get_pkg_dir('cob_grasp_generation')+'/common/files/database/'+object_name+'/'+object_name+'.csv'
+
+			#Check if path exists
+			try:
+				with open(path_in) as f: pass
+			except IOError as e:
+				rospy.logerr("The path or file does not exist: "+path_in)
+
+			#If exists open with dictreader
+			reader = csv.DictReader( open(path_in, "rb"), delimiter=',')
+
+			#sort the list with eps_l1 ascending
+			self.sorted_list = sorted(reader, key=lambda d: float(d['id']), reverse=False)
+		else:
+			print "GraspList already loaded"
+		
+	
+	def show_grasp(self, object_name, grasp_id):
+		self.setup_environment(object_name, viewer=True)
+		
+		self.get_grasp_list(object_name)
+		
+		
+		#robot
+		robot = self.env.GetRobots()[0]
+		manip = robot.GetManipulator('arm')
+		gmodel = databases.grasping.GraspingModel(robot,self.target)
+
+		#TCP - transformed to hand wrist
+		tool_trafo = manip.GetLocalToolTransform()
+		tool_trafo[2,3] = 0.0
+		manip.SetLocalToolTransform(tool_trafo)
+
+		#Show the grasps
+		#SetDOFValues
+		grasp = self.sorted_list[int(grasp_id)]
+		print 'Grasp ID: '+str(grasp['id'])
+		print 'Grasp Quality epsilon: '+str(grasp['eps_l1'])
+		print grasp
+
+		with gmodel.GripperVisibility(manip):
+			dof_array = [0]*27
+			dof_array[7:13] =[float(grasp['sdh_finger_22_joint']),float(grasp['sdh_finger_23_joint']),float(grasp['sdh_knuckle_joint']),float(grasp['sdh_finger_12_joint']),float(grasp['sdh_finger_13_joint']),float(grasp['sdh_thumb_2_joint']),float(grasp['sdh_thumb_3_joint'])]
+			robot.SetDOFValues(numpy.array(dof_array))
+
+			#matrix from pose
+			mm_in_m = 0.001
+			pos = [float(grasp['pos-x'])*mm_in_m, float(grasp['pos-y'])*mm_in_m, float(grasp['pos-z'])*mm_in_m]  
+			quat = [float(grasp['qw']), float(grasp['qx']), float(grasp['qy']), float(grasp['qz'])]
+			Tgrasp = matrixFromPose(quat+pos)
+
+			#transform robot
+			Tdelta = numpy.dot(Tgrasp,numpy.linalg.inv(manip.GetEndEffectorTransform()))
+			for link in manip.GetChildLinks():
+				link.SetTransform(numpy.dot(Tdelta,link.GetTransform()))
+
+			#publish update of scene
+			time.sleep(1)
+			self.env.UpdatePublishedBodies()
+				 
+			#wait
+			#raw_input('[Enter] to close...')
+
+
 #get the grasps
 def show_grasp(object_name,grasp_id):
 	#Begins here to read the grasp .csv-Files
@@ -219,8 +310,12 @@ def show_grasp(object_name,grasp_id):
 	env=Environment()
 	env.Load(roslib.packages.get_pkg_dir('cob_grasp_generation')+'/common/files/env/target_scene.env.xml')
 
+	print env.GetViewer()
 	#Viewer - Toggle GUI 
-	env.SetViewer('qtcoin')
+	if env.GetViewer() == None:
+		env.SetViewer('qtcoin')
+	else:
+		print "Viewer already loaded"
 
 	#target object
 	with env:
@@ -265,7 +360,7 @@ def show_grasp(object_name,grasp_id):
 		env.UpdatePublishedBodies()
 			 
 		#wait
-		raw_input('[Enter] to close...')
+		#raw_input('[Enter] to close...')
 
 
 #check if a database with the object_id exists
