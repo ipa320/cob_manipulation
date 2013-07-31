@@ -19,7 +19,7 @@ def generate_grasps(object_name,replan=True):
 	env.Load(roslib.packages.get_pkg_dir('cob_grasp_generation')+'/common/files/env/target_scene.env.xml')
 	
 	#Viewer - Toggle GUI 
-	#env.SetViewer('qtcoin')
+	env.SetViewer('qtcoin')
 
 	#target object
 	with env:
@@ -53,41 +53,77 @@ def generate_grasps(object_name,replan=True):
 	#~ finestep=None
 	####
 	
-	#fricion
-	options.friction = 1.0 #coefficient of static friction in graspit: rubber-<xobject> = 1
-
-	#preshape
-	#preshape1 = '1.047 -0.785 1.047 -0.785 1.047 -0.785 1.047' # spheric_open
-	preshape2 = '0.0 -0.9854 0.9472 -0.9854 0.9472 -0.9854 0.9472' # cylindric_open
-	options.preshapes = numpy.array([preshape2])
-
-	#if not gmodel.load():
+	
+	options = configure_grasp_generation()
+	
+	
+	
+	
+	now_plan = time.time()
+	
+	### Do actual GraspGeneration
 	if replan == True:
 		gmodel.autogenerate(options)
-
-	###GRASP-PLANNING
-	#Return all validgrasps
-	#@OPTIONAL: We can return a desired number of grasps
-	#computeValidGrasps(startindex=0, checkcollision=True, checkik=True, checkgrasper=True, backupdist=0.0, returnnum=inf)
-	validgrasps, validindicees = gmodel.computeValidGrasps(checkik=False,checkcollision=True)
-
+	
+	#time diff
+	end_plan = time.time()
+	time_difference = int(end_plan - now_plan)
+	print "GraspGeneration took: ", time_difference
+	
+	
+	
+	
+	#~ ### GetValidGrasps now
+	#~ #Return all validgrasps
+	#~ #@OPTIONAL: We can return a desired number of grasps
+	#~ #computeValidGrasps(startindex=0, checkcollision=True, checkik=True, checkgrasper=True, backupdist=0.0, returnnum=inf)
+	#~ validgrasps, validindicees = gmodel.computeValidGrasps(checkcollision=True, checkik=False)
+	#~ print "TotalNumValidGrasps: ",len(validgrasps)
+	
+	
+	
+	backupdist_array = [0.025, 0.05, 0.075, 0.1]
+	num_grasps=numpy.inf
+	#num_grasps = 20
+	
+	validgrasps = []
+	validindicees = []
+	
+	
+	for bd in backupdist_array:
+		###GRASP-PLANNING
+		#Return all validgrasps
+		#@OPTIONAL: We can return a desired number of grasps
+		#computeValidGrasps(startindex=0, checkcollision=True, checkik=True, checkgrasper=True, backupdist=0.0, returnnum=inf)
+		validgrasps_bd, validindicees_bd = gmodel.computeValidGrasps(checkcollision=True, checkik=False, backupdist=bd, returnnum=num_grasps)
+		
+		print "Backupdist: ",bd
+		print "NumValidGrasps: ",len(validgrasps_bd)
+		
+		validgrasps.extend(validgrasps_bd)
+		validindicees.extend(validindicees_bd)
+	
+	print "TotalNumValidGrasps: ",len(validgrasps)
+	
+	
+	
 	##Write all validgrasps to file
 	grasps_to_file = []
 	meta_info = []
 	meta_info.append(object_name)
 	meta_info.append(time)
 	grasps_to_file.append(meta_info)
-
+	
 	#@todo: for debug, remove
 	for graspnmb in range(0,len(validgrasps)):
-
+	
 		#for segmentation fault purposes
 		auto_fill_rest = False
-
+		
 		grasp_to_file = []
 		grasp_to_file.append(graspnmb) #to file grasp number for id
 		grasp_num = int(graspnmb)
-
+		
 		#calculate metric and final joint configuration	
 		try:
 			print "Grasp: ",graspnmb
@@ -96,12 +132,12 @@ def generate_grasps(object_name,replan=True):
 			print "something went wrong"
 			mindist = 0.0
 			volume = 0.0
-	
+		
 		#show grasp before calculating the correct transformation
 		direction = gmodel.getGlobalApproachDir(validgrasps[graspnmb])
 		#gmodel.showgrasp(validgrasps[graspnmb],collisionfree=True)
 		transf = []
-
+		
 		with gmodel.GripperVisibility(manip):
 			with env:
 				gmodel.setPreshape(validgrasps[graspnmb])
@@ -124,13 +160,13 @@ def generate_grasps(object_name,replan=True):
 					env.UpdatePublishedBodies()
 					# wait while environment is locked?
 					transf = manip.GetEndEffectorTransform()
-
+					
 		grasp_to_file.append(finalconfig[0][manip.GetGripperIndices()])
 		grasp_to_file.append(transf)
 		#gmodel.showgrasp(validgrasps[graspnmb],collisionfree=True)
 		grasp_to_file.append(mindist)
 		grasp_to_file.append(volume)
-
+		
 		forceclosure = validgrasps[graspnmb][gmodel.graspindices['forceclosure']]
 		grasp_to_file.append(forceclosure) 
 		grasp_to_file.append(validindicees[graspnmb])
@@ -139,12 +175,12 @@ def generate_grasps(object_name,replan=True):
 		#SDH Joint Values - Beginnend mit Daumen(1) und die Zwei Finger GUZS nummeriert(2)(3)
 		#[Fingerwinkel(2), Fingerknick(2), Fingerrotation(2)(3), Fingerwinkel(3), Fingerknick(3), Fingerwinkel(1), Fingerknick(1)]
 		grasps_to_file.append(grasp_to_file)
-
+		
 		gmodel.getGlobalApproachDir(validgrasps[graspnmb])
 	
 	#Create a csv file if needed
 	analyzegrasp3d.or_to_csv(grasps_to_file) 
-
+	
 	print('Finished.')
 	return grasps_to_file
 	databases.grasping.RaveDestroy()
@@ -309,7 +345,78 @@ class ORGraspGeneration:
 		grasp_out.max_contact_force = 0
 
 		return grasp_out
-		
+
+
+
+def configure_grasp_generation():
+	### Options for GraspGeneration
+	#~ 'preshapes'
+	#~ 'manipulatordirections'
+	#~ 'boxdelta'
+	#~ 'spheredelta'
+	#~ 'standoffs'
+	#~ 'rolls'
+	#~ 'friction'
+	#~ 'avoidlinks'
+	#~ 'graspingnoise'
+	#~ 'plannername'
+	#~ 'normalanglerange'
+	#~ 'directiondelta'
+	#~ 'translationstepmult'
+	#~ 'finestep'
+	#~ 'numthreads'
+	####
+	
+	#preshape --- default is 'something strange' ?
+	preshape_array = []
+	#preshape1 = '1.047 -0.785 1.047 -0.785 1.047 -0.785 1.047' # spheric_open
+	#preshape_array.append(preshape1)
+	preshape2 = '0.0 -0.9854 0.9472 -0.9854 0.9472 -0.9854 0.9472' # cylindric_open
+	preshape_array.append(preshape2)
+	options.preshapes = numpy.array(preshape_array)
+	
+	#manipulatordirections --- default is [0.0,1.0,0.0] ?
+	#~ md_array = []
+	#~ direction1 = '0.0 0.0 1.0' #along z-axis -- points 'out of sdh'
+	#~ md_array.append(direction1)
+	#~ options.manipulatordirections = numpy.array(md_array)
+	
+	#boxdelta --- default is 0.02
+	
+	#spheredelta --- default is 0.1
+	#~ only used if boxdelta is not set
+	
+	#standoffs --- default is [0.0, 0.025] --- 0.0 is bad as we will hit the object!
+	standoff_array = [0.025, 0.05, 0.075, 0.1]
+	options.standoffs = numpy.array(standoff_array)
+	
+	#rolls --- default is [0.0, pi/2, pi, 3*pi/2, 2*pi]
+	
+	#fricion
+	options.friction = 1.0 #coefficient of static friction in graspit: rubber-<xobject> = 1
+	
+	#avoidlinks --- default is None ?
+	
+	#graspingnoise --- ?
+	
+	#plannername --- ?
+	
+	#normalanglerange --- default is 0.0 - used for computeXXXApproachRays
+	
+	#directiondelta --- default is 0.4 - used for computeXXXApproachRays
+	
+	#translationstepmult --- default is None ?
+	
+	#finestep
+	
+	#numthreads --- default is 1
+	#options.numthreads = 4		#--- multiple threads somehow not working
+	
+	return options
+
+
+
+
 #check if a database with the object_id exists
 def check_database(object_name):
 	#Begins here to read the grasp .csv-Files
