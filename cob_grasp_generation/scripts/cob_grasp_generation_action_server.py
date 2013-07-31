@@ -26,9 +26,6 @@ class CobGraspGenerationActionServer(object):
     
     # publish info to the console for the user
     rospy.loginfo('%s: Trying to get some grasps for object: >> %s <<' % (self._action_name, goal.object_name))
-      
-    # Do Witalij's fancy grasp_generation
-    rospy.sleep(2.0)
     
     #check if database of object is available
     if or_grasp_generation.check_database(goal.object_name):
