@@ -36,27 +36,39 @@ def generate_grasps(object_name,replan=True):
 	tool_trafo[2,3] = 0.0
 	manip.SetLocalToolTransform(tool_trafo)
 
+
+	### Options for GraspGeneration
+	#~ friction = None
+	#~ preshapes = None
+	#~ manipulatordirections = None
+	#~ approachrays = None
+	#~ standoffs = None
+	#~ rolls = None
+	#~ avoidlinks = None
+	#~ graspingnoise = None
+	#~ plannername = None
+	#~ normalanglerange = 0
+	#~ directiondelta=0
+	#~ translationstepmult=None
+	#~ finestep=None
+	####
+	
 	#fricion
 	options.friction = 1.0 #coefficient of static friction in graspit: rubber-<xobject> = 1
 
 	#preshape
-	#preshape1 = '1.047 -0.785 1.047 -0.785 1.047 -0.785 1.047' # Cycle Open
-	preshape2 = '0.0 -0.9854 0.9472 -0.9854 0.9472 -0.9854 0.9472' # Standard Preshape
+	#preshape1 = '1.047 -0.785 1.047 -0.785 1.047 -0.785 1.047' # spheric_open
+	preshape2 = '0.0 -0.9854 0.9472 -0.9854 0.9472 -0.9854 0.9472' # cylindric_open
 	options.preshapes = numpy.array([preshape2])
-
-	now_plan = time.time()
 
 	#if not gmodel.load():
 	if replan == True:
 		gmodel.autogenerate(options)
 
-	#time diff
-	end_plan = time.time()
-	time_difference = int(end_plan - now_plan)
-
 	###GRASP-PLANNING
 	#Return all validgrasps
 	#@OPTIONAL: We can return a desired number of grasps
+	#computeValidGrasps(startindex=0, checkcollision=True, checkik=True, checkgrasper=True, backupdist=0.0, returnnum=inf)
 	validgrasps, validindicees = gmodel.computeValidGrasps(checkik=False,checkcollision=True)
 
 	##Write all validgrasps to file
@@ -131,14 +143,14 @@ def generate_grasps(object_name,replan=True):
 		gmodel.getGlobalApproachDir(validgrasps[graspnmb])
 	
 	#Create a csv file if needed
-	analyzegrasp3d.or_to_csv(grasps_to_file, time_difference) 
+	analyzegrasp3d.or_to_csv(grasps_to_file) 
 
 	print('Finished.')
 	return grasps_to_file
 	databases.grasping.RaveDestroy()
 
 #get the grasps
-def get_grasps(object_name):
+def get_grasps(object_name, grasp_id=-1, num_grasps=-1, threshold=-1):
 	#Begins here to read the grasp .csv-Files
 	path_in = roslib.packages.get_pkg_dir('cob_grasp_generation')+'/common/files/database/'+object_name+'/'+object_name+'.csv'
 
@@ -152,7 +164,8 @@ def get_grasps(object_name):
 	reader = csv.DictReader( open(path_in, "rb"), delimiter=',')
 
 	#sort the list with eps_l1 ascending
-	sorted_list = sorted(reader, key=lambda d: float(d['eps_l1']), reverse=True)
+	#sorted_list = sorted(reader, key=lambda d: float(d['eps_l1']), reverse=True)
+	sorted_list = sorted(reader, key=lambda d: float(d['id']), reverse=False)
 
 	#grasp output
 	grasp_list = []
@@ -263,7 +276,8 @@ class ORGraspGeneration:
 		grasp = self.sorted_list[int(grasp_id)]
 		print 'Grasp ID: '+str(grasp['id'])
 		print 'Grasp Quality epsilon: '+str(grasp['eps_l1'])
-		print grasp
+		print 'Grasp Quality epsilon: '+str(grasp['vol_l1'])
+		#print grasp
 
 		with gmodel.GripperVisibility(manip):
 			dof_array = [0]*27
@@ -288,79 +302,6 @@ class ORGraspGeneration:
 			#wait
 			#raw_input('[Enter] to close...')
 
-
-#get the grasps
-def show_grasp(object_name,grasp_id):
-	#Begins here to read the grasp .csv-Files
-	path_in = roslib.packages.get_pkg_dir('cob_grasp_generation')+'/common/files/database/'+object_name+'/'+object_name+'.csv'
-
-	#Check if path exists
-	try:
-		with open(path_in) as f: pass
-	except IOError as e:
-		rospy.logerr("The path or file does not exist: "+path_in)
-
-	#If exists open with dictreader
-	reader = csv.DictReader( open(path_in, "rb"), delimiter=',')
-
-	#sort the list with eps_l1 ascending
-	sorted_list = sorted(reader, key=lambda d: float(d['id']), reverse=False)
-	
-	#env setup
-	env=Environment()
-	env.Load(roslib.packages.get_pkg_dir('cob_grasp_generation')+'/common/files/env/target_scene.env.xml')
-
-	print env.GetViewer()
-	#Viewer - Toggle GUI 
-	if env.GetViewer() == None:
-		env.SetViewer('qtcoin')
-	else:
-		print "Viewer already loaded"
-
-	#target object
-	with env:
-		target = env.ReadKinBodyURI(roslib.packages.get_pkg_dir('cob_pick_place_action')+'/files/meshes/'+str(object_name)+'.stl')
-		env.Add(target,True)
-	#time.sleep(0.5)
-	
-	#robot
-	robot = env.GetRobots()[0]
-	manip = robot.GetManipulator('arm')
-	gmodel = databases.grasping.GraspingModel(robot,target)
-
-	#TCP - transformed to hand wrist
-	tool_trafo = manip.GetLocalToolTransform()
-	tool_trafo[2,3] = 0.0
-	manip.SetLocalToolTransform(tool_trafo)
-
-	#Show the grasps
-	#SetDOFValues
-	grasp = sorted_list[int(grasp_id)]
-	print 'Grasp ID: '+str(grasp['id'])
-	print 'Grasp Quality epsilon: '+str(grasp['eps_l1'])
-
-	with gmodel.GripperVisibility(manip):
-		dof_array = [0]*27
-		dof_array[7:13] =[float(grasp['sdh_finger_22_joint']),float(grasp['sdh_finger_23_joint']),float(grasp['sdh_knuckle_joint']),float(grasp['sdh_finger_12_joint']),float(grasp['sdh_finger_13_joint']),float(grasp['sdh_thumb_2_joint']),float(grasp['sdh_thumb_3_joint'])]
-		robot.SetDOFValues(numpy.array(dof_array))			
-
-		#matrix from pose
-		mm_in_m = 0.001
-		pos = [float(grasp['pos-x'])*mm_in_m, float(grasp['pos-y'])*mm_in_m, float(grasp['pos-z'])*mm_in_m]  
-		quat = [float(grasp['qw']), float(grasp['qx']), float(grasp['qy']), float(grasp['qz'])]
-		Tgrasp = matrixFromPose(quat+pos)
-
-		#transform robot
-		Tdelta = numpy.dot(Tgrasp,numpy.linalg.inv(manip.GetEndEffectorTransform()))
-		for link in manip.GetChildLinks():
-			link.SetTransform(numpy.dot(Tdelta,link.GetTransform()))
-
-		#publish update of scene
-		time.sleep(1)
-		env.UpdatePublishedBodies()
-			 
-		#wait
-		#raw_input('[Enter] to close...')
 
 
 #check if a database with the object_id exists
