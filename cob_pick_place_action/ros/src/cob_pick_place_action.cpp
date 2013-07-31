@@ -477,7 +477,7 @@ void CobPickPlaceActionServer::fillGraspsOR(std::string object_name, geometry_ms
 			//debug
 			geometry_msgs::Transform msg_grasp_O_from_SDH;
 			tf::transformTFToMsg(transform_grasp_O_from_SDH, msg_grasp_O_from_SDH);
-			ROS_INFO_STREAM("msg_grasp_O_from_SDH:" << msg_grasp_O_from_SDH);
+			ROS_DEBUG_STREAM("msg_grasp_O_from_SDH:" << msg_grasp_O_from_SDH);
 			
 			// HEADER_from_O (given)
 			tf::Transform transform_HEADER_from_O = tf::Transform(
@@ -486,14 +486,14 @@ void CobPickPlaceActionServer::fillGraspsOR(std::string object_name, geometry_ms
 			//debug
 			geometry_msgs::Transform msg_HEADER_from_O;
 			tf::transformTFToMsg(transform_HEADER_from_O, msg_HEADER_from_O);
-			ROS_INFO_STREAM("msg_HEADER_from_O:" << msg_HEADER_from_O);
+			ROS_DEBUG_STREAM("msg_HEADER_from_O:" << msg_HEADER_from_O);
 			
 			// FOOTPRINT_from_ARM7
 			tf::Transform transform_grasp_FOOTPRINT_from_ARM7 = transformPose(transform_grasp_O_from_SDH, transform_HEADER_from_O, object_pose.header.frame_id);
 			//debug
 			geometry_msgs::Transform msg_grasp_FOOTPRINT_from_ARM7;
 			tf::transformTFToMsg(transform_grasp_FOOTPRINT_from_ARM7, msg_grasp_FOOTPRINT_from_ARM7);
-			ROS_INFO_STREAM("msg_grasp_FOOTPRINT_from_ARM7:" << msg_grasp_FOOTPRINT_from_ARM7);
+			ROS_DEBUG_STREAM("msg_grasp_FOOTPRINT_from_ARM7:" << msg_grasp_FOOTPRINT_from_ARM7);
 			
 			// convert to PoseStamped
 			geometry_msgs::Transform msg_transform_grasp_FOOTPRINT_from_ARM7;
@@ -505,7 +505,7 @@ void CobPickPlaceActionServer::fillGraspsOR(std::string object_name, geometry_ms
 			msg_pose_grasp_FOOTPRINT_from_ARM7.pose.position.y = msg_transform_grasp_FOOTPRINT_from_ARM7.translation.y;
 			msg_pose_grasp_FOOTPRINT_from_ARM7.pose.position.z = msg_transform_grasp_FOOTPRINT_from_ARM7.translation.z;
 			msg_pose_grasp_FOOTPRINT_from_ARM7.pose.orientation = msg_transform_grasp_FOOTPRINT_from_ARM7.rotation;
-			ROS_INFO_STREAM("msg_pose_grasp_FOOTPRINT_from_ARM7:" << msg_pose_grasp_FOOTPRINT_from_ARM7);
+			ROS_DEBUG_STREAM("msg_pose_grasp_FOOTPRINT_from_ARM7:" << msg_pose_grasp_FOOTPRINT_from_ARM7);
 			
 			current_grasp.grasp_pose = msg_pose_grasp_FOOTPRINT_from_ARM7;	
 			
