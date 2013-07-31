@@ -7,7 +7,7 @@ import roslib.packages
 #converts all openrave grasps to csv format for scripting
 #input-first-line (meta-info): name, time (@todo: add planner infos)
 #input-struct: number, jointconf, trafo, epsilon, volume, forceclosure, validindicees, direction
-def or_to_csv(validgrasps, time):
+def or_to_csv(validgrasps):
 	meta_info = validgrasps[0]
 	name = meta_info[0]
 
