@@ -18,7 +18,7 @@ def show_grasp_client():
         print grasp_id
         
         # Set the goal here: Object-Name, Grasp ID
-        goal = cob_grasp_generation.msg.ShowGraspGoal(object_name, grasp_id)
+        goal = cob_grasp_generation.msg.ShowGraspGoal(object_name, grasp_id, True)
 
         # Sends the goal to the action server.
         client.send_goal(goal)

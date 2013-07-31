@@ -34,10 +34,10 @@ class ShowGraspServer(object):
     #rospy.sleep(2.0)
     
     #check if database of object is available
-    if or_grasp_generation.check_database(goal.object_name):
+    if self.orgg.check_database(goal.object_name):
       rospy.loginfo('Display Grasp. Object: %s | ID: %i' % (goal.object_name, goal.grasp_id))
       #or_grasp_generation.show_grasp(goal.object_name, goal.grasp_id)
-      self.orgg.show_grasp(goal.object_name, goal.grasp_id)
+      self.orgg.show_grasp(goal.object_name, goal.grasp_id, goal.sort_by_quality)
       success = True
     else:
       rospy.logerr('Database for Object %s does not exist!' % (goal.object_name))

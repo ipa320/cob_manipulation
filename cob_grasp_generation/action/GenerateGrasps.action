@@ -1,5 +1,6 @@
 #goal definition
 string object_name
+bool replan
 ---
 #result definition
 bool success

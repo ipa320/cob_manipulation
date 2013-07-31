@@ -32,7 +32,7 @@ class CobGraspGenerationActionServer(object):
     rospy.loginfo('%s: Trying to get some grasps for object: >> %s <<' % (self._action_name, goal.object_name))
     
     #check if database of object is available
-    if or_grasp_generation.check_database(goal.object_name):
+    if self.orgg.check_database(goal.object_name):
 		rospy.loginfo('Grasps for object %s exist in the database.', goal.object_name)
 		rospy.loginfo('Returning grasp list for selected object.')
 		
@@ -40,7 +40,7 @@ class CobGraspGenerationActionServer(object):
     else:
 	#plan first, then return grasp list
     	rospy.loginfo('Database for object %s does not exist. Now planning Grasps for the object',goal.object_name)
-    	self.orgg.generate_grasps(goal.object_name)
+    	self.orgg.generate_grasps(goal.object_name, goal.replan)
     	grasp_list = self.orgg.get_grasps(goal.object_name)
     	
     #Fill result

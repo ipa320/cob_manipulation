@@ -1,6 +1,7 @@
 #goal definition
 string object_name
 int32 grasp_id
+bool sort_by_quality
 ---
 #result definition
 bool success
