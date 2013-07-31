@@ -148,69 +148,7 @@ def generate_grasps(object_name,replan=True):
 	print('Finished.')
 	return grasps_to_file
 	databases.grasping.RaveDestroy()
-
-#get the grasps
-def get_grasps(object_name, grasp_id=-1, num_grasps=-1, threshold=-1):
-	#Begins here to read the grasp .csv-Files
-	path_in = roslib.packages.get_pkg_dir('cob_grasp_generation')+'/common/files/database/'+object_name+'/'+object_name+'.csv'
-
-	#Check if path exists
-	try:
-		with open(path_in) as f: pass
-	except IOError as e:
-		rospy.logerr("The path or file does not exist: "+path_in)
-
-	#If exists open with dictreader
-	reader = csv.DictReader( open(path_in, "rb"), delimiter=',')
-
-	#sort the list with eps_l1 ascending
-	#sorted_list = sorted(reader, key=lambda d: float(d['eps_l1']), reverse=True)
-	sorted_list = sorted(reader, key=lambda d: float(d['id']), reverse=False)
-
-	#grasp output
-	grasp_list = []
-	for i in range(0,len(sorted_list)):
-		#grasp posture
-		joint_config = JointState()
-		joint_config.header.stamp = rospy.Time.now()
-		#joint_config.header.frame_id = ""
-		joint_config.name = ['sdh_knuckle_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint']
-		joint_config.position = [float(sorted_list[i]['sdh_knuckle_joint']), float(sorted_list[i]['sdh_finger_12_joint']), float(sorted_list[i]['sdh_finger_13_joint']), float(sorted_list[i]['sdh_finger_22_joint']), float(sorted_list[i]['sdh_finger_23_joint']), float(sorted_list[i]['sdh_thumb_2_joint']), float(sorted_list[i]['sdh_thumb_3_joint'])]
-		
-		#pregrasp posture
-		pre_joint_config = JointState()
-		pre_joint_config.header.stamp = rospy.Time.now()
-		#pre_joint_config.header.frame_id = ""
-		pre_joint_config.name = joint_config.name
-		pre_joint_config.position = [0.0, -0.9854, 0.9472, -0.9854, 0.9472, -0.9854, 0.9472]
-
-		#grasp pose
-		grasp_pose = PoseStamped()
-		grasp_pose.header.stamp = rospy.Time.now()
-		#grasp_pose.header.frame_id = ""
-		grasp_pose.pose.position.x = float(sorted_list[i]['pos-x'])*0.001 #mm to m
-		grasp_pose.pose.position.y = float(sorted_list[i]['pos-y'])*0.001 #mm to m
-		grasp_pose.pose.position.z = float(sorted_list[i]['pos-z'])*0.001 #mm to m
-		grasp_pose.pose.orientation.x = float(sorted_list[i]['qx'])
-		grasp_pose.pose.orientation.y = float(sorted_list[i]['qy'])
-		grasp_pose.pose.orientation.z = float(sorted_list[i]['qz'])
-		grasp_pose.pose.orientation.w =	float(sorted_list[i]['qw'])
-   
-		#grasp
-		grasp = Grasp()
-		grasp.id = sorted_list[i]['id']
-		grasp.pre_grasp_posture = pre_joint_config
-		grasp.grasp_posture = joint_config
-		grasp.grasp_pose = grasp_pose
-		grasp.grasp_quality = float(sorted_list[i]['eps_l1'])
-		grasp.max_contact_force = 0
-
-		#add to grasp_list
-		grasp_list.append(grasp)
-
-	return grasp_list
-
-
+	
 
 class ORGraspGeneration:
 	def __init__(self, viewer=False):
@@ -235,7 +173,7 @@ class ORGraspGeneration:
 		else:
 			print "Environment already set up!"
 	
-	def get_grasp_list(self, object_name):
+	def get_grasp_list(self, object_name, sort_by_quality=False):
 		if self.sorted_list == None:
 			#Begins here to read the grasp .csv-Files
 			path_in = roslib.packages.get_pkg_dir('cob_grasp_generation')+'/common/files/database/'+object_name+'/'+object_name+'.csv'
@@ -248,9 +186,8 @@ class ORGraspGeneration:
 
 			#If exists open with dictreader
 			reader = csv.DictReader( open(path_in, "rb"), delimiter=',')
-
-			#sort the list with eps_l1 ascending
-			self.sorted_list = sorted(reader, key=lambda d: float(d['id']), reverse=False)
+			self.grasp_db = sorted(reader, key=lambda d: float(d['id']), reverse=False)
+		
 		else:
 			print "GraspList already loaded"
 		
@@ -276,7 +213,7 @@ class ORGraspGeneration:
 		grasp = self.sorted_list[int(grasp_id)]
 		print 'Grasp ID: '+str(grasp['id'])
 		print 'Grasp Quality epsilon: '+str(grasp['eps_l1'])
-		print 'Grasp Quality epsilon: '+str(grasp['vol_l1'])
+		print 'Grasp Quality volume: '+str(grasp['vol_l1'])
 		#print grasp
 
 		with gmodel.GripperVisibility(manip):
@@ -303,7 +240,76 @@ class ORGraspGeneration:
 			#raw_input('[Enter] to close...')
 
 
+	#get the grasps
+	def get_grasps(self, object_name, grasp_id=-1, num_grasps=-1, threshold=-1):
+		#open database
+		self.get_grasp_list(object_name)
+		
+		#check for grasp_id and return 
+		if grasp_id >= 0:
+			print self._fill_grasp_msg(self.grasp_db[grasp_id])
+			return [self._fill_grasp_msg(self.grasp_db[grasp_id])]
+	
+		#sorting for threshold
+		sorted_list = sorted(self.grasp_db, key=lambda d: float(d['eps_l1']), reverse=False)
 
+		#calculate max_grasps
+		if num_grasps >= 0:
+			max_grasps=min(len(sorted_list),num_grasps)
+		else:
+			max_grasps=len(sorted_list)
+			
+		#grasp output
+		grasp_list = []
+		for i in range(0,max_grasps):		
+			if threshold != -1 and float(sorted_list[i]['eps_l1']) >= threshold:
+				grasp_list.append(self._fill_grasp_msg(sorted_list[i]))
+			elif threshold == -1:
+				grasp_list.append(self._fill_grasp_msg(sorted_list[i]))
+
+		print len(grasp_list)
+		return grasp_list
+	
+	#fill the grasp message of ROS
+	def _fill_grasp_msg(self, grasp):
+		
+		#grasp posture
+		joint_config = JointState()
+		joint_config.header.stamp = rospy.Time.now()
+		#joint_config.header.frame_id = ""
+		joint_config.name = ['sdh_knuckle_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint']
+		joint_config.position = [float(grasp['sdh_knuckle_joint']), float(grasp['sdh_finger_12_joint']), float(grasp['sdh_finger_13_joint']), float(grasp['sdh_finger_22_joint']), float(grasp['sdh_finger_23_joint']), float(grasp['sdh_thumb_2_joint']), float(grasp['sdh_thumb_3_joint'])]
+		
+		#pregrasp posture
+		pre_joint_config = JointState()
+		pre_joint_config.header.stamp = rospy.Time.now()
+		#pre_joint_config.header.frame_id = ""
+		pre_joint_config.name = joint_config.name
+		pre_joint_config.position = [0.0, -0.9854, 0.9472, -0.9854, 0.9472, -0.9854, 0.9472]
+
+		#grasp pose
+		grasp_pose = PoseStamped()
+		grasp_pose.header.stamp = rospy.Time.now()
+		#grasp_pose.header.frame_id = ""
+		grasp_pose.pose.position.x = float(grasp['pos-x'])*0.001 #mm to m
+		grasp_pose.pose.position.y = float(grasp['pos-y'])*0.001 #mm to m
+		grasp_pose.pose.position.z = float(grasp['pos-z'])*0.001 #mm to m
+		grasp_pose.pose.orientation.x = float(grasp['qx'])
+		grasp_pose.pose.orientation.y = float(grasp['qy'])
+		grasp_pose.pose.orientation.z = float(grasp['qz'])
+		grasp_pose.pose.orientation.w =	float(grasp['qw'])
+   
+		#grasp
+		grasp_out = Grasp()
+		grasp_out.id = grasp['id']
+		grasp_out.pre_grasp_posture = pre_joint_config
+		grasp_out.grasp_posture = joint_config
+		grasp_out.grasp_pose = grasp_pose
+		grasp_out.grasp_quality = float(grasp['eps_l1'])
+		grasp_out.max_contact_force = 0
+
+		return grasp_out
+		
 #check if a database with the object_id exists
 def check_database(object_name):
 	#Begins here to read the grasp .csv-Files
