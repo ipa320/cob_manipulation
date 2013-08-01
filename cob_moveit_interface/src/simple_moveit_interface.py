@@ -86,6 +86,12 @@ def clear_objects():
     psi = get_planning_scene_interface()
     psi.remove_attached_object("arm_7_link")
     psi.remove_world_object("")
+    
+def clear_attached_object(object_name):
+    psi = get_planning_scene_interface()
+    psi.remove_attached_object(link="arm_7_link", name = object_name)
+    psi.remove_world_object(object_name)
+    
 
 def attach_mesh_to_link(link, name, path):
     psi = get_planning_scene_interface()
