@@ -162,7 +162,11 @@ def get_grasps(object_name):
 		joint_config.header.stamp = rospy.Time.now()
 		#joint_config.header.frame_id = ""
 		joint_config.name = ['sdh_knuckle_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint']
-		joint_config.position = [float(sorted_list[i]['sdh_knuckle_joint']), float(sorted_list[i]['sdh_finger_12_joint']), float(sorted_list[i]['sdh_finger_13_joint']), float(sorted_list[i]['sdh_finger_22_joint']), float(sorted_list[i]['sdh_finger_23_joint']), float(sorted_list[i]['sdh_thumb_2_joint']), float(sorted_list[i]['sdh_thumb_3_joint'])]
+		print "Optimize grasp_configuration"
+		#joint_config.position = [float(sorted_list[i]['sdh_knuckle_joint']), float(sorted_list[i]['sdh_finger_12_joint']), float(sorted_list[i]['sdh_finger_13_joint']), float(sorted_list[i]['sdh_finger_22_joint']), float(sorted_list[i]['sdh_finger_23_joint']), float(sorted_list[i]['sdh_thumb_2_joint']), float(sorted_list[i]['sdh_thumb_3_joint'])]
+		#print joint_config.position
+		joint_config.position = [float(sorted_list[i]['sdh_knuckle_joint']), 0.92*float(sorted_list[i]['sdh_finger_12_joint']), float(sorted_list[i]['sdh_finger_13_joint']), 0.92*float(sorted_list[i]['sdh_finger_22_joint']), float(sorted_list[i]['sdh_finger_23_joint']), 0.92*float(sorted_list[i]['sdh_thumb_2_joint']), float(sorted_list[i]['sdh_thumb_3_joint'])]
+		print joint_config.position
 		
 		#pregrasp posture
 		pre_joint_config = JointState()
