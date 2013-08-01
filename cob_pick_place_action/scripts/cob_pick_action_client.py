@@ -13,6 +13,8 @@ def setup_environment():
 	psi = smi_.get_planning_scene_interface()
 	rospy.sleep(1.0)
 
+	smi_.clear_objects()	
+
 	### Add a floor
 	smi_.add_ground()
 
@@ -45,19 +47,17 @@ def cob_pick_action_client():
 	
 	# Creates a goal to send to the action server.
 	goal = cob_pick_place_action.msg.CobPickGoal()
-	#goal.object_id = 18
-	#goal.object_name = "yellowsaltcube"
-	#goal.object_id = 50
-	#goal.object_name = "instantsoup"
-	goal.object_id = 103
-	goal.object_name = "instanttomatosoup"
+	goal.object_id = 18
+	goal.object_name = "yellowsaltcube"
+	#goal.object_id = 27
+	#goal.object_name = "hotpot"
 	goal.object_pose.header.stamp = rospy.Time.now()
 	goal.object_pose.header.frame_id = "/base_footprint"
 	goal.object_pose.pose.position.x = -0.7
 	goal.object_pose.pose.position.y =  0.0  
 	goal.object_pose.pose.position.z =  0.815
-	goal.object_pose.pose.orientation.w = 0.707106781
-	goal.object_pose.pose.orientation.x = 0.707106781
+	goal.object_pose.pose.orientation.w = 0.707
+	goal.object_pose.pose.orientation.x = 0.707
 	goal.object_pose.pose.orientation.y = 0.0
 	goal.object_pose.pose.orientation.z = 0.0
 	#goal.grasp_id = 21
