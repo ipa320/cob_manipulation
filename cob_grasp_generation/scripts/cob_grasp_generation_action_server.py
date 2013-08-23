@@ -25,31 +25,31 @@ class CobGraspGenerationActionServer(object):
     r = rospy.Rate(1)
     success = False
     grasp_list = []
-    
-    self.orgg.setup_environment(goal.object_name, viewer=False)
-    
+        
     # publish info to the console for the user
     rospy.loginfo('%s: Trying to get some grasps for object: >> %s <<' % (self._action_name, goal.object_name))
     
     #check if database of object is available
     if self.orgg.check_database(goal.object_name):
-		rospy.loginfo('Grasps for object %s exist in the database.', goal.object_name)
-		rospy.loginfo('Returning grasp list for selected object.')
-		
-		grasp_list = self.orgg.get_grasps(goal.object_name, threshold=0.0012)
+        self.orgg.setup_environment(goal.object_name, viewer=False)
+        rospy.loginfo('Grasps for object %s exist in the database.', goal.object_name)
+        rospy.loginfo('Returning grasp list for selected object.')
+        
+        grasp_list = self.orgg.get_grasps(goal.object_name, goal.grasp_id, goal.num_grasps, goal.threshold)
     else:
-	#plan first, then return grasp list
-    	rospy.loginfo('Database for object %s does not exist. Now planning Grasps for the object',goal.object_name)
-    	self.orgg.generate_grasps(goal.object_name, goal.replan)
-    	grasp_list = self.orgg.get_grasps(goal.object_name)
-    	
+        self.orgg.setup_environment(goal.object_name, viewer=True)
+        #plan first, then return grasp list
+        rospy.loginfo('Database for object %s does not exist. Now planning Grasps for the object',goal.object_name)
+        self.orgg.generate_grasps(goal.object_name)
+        grasp_list = self.orgg.get_grasps(goal.object_name, goal.grasp_id, goal.num_grasps, goal.threshold)
+        
     #Fill result
     self._result.success = success
     self._result.grasp_list = grasp_list
     
     #check if grasp_list is filled and return success
-    if len(grasp_list) > 1:
-		success = True
+    if not (grasp_list == []):
+        success = True
     
     #Set action state
     if success:

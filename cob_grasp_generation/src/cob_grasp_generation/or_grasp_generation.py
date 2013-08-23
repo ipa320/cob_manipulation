@@ -38,7 +38,7 @@ class ORGraspGeneration:
 			print "Environment already set up!"
 	
 	
-	def generate_grasps(self, object_name, replan=True):
+	def generate_grasps(self, object_name, replan=False):
 		#robot
 		robot = self.env.GetRobots()[0]
 		manip = robot.GetManipulator('arm')
@@ -76,13 +76,15 @@ class ORGraspGeneration:
 		
 		### Do actual GraspGeneration
 		if gmodel.load():
+			if replan == True:
+				print "Replanning database"
+				gmodel.autogenerate(options)
 			print "Successfully loaded an existing database"
 		else:
 			print "No database available"
-			
-		if replan == True:
-			print "Replanning database"
+			print "Generating a database"
 			gmodel.autogenerate(options)
+		
 		
 		#time diff
 		end_plan = time.time()
@@ -98,6 +100,12 @@ class ORGraspGeneration:
 		#computeValidGrasps(startindex=0, checkcollision=True, checkik=True, checkgrasper=True, backupdist=0.0, returnnum=inf)
 		validgrasps, validindicees = gmodel.computeValidGrasps(checkcollision=True, checkik=False)
 		print "TotalNumValidGrasps: ",len(validgrasps)
+		
+		#prevent from saving an empty file
+		if len(validgrasps) == 0:
+			print('No valid grasps generated')
+			return []
+			databases.grasping.RaveDestroy()
 		
 		#~ backupdist_array = [0.025, 0.05, 0.075, 0.1]
 		#~ num_grasps=numpy.inf

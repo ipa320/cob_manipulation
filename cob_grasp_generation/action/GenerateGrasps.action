@@ -1,6 +1,18 @@
 #goal definition
 string object_name
-bool replan
+
+#only return one specific grasp
+#set to -1 to return more grasps
+int32 grasp_id
+
+#only return that many grasps
+#set to -1 to return all grasps
+int32 num_grasps
+
+#only return graps that have quality >= threshold
+#set to -1 to return all grasps
+float64 threshold
+
 ---
 #result definition
 bool success

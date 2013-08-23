@@ -435,6 +435,9 @@ void CobPickPlaceActionServer::fillGraspsOR(std::string object_name, geometry_ms
 	
 	cob_grasp_generation::GenerateGraspsGoal goal_generate_grasps;
 	goal_generate_grasps.object_name = object_name;
+	goal_generate_grasps.grasp_id = -1;
+	goal_generate_grasps.num_grasps = -1;
+	goal_generate_grasps.threshold = 0.0012;
 	
 	ac_grasps_or->sendGoal(goal_generate_grasps);
 	
