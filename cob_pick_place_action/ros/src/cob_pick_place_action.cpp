@@ -113,7 +113,7 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 	else if(goal->grasp_database=="OpenRAVE")
 	{
         ROS_INFO("Using OpenRAVE grasp table");
-		fillGraspsOR(goal->object_name, goal->object_pose, grasps);
+		fillGraspsOR(goal->object_name, goal->grasp_id, goal->object_pose, grasps);
 	}
 	else
 		ROS_ERROR("Grasp_Database %s not supported! Please use \"KIT\" or \"OpenRAVE\" instead", goal->grasp_database.c_str());
@@ -428,16 +428,16 @@ void CobPickPlaceActionServer::convertGraspKIT(Grasp* current_grasp, geometry_ms
 
 
 
-void CobPickPlaceActionServer::fillGraspsOR(std::string object_name, geometry_msgs::PoseStamped object_pose, std::vector<manipulation_msgs::Grasp> &grasps)
+void CobPickPlaceActionServer::fillGraspsOR(std::string object_name, unsigned int grasp_id, geometry_msgs::PoseStamped object_pose, std::vector<manipulation_msgs::Grasp> &grasps)
 {
 	bool finished_before_timeout;
 	grasps.clear();
 	
 	cob_grasp_generation::GenerateGraspsGoal goal_generate_grasps;
 	goal_generate_grasps.object_name = object_name;
-	goal_generate_grasps.grasp_id = -1;
-	goal_generate_grasps.num_grasps = -1;
-	goal_generate_grasps.threshold = 0.0012;
+	goal_generate_grasps.grasp_id = grasp_id;
+	goal_generate_grasps.num_grasps = 0;
+	goal_generate_grasps.threshold = 0;//0.012;
 	
 	ac_grasps_or->sendGoal(goal_generate_grasps);
 	
@@ -510,26 +510,42 @@ void CobPickPlaceActionServer::fillGraspsOR(std::string object_name, geometry_ms
 			msg_pose_grasp_FOOTPRINT_from_ARM7.pose.orientation = msg_transform_grasp_FOOTPRINT_from_ARM7.rotation;
 			ROS_DEBUG_STREAM("msg_pose_grasp_FOOTPRINT_from_ARM7:" << msg_pose_grasp_FOOTPRINT_from_ARM7);
 			
-			current_grasp.grasp_pose = msg_pose_grasp_FOOTPRINT_from_ARM7;	
+			current_grasp.grasp_pose = msg_pose_grasp_FOOTPRINT_from_ARM7;
 			
 			//~~~ ApproachDirection ~~~
-			current_grasp.approach.direction.header.frame_id = "/base_footprint";
+			//current_grasp.approach.direction.header.frame_id = "/base_footprint";
+			//current_grasp.approach.direction.vector.x = 0.0;
+			//current_grasp.approach.direction.vector.y = 0.0;
+			//current_grasp.approach.direction.vector.z = -1.0;
+			//current_grasp.approach.min_distance = 0.18;
+			//current_grasp.approach.desired_distance = 0.28;
+			
+			current_grasp.approach.direction.header.frame_id = "/arm_7_link";
 			current_grasp.approach.direction.vector.x = 0.0;
 			current_grasp.approach.direction.vector.y = 0.0;
-			current_grasp.approach.direction.vector.z = -1.0;
-	
-			//current_grasp.approach.direction.vector.x = msg_pose_grasp_FOOTPRINT_from_ARM7.pose.position.x+object_pose.pose.position.x;
-			//current_grasp.approach.direction.vector.y = msg_pose_grasp_FOOTPRINT_from_ARM7.pose.position.y+object_pose.pose.position.y;
-			//current_grasp.approach.direction.vector.z = msg_pose_grasp_FOOTPRINT_from_ARM7.pose.position.z+object_pose.pose.position.z;
+			current_grasp.approach.direction.vector.z = 1.0;
 			current_grasp.approach.min_distance = 0.18;
 			current_grasp.approach.desired_distance = 0.28;
+			
+			//current_grasp.approach.direction.header.frame_id = "/base_footprint";
+			//current_grasp.approach.direction.vector.x = -msg_pose_grasp_FOOTPRINT_from_ARM7.pose.position.x+object_pose.pose.position.x;
+			//current_grasp.approach.direction.vector.y = -msg_pose_grasp_FOOTPRINT_from_ARM7.pose.position.y+object_pose.pose.position.y;
+			//current_grasp.approach.direction.vector.z = -msg_pose_grasp_FOOTPRINT_from_ARM7.pose.position.z+object_pose.pose.position.z;
+			//current_grasp.approach.min_distance = 0.18;
+			//current_grasp.approach.desired_distance = 0.28;
 			
 			//~~~ RetreatDirection ~~~
 			current_grasp.retreat.direction.header.frame_id = "/base_footprint";
 			current_grasp.retreat.direction.vector.x = 0.0;
 			current_grasp.retreat.direction.vector.y = 0.0;
 			current_grasp.retreat.direction.vector.z = 1.0;
-	
+			current_grasp.retreat.min_distance = 0.1;
+			current_grasp.retreat.desired_distance = 0.15;
+			
+			current_grasp.retreat.direction.header.frame_id = "/arm_7_link";
+			current_grasp.retreat.direction.vector.x = 0.0;
+			current_grasp.retreat.direction.vector.y = 0.0;
+			current_grasp.retreat.direction.vector.z = -1.0;
 			current_grasp.retreat.min_distance = 0.1;
 			current_grasp.retreat.desired_distance = 0.15;
 			
