@@ -1,16 +1,16 @@
 #goal definition
 string object_name
 
-#only return one specific grasp
-#set to -1 to return more grasps
-int32 grasp_id
+#only return grasp with given id
+#note: cannot be used to return first grasp (id = 0)
+uint32 grasp_id
 
 #only return that many grasps
-#set to -1 to return all grasps
-int32 num_grasps
+#returns all grasps when set to 0
+uint32 num_grasps
 
 #only return graps that have quality >= threshold
-#set to -1 to return all grasps
+#returns all grasps when set to 0
 float64 threshold
 
 ---

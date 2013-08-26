@@ -24,11 +24,14 @@ class ORGraspGeneration:
 		if self.env == None:
 			self.env = Environment()
 			self.env.Load(roslib.packages.get_pkg_dir('cob_grasp_generation')+'/common/files/env/target_scene.env.xml')
-		
-			if self.env.GetViewer() == None:
-				self.env.SetViewer('qtcoin')
+			
+			if viewer:
+				if self.env.GetViewer() == None:
+					self.env.SetViewer('qtcoin')
+				else:
+					print "Viewer already loaded"
 			else:
-				print "Viewer already loaded"
+				print "Not using a viewer for OpenRAVE"
 				
 			#target object
 			with self.env:
@@ -317,12 +320,12 @@ class ORGraspGeneration:
 	
 	
 	#get the grasps
-	def get_grasps(self, object_name, grasp_id=-1, num_grasps=-1, threshold=-1):
+	def get_grasps(self, object_name, grasp_id=0, num_grasps=0, threshold=0):
 		#open database
 		self.get_grasp_list(object_name)
 		
 		#check for grasp_id and return 
-		if grasp_id >= 0:
+		if grasp_id > 0:
 			if grasp_id < len(self.grasp_list):
 				#print self._fill_grasp_msg(self.grasp_list[grasp_id])
 				return [self._fill_grasp_msg(self.grasp_list[grasp_id])]
@@ -334,7 +337,7 @@ class ORGraspGeneration:
 		sorted_list = sorted(self.grasp_list, key=lambda d: float(d['eps_l1']), reverse=True)
 
 		#calculate max_grasps
-		if num_grasps >= 0:
+		if num_grasps > 0:
 			max_grasps=min(len(sorted_list),num_grasps)
 		else:
 			max_grasps=len(sorted_list)
@@ -342,10 +345,12 @@ class ORGraspGeneration:
 		#grasp output
 		selected_grasp_list = []
 		for i in range(0,max_grasps):
-			if threshold != -1 and float(sorted_list[i]['eps_l1']) >= threshold:
+			if threshold > 0 and float(sorted_list[i]['eps_l1']) >= threshold:
 				selected_grasp_list.append(self._fill_grasp_msg(sorted_list[i]))
-			elif threshold == -1:
+			elif threshold == 0:
 				selected_grasp_list.append(self._fill_grasp_msg(sorted_list[i]))
+			else:
+				pass
 
 		#print len(selected_grasp_list)
 		return selected_grasp_list
