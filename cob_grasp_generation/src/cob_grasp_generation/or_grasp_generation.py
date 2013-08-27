@@ -23,22 +23,27 @@ class ORGraspGeneration:
 	def setup_environment(self, object_name, viewer=False):
 		if self.env == None:
 			self.env = Environment()
-			self.env.Load(roslib.packages.get_pkg_dir('cob_grasp_generation')+'/common/files/env/target_scene.env.xml')
-			
-			if viewer:
-				if self.env.GetViewer() == None:
-					self.env.SetViewer('qtcoin')
-				else:
-					print "Viewer already loaded"
+			self.env.Load(roslib.packages.get_pkg_dir('cob_grasp_generation')+'/files/env/target_scene.env.xml')
+		
+		if viewer:
+			if self.env.GetViewer() == None:
+				self.env.SetViewer('qtcoin')
 			else:
-				print "Not using a viewer for OpenRAVE"
-				
-			#target object
-			with self.env:
-				self.target = self.env.ReadKinBodyURI(roslib.packages.get_pkg_dir('cob_pick_place_action')+'/files/meshes/'+str(object_name)+'.stl')
-				self.env.Add(self.target,True)
+				print "Viewer already loaded"
 		else:
-			print "Environment already set up!"
+			print "Not using a viewer for OpenRAVE"
+		
+		if self.target == None:
+			self.target = self.env.ReadKinBodyURI(roslib.packages.get_pkg_dir('cob_pick_place_action')+'/files/meshes/'+str(object_name)+'.stl')
+			self.env.Add(self.target,True)
+		
+		if self.target.GetName() != object_name:
+			print "Changing the target object"
+			self.env.Remove(self.target)
+			self.target = self.env.ReadKinBodyURI(roslib.packages.get_pkg_dir('cob_pick_place_action')+'/files/meshes/'+str(object_name)+'.stl')
+			self.env.Add(self.target,True)
+		
+		print "Environment set up!"
 	
 	
 	def generate_grasps(self, object_name, replan=False):
@@ -82,7 +87,7 @@ class ORGraspGeneration:
 			if replan == True:
 				print "Replanning database"
 				gmodel.autogenerate(options)
-			print "Successfully loaded an existing database"
+			print "Successfully loaded a database"
 		else:
 			print "No database available"
 			print "Generating a database"
@@ -101,7 +106,11 @@ class ORGraspGeneration:
 		#Return all validgrasps
 		#@OPTIONAL: We can return a desired number of grasps
 		#computeValidGrasps(startindex=0, checkcollision=True, checkik=True, checkgrasper=True, backupdist=0.0, returnnum=inf)
+		#Note: setting backupdist does somehow not effect the validgrasps list???
+		
 		validgrasps, validindicees = gmodel.computeValidGrasps(checkcollision=True, checkik=False)
+		#validgrasps, validindicees = gmodel.computeValidGrasps(backupdist=0.025, checkcollision=True, checkik=False)	#opt1
+		#validgrasps, validindicees = gmodel.computeValidGrasps(backupdist=0.0, checkcollision=True, checkik=False)		#opt2
 		print "TotalNumValidGrasps: ",len(validgrasps)
 		
 		#prevent from saving an empty file
@@ -210,8 +219,8 @@ class ORGraspGeneration:
 		analyzegrasp3d.or_to_csv(grasps_to_file) 
 		
 		print('Finished.')
-		return grasps_to_file
 		databases.grasping.RaveDestroy()
+		return len(validgrasps)
 	
 	
 	
@@ -236,10 +245,14 @@ class ORGraspGeneration:
 		
 		#preshape --- default is 'something strange' ?
 		preshape_array = []
-		#preshape1 = '1.047 -0.785 1.047 -0.785 1.047 -0.785 1.047' # spheric_open
-		#preshape_array.append(preshape1)
-		preshape2 = '0.0 -0.9854 0.9472 -0.9854 0.9472 -0.9854 0.9472' # cylindric_open
-		preshape_array.append(preshape2)
+		#preshape = '1.047 -0.785 1.047 -0.785 1.047 -0.785 1.047' # spheric_open
+		#preshape_array.append(preshape)
+		preshape = '0.0 -0.9854 0.9472 -0.9854 0.9472 -0.9854 0.9472' # cylindric_open
+		preshape_array.append(preshape)
+		preshape = '0.0 -0.9854 0.47 -0.9854 0.47 -0.9854 0.47' # fingers_half_straight_open
+		preshape_array.append(preshape)
+		#preshape = '0.0 -0.9854 0.0 -0.9854 0.0 -0.9854 0.0' # fingers_straight_open
+		#preshape_array.append(preshape)
 		options.preshapes = numpy.array(preshape_array)
 		
 		#manipulatordirections --- default is [0.0,1.0,0.0] ?
@@ -249,12 +262,13 @@ class ORGraspGeneration:
 		#~ options.manipulatordirections = numpy.array(md_array)
 		
 		#boxdelta --- default is 0.02
+		options.boxdelta = 0.05
 		
 		#spheredelta --- default is 0.1
 		#~ only used if boxdelta is not set
 		
 		#standoffs --- default is [0.0, 0.025] --- 0.0 is bad as we will hit the object!
-		standoff_array = [0.025, 0.05, 0.075, 0.1]
+		standoff_array = [0.025, 0.075]
 		options.standoffs = numpy.array(standoff_array)
 		
 		#rolls --- default is [0.0, pi/2, pi, 3*pi/2, 2*pi]
@@ -269,8 +283,12 @@ class ORGraspGeneration:
 		#plannername --- ?
 		
 		#normalanglerange --- default is 0.0 - used for computeXXXApproachRays
+		options.normalanglerange = 0.0
+		#options.normalanglerange = 15
 		
 		#directiondelta --- default is 0.4 - used for computeXXXApproachRays
+		options.directiondelta = 1
+		#options.directiondelta = 5
 		
 		#translationstepmult --- default is None ?
 		
@@ -285,7 +303,7 @@ class ORGraspGeneration:
 	#check if a database with the object_id exists
 	def check_database(self, object_name):
 		#Begins here to read the grasp .csv-Files
-		path_in = roslib.packages.get_pkg_dir('cob_grasp_generation')+'/common/files/database/'+object_name+'/'+object_name+'.csv'
+		path_in = roslib.packages.get_pkg_dir('cob_grasp_generation')+'/files/database/'+object_name+'/'+object_name+'.csv'
 
 		#Check if path exists
 		if os.path.exists(path_in):
@@ -296,27 +314,23 @@ class ORGraspGeneration:
 	
 	
 	def get_grasp_list(self, object_name, sort_by_quality=False):
-		if self.grasp_list == None:
-			#Begins here to read the grasp .csv-Files
-			path_in = roslib.packages.get_pkg_dir('cob_grasp_generation')+'/common/files/database/'+object_name+'/'+object_name+'.csv'
+		#Begins here to read the grasp .csv-Files
+		path_in = roslib.packages.get_pkg_dir('cob_grasp_generation')+'/files/database/'+object_name+'/'+object_name+'.csv'
 
-			#Check if path exists
-			try:
-				with open(path_in) as f: pass
-			except IOError as e:
-				rospy.logerr("The path or file does not exist: "+path_in)
+		#Check if path exists
+		try:
+			with open(path_in) as f: pass
+		except IOError as e:
+			rospy.logerr("The path or file does not exist: "+path_in)
 
-			#If exists open with dictreader
-			reader = csv.DictReader( open(path_in, "rb"), delimiter=',')
-			
-			if sort_by_quality:
-				#sorting for threshold
-				self.grasp_list = sorted(reader, key=lambda d: float(d['eps_l1']), reverse=True)
-			else:
-				self.grasp_list = sorted(reader, key=lambda d: float(d['id']), reverse=False)
-			
+		#If exists open with dictreader
+		reader = csv.DictReader( open(path_in, "rb"), delimiter=',')
+		
+		if sort_by_quality:
+			#sorting for threshold
+			self.grasp_list = sorted(reader, key=lambda d: float(d['eps_l1']), reverse=True)
 		else:
-			print "GraspList already loaded"
+			self.grasp_list = sorted(reader, key=lambda d: float(d['id']), reverse=False)
 	
 	
 	#get the grasps

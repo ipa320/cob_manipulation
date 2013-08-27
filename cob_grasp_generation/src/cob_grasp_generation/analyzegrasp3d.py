@@ -12,7 +12,7 @@ def or_to_csv(validgrasps):
 	name = meta_info[0]
 
 	#create directories
-	directory = roslib.packages.get_pkg_dir('cob_grasp_generation')+'/common/files/database/'+name
+	directory = roslib.packages.get_pkg_dir('cob_grasp_generation')+'/files/database/'+name
 	if not os.path.exists(directory):
     		os.makedirs(directory)
 	pathname_out = directory+'/'+name+'.csv'
