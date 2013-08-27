@@ -1,5 +1,4 @@
 #! /usr/bin/env python
-
 import roslib; roslib.load_manifest('cob_grasp_generation')
 import rospy
 
@@ -11,24 +10,22 @@ def generate_grasps_client():
     client = actionlib.SimpleActionClient('generate_grasps', cob_grasp_generation.msg.GenerateGraspsAction)
     client.wait_for_server()
 
-    goal = cob_grasp_generation.msg.GenerateGraspsGoal(object_name="yellowsaltcube", grasp_id=0, num_grasps=50, threshold=0.012)
-
-    # Sends the goal to the action server.
-    client.send_goal(goal)
-
-    # Waits for the server to finish performing the action.
-    client.wait_for_result()
-
-    # Prints out the result of executing the action
-    return client.get_result()
+    goal = cob_grasp_generation.msg.GenerateGraspsGoal()
+    goal.object_name="yellowsaltcube"
+    goal.viewer = True
+    goal.replan = True
+    #ToDo: set the other OpenRAVE parameters for grasp_generation
     
+    
+    client.send_goal(goal)
+    client.wait_for_result()
+    return client.get_result()
     
 if __name__ == '__main__':
     try:
         rospy.init_node('generate_grasps_client')
         result = generate_grasps_client()
         print "Result:"
-        #print result
-        print len(result.grasp_list)
+        print result
     except rospy.ROSInterruptException:
         print "program interrupted before completion"
