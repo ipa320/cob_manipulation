@@ -9,57 +9,100 @@ import cob_grasp_generation.msg
 from cob_grasp_generation import or_grasp_generation 
 
 class CobGraspGenerationActionServer(object):
-  # create messages that are used to publish feedback/result
-  _feedback = cob_grasp_generation.msg.GenerateGraspsFeedback()
-  _result   = cob_grasp_generation.msg.GenerateGraspsResult()
 
   def __init__(self, name):
-    self._action_name = name
-    self._as = actionlib.SimpleActionServer(self._action_name, cob_grasp_generation.msg.GenerateGraspsAction, execute_cb=self.execute_cb)
-    self._as.start()
+    self._as_generate = actionlib.SimpleActionServer('generate_grasps', cob_grasp_generation.msg.GenerateGraspsAction, execute_cb=self.generate_cb)
+    self._as_generate.start()
+    self._as_query = actionlib.SimpleActionServer('query_grasps', cob_grasp_generation.msg.QueryGraspsAction, execute_cb=self.query_cb)
+    self._as_query.start()
+    self._as_show = actionlib.SimpleActionServer('show_grasps', cob_grasp_generation.msg.ShowGraspsAction, execute_cb=self.show_cb)
+    self._as_show.start()
     
     self.orgg = or_grasp_generation.ORGraspGeneration()
+
+  def generate_cb(self, goal):
+    success = False
+    num_grasps = 0
+
+    rospy.loginfo('Generating grasps for object: >> %s <<' % (goal.object_name))
+
+    if self.orgg.check_database(goal.object_name):
+        rospy.logwarn('Grasps for object %s exist in the database.', goal.object_name)
+        success = False
+    else:
+        self.orgg.setup_environment(goal.object_name, goal.viewer)
+        rospy.loginfo('GraspTable for object %s does not exist. Now planning Grasps for the object',goal.object_name)
+        num_grasps = self.orgg.generate_grasps(goal.object_name, goal.replan)
+        if (num_grasps > 0):
+            success = True
     
-  def execute_cb(self, goal):
-    # helper variables
-    r = rospy.Rate(1)
+    result   = cob_grasp_generation.msg.GenerateGraspsResult()
+    result.success = success
+    result.num_grasps = num_grasps
+
+    if success:
+      rospy.loginfo('Generate: Succeeded')
+      self._as_generate.set_succeeded(result)
+    else:
+      rospy.logwarn('Generate: Failed')
+      self._as_generate.set_aborted(result)
+
+
+
+  def query_cb(self, goal):
     success = False
     grasp_list = []
-        
-    # publish info to the console for the user
-    rospy.loginfo('%s: Trying to get some grasps for object: >> %s <<' % (self._action_name, goal.object_name))
-    
-    #check if database of object is available
+
+    rospy.loginfo('Querying grasps for object: >> %s <<' % (goal.object_name))
+
     if self.orgg.check_database(goal.object_name):
         self.orgg.setup_environment(goal.object_name, viewer=False)
-        rospy.loginfo('Grasps for object %s exist in the database.', goal.object_name)
+        rospy.loginfo('GraspTable for object %s exist in the database.', goal.object_name)
         rospy.loginfo('Returning grasp list for selected object.')
-        
         grasp_list = self.orgg.get_grasps(goal.object_name, goal.grasp_id, goal.num_grasps, goal.threshold)
     else:
-        self.orgg.setup_environment(goal.object_name, viewer=True)
-        #plan first, then return grasp list
-        rospy.loginfo('Database for object %s does not exist. Now planning Grasps for the object',goal.object_name)
-        self.orgg.generate_grasps(goal.object_name)
-        grasp_list = self.orgg.get_grasps(goal.object_name, goal.grasp_id, goal.num_grasps, goal.threshold)
-        
-    #Fill result
-    self._result.success = success
-    self._result.grasp_list = grasp_list
-    
-    #check if grasp_list is filled and return success
+        rospy.logwarn('GraspTable for object %s does not exist!',goal.object_name)
+
     if not (grasp_list == []):
         success = True
     
-    #Set action state
+    result   = cob_grasp_generation.msg.QueryGraspsResult()
+    result.success = success
+    result.grasp_list = grasp_list
+
     if success:
-      rospy.loginfo('%s: Succeeded' % self._action_name)
-      self._as.set_succeeded(self._result)
+      rospy.loginfo('Query: Succeeded')
+      self._as_query.set_succeeded(result)
     else:
-      rospy.logwarn('%s: Failed' % self._action_name)
-      self._as.set_aborted(self._result)
+      rospy.logwarn('Query: Failed')
+      self._as_query.set_aborted(result)
+
+
+  def show_cb(self, goal):
+    success = False
+    
+    rospy.loginfo('Show grasp %i for object %s.' % (goal.grasp_id, goal.object_name))
+
+    if self.orgg.check_database(goal.object_name):
+      self.orgg.setup_environment(goal.object_name, viewer=True)
+      rospy.loginfo('Display Grasp. Object: %s | ID: %i' % (goal.object_name, goal.grasp_id))
+      self.orgg.show_grasp(goal.object_name, goal.grasp_id, goal.sort_by_quality)
+      success = True
+    else:
+      rospy.logerr('GraspTable for Object %s does not exist!' % (goal.object_name))
+
+    result   = cob_grasp_generation.msg.ShowGraspsResult()
+    result.success = success
+
+    if success:
+      rospy.loginfo('Show: Succeeded')
+      self._as_show.set_succeeded(result)
+    else:
+      rospy.logwarn('Show: Failed')
+      self._as_show.set_aborted(result)
+
       
 if __name__ == '__main__':
   rospy.init_node('generate_grasps')
-  CobGraspGenerationActionServer('generate_grasps')
+  CobGraspGenerationActionServer('generate_grasps_server')
   rospy.spin()
