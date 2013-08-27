@@ -115,6 +115,17 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
         ROS_INFO("Using OpenRAVE grasp table");
 		fillGraspsOR(goal->object_name, goal->grasp_id, goal->object_pose, grasps);
 	}
+	else if(goal->grasp_database=="ALL")
+	{
+        ROS_INFO("Using all available databases");
+		std::vector<manipulation_msgs::Grasp> grasps_OR, grasps_KIT;
+		fillAllGraspsKIT(goal->object_id, goal->object_pose, grasps_KIT);
+		fillGraspsOR(goal->object_name, goal->grasp_id, goal->object_pose, grasps_OR);
+		
+		grasps = grasps_KIT;
+		std::vector<manipulation_msgs::Grasp>::iterator it = grasps.end();
+		grasps.insert(it, grasps_OR.begin(), grasps_OR.end());
+	}
 	else
 		ROS_ERROR("Grasp_Database %s not supported! Please use \"KIT\" or \"OpenRAVE\" instead", goal->grasp_database.c_str());
 
@@ -130,7 +141,7 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 		ROS_INFO("Setting SupportSurface to %s", goal->support_surface.c_str());
 		group.setSupportSurfaceName(goal->support_surface);
 	}
-	group.setPlanningTime(90.0);	//default is 5.0 s
+	group.setPlanningTime(300.0);	//default is 5.0 s
 	
 	
 	///Call Pick with result
@@ -144,6 +155,7 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 	std::string response;
 	if(success)
 	{
+		ROS_INFO("Pick was successfull!");
 		result.success.data=true;
 		response="Hurray!!! Pickup COMPLETE";
 		as_pick->setSucceeded(result, response);
@@ -153,6 +165,7 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 	}
 	else
 	{
+		ROS_INFO("Pick failed!");
 		result.success.data=false;
 		response="Alas!!! Pickup FAILED";
 		as_pick->setAborted(result, response);
@@ -306,7 +319,7 @@ void CobPickPlaceActionServer::convertGraspKIT(Grasp* current_grasp, geometry_ms
 	g.pre_grasp_posture = MapHandConfiguration(pre_grasp_posture);
 	
 	//HandGraspConfig
-	std::vector<double> current_hand_config = current_grasp->GetHandGraspConfig();
+	std::vector<double> current_hand_config = current_grasp->GetHandOptimalGraspConfig();
 	sensor_msgs::JointState grasp_posture;
 	grasp_posture.position.clear();
 	for (unsigned int i=0; i<current_hand_config.size(); i++)
@@ -328,7 +341,7 @@ void CobPickPlaceActionServer::convertGraspKIT(Grasp* current_grasp, geometry_ms
     {
         geometry_msgs::Transform msg_grasp_O_from_SDH;
         tf::transformTFToMsg(transform_grasp_O_from_SDH, msg_grasp_O_from_SDH);
-        ROS_INFO_STREAM("msg_grasp_O_from_SDH:" << msg_grasp_O_from_SDH);
+        ROS_DEBUG_STREAM("msg_grasp_O_from_SDH:" << msg_grasp_O_from_SDH);
     }
 	
 	// HEADER_from_O (given)
@@ -340,7 +353,7 @@ void CobPickPlaceActionServer::convertGraspKIT(Grasp* current_grasp, geometry_ms
     {
         geometry_msgs::Transform msg_HEADER_from_O;
         tf::transformTFToMsg(transform_HEADER_from_O, msg_HEADER_from_O);
-        ROS_INFO_STREAM("msg_HEADER_from_O:" << msg_HEADER_from_O);
+        ROS_DEBUG_STREAM("msg_HEADER_from_O:" << msg_HEADER_from_O);
     }
 	
 	// FOOTPRINT_from_ARM7
@@ -350,7 +363,7 @@ void CobPickPlaceActionServer::convertGraspKIT(Grasp* current_grasp, geometry_ms
     {
         geometry_msgs::Transform msg_grasp_FOOTPRINT_from_ARM7;
         tf::transformTFToMsg(transform_grasp_FOOTPRINT_from_ARM7, msg_grasp_FOOTPRINT_from_ARM7);
-        ROS_INFO_STREAM("msg_grasp_FOOTPRINT_from_ARM7:" << msg_grasp_FOOTPRINT_from_ARM7);
+        ROS_DEBUG_STREAM("msg_grasp_FOOTPRINT_from_ARM7:" << msg_grasp_FOOTPRINT_from_ARM7);
     }
 	
 	// convert to PoseStamped
@@ -366,7 +379,7 @@ void CobPickPlaceActionServer::convertGraspKIT(Grasp* current_grasp, geometry_ms
     
     if (debug)
     {
-        ROS_INFO_STREAM("msg_pose_grasp_FOOTPRINT_from_ARM7:" << msg_pose_grasp_FOOTPRINT_from_ARM7);
+        ROS_DEBUG_STREAM("msg_pose_grasp_FOOTPRINT_from_ARM7:" << msg_pose_grasp_FOOTPRINT_from_ARM7);
     }
 	
 	g.grasp_pose = msg_pose_grasp_FOOTPRINT_from_ARM7;
@@ -383,7 +396,7 @@ void CobPickPlaceActionServer::convertGraspKIT(Grasp* current_grasp, geometry_ms
     {
         geometry_msgs::Transform msg_pre_O_from_SDH;
         tf::transformTFToMsg(transform_pre_O_from_SDH, msg_pre_O_from_SDH);
-        ROS_INFO_STREAM("msg_pre_O_from_SDH:" << msg_pre_O_from_SDH);
+        ROS_DEBUG_STREAM("msg_pre_O_from_SDH:" << msg_pre_O_from_SDH);
     }
 	
 	// FOOTPRINT_from_ARM7
@@ -393,7 +406,7 @@ void CobPickPlaceActionServer::convertGraspKIT(Grasp* current_grasp, geometry_ms
     {
         geometry_msgs::Transform msg_pre_FOOTPRINT_from_ARM7;
         tf::transformTFToMsg(transform_pre_FOOTPRINT_from_ARM7, msg_pre_FOOTPRINT_from_ARM7);
-        ROS_INFO_STREAM("msg_pre_FOOTPRINT_from_ARM7:" << msg_pre_FOOTPRINT_from_ARM7);
+        ROS_DEBUG_STREAM("msg_pre_FOOTPRINT_from_ARM7:" << msg_pre_FOOTPRINT_from_ARM7);
     }
 	
 	// convert to PoseStamped
@@ -408,7 +421,7 @@ void CobPickPlaceActionServer::convertGraspKIT(Grasp* current_grasp, geometry_ms
 	msg_pose_pre_FOOTPRINT_from_ARM7.pose.orientation = msg_transform_pre_FOOTPRINT_from_ARM7.rotation;
     if (debug)
     {
-        ROS_INFO_STREAM("msg_pose_pre_FOOTPRINT_from_ARM7:" << msg_pose_pre_FOOTPRINT_from_ARM7);
+        ROS_DEBUG_STREAM("msg_pose_pre_FOOTPRINT_from_ARM7:" << msg_pose_pre_FOOTPRINT_from_ARM7);
     }
 	
 	g.approach = calculateApproachDirection(msg_pose_grasp_FOOTPRINT_from_ARM7.pose, msg_pose_pre_FOOTPRINT_from_ARM7.pose);
@@ -612,7 +625,7 @@ tf::Transform CobPickPlaceActionServer::transformPose(tf::Transform transform_O_
 	tf::transformStampedTFToMsg(transform_SDH_from_ARM7, msg_SDH_from_ARM7);
     
     if (debug)
-        ROS_INFO_STREAM("msg_SDH_from_ARM7:" << msg_SDH_from_ARM7);
+        ROS_DEBUG_STREAM("msg_SDH_from_ARM7:" << msg_SDH_from_ARM7);
 	
 	// O_from_ARM7 = O_from_SDH * SDH_from_ARM7
 	tf::Transform transform_O_from_ARM7 = transform_O_from_SDH * transform_SDH_from_ARM7;
@@ -634,7 +647,7 @@ tf::Transform CobPickPlaceActionServer::transformPose(tf::Transform transform_O_
 	tf::transformStampedTFToMsg(transform_FOOTPRINT_from_HEADER, msg_FOOTPRINT_from_HEADER);
     
     if (debug)
-        ROS_INFO_STREAM("msg_FOOTPRINT_from_HEADER:" << msg_FOOTPRINT_from_HEADER);
+        ROS_DEBUG_STREAM("msg_FOOTPRINT_from_HEADER:" << msg_FOOTPRINT_from_HEADER);
 	
 	// FOOTPRINT_from_O = FOOTPRINT_from_HEADER * HEADER_from_O
 	tf::Transform transform_FOOTPRINT_from_O = transform_FOOTPRINT_from_HEADER * transform_HEADER_from_O;
