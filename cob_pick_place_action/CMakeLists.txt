@@ -19,7 +19,7 @@ rosbuild_init()
 #set the default path for built executables to the "bin" directory
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
+#set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 
 #uncomment if you have defined messages
@@ -33,9 +33,5 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/ros/include ${PROJECT_SOURCE_DIR}/comm
 #rosbuild_add_boost_directories()
 #rosbuild_link_boost(${PROJECT_NAME} thread)
 rosbuild_add_executable(cob_pick_place_action ros/src/cob_pick_place_action.cpp common/src/GraspTable.cpp)
-rosbuild_add_executable(cob_pick_action_client ros/src/cob_pick_action_client.cpp)
-rosbuild_add_executable(cob_place_action_client ros/src/cob_place_action_client.cpp)
 rosbuild_link_boost(cob_pick_place_action signals)
-rosbuild_link_boost(cob_pick_action_client signals)
-rosbuild_link_boost(cob_place_action_client signals)
 #target_link_libraries(example ${PROJECT_NAME})

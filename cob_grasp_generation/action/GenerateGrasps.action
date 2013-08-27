@@ -1,9 +1,19 @@
 #goal definition
 string object_name
+
+#grasp generation parameters for OpenRAVE
+
+
+
+#replan grasps
+bool replan
+
+#show Viewer
+bool viewer
 ---
 #result definition
 bool success
-manipulation_msgs/Grasp[] grasp_list
+uint32 num_grasps
 ---
 #feedback
 bool status

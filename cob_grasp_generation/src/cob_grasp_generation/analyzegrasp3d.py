@@ -7,12 +7,12 @@ import roslib.packages
 #converts all openrave grasps to csv format for scripting
 #input-first-line (meta-info): name, time (@todo: add planner infos)
 #input-struct: number, jointconf, trafo, epsilon, volume, forceclosure, validindicees, direction
-def or_to_csv(validgrasps, time):
+def or_to_csv(validgrasps):
 	meta_info = validgrasps[0]
 	name = meta_info[0]
 
 	#create directories
-	directory = roslib.packages.get_pkg_dir('cob_grasp_generation')+'/common/files/database/'+name
+	directory = roslib.packages.get_pkg_dir('cob_grasp_generation')+'/files/database/'+name
 	if not os.path.exists(directory):
     		os.makedirs(directory)
 	pathname_out = directory+'/'+name+'.csv'
