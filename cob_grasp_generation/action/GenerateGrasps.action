@@ -1,22 +1,19 @@
 #goal definition
 string object_name
 
-#only return grasp with given id
-#note: cannot be used to return first grasp (id = 0)
-uint32 grasp_id
+#grasp generation parameters for OpenRAVE
 
-#only return that many grasps
-#returns all grasps when set to 0
-uint32 num_grasps
 
-#only return graps that have quality >= threshold
-#returns all grasps when set to 0
-float64 threshold
 
+#replan grasps
+bool replan
+
+#show Viewer
+bool viewer
 ---
 #result definition
 bool success
-manipulation_msgs/Grasp[] grasp_list
+uint32 num_grasps
 ---
 #feedback
 bool status
