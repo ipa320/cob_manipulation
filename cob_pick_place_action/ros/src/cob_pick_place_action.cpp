@@ -71,11 +71,11 @@ void CobPickPlaceActionServer::initialize()
 		ROS_ERROR("Failed to initialize GraspTables");
 	
 	
-	static const std::string GENERATE_GRASPS_OR_ACTION_NAME = "generate_grasps";
-	ac_grasps_or.reset(new actionlib::SimpleActionClient<cob_grasp_generation::GenerateGraspsAction>(nh_,GENERATE_GRASPS_OR_ACTION_NAME, true));
-	ROS_INFO("Waiting for action server \"%s\" to start...", GENERATE_GRASPS_OR_ACTION_NAME.c_str());
+	static const std::string QUERY_GRASPS_OR_ACTION_NAME = "query_grasps";
+	ac_grasps_or.reset(new actionlib::SimpleActionClient<cob_grasp_generation::QueryGraspsAction>(nh_, QUERY_GRASPS_OR_ACTION_NAME, true));
+	ROS_INFO("Waiting for action server \"%s\" to start...", QUERY_GRASPS_OR_ACTION_NAME.c_str());
 	ac_grasps_or->waitForServer(); //will wait for infinite time
-	ROS_INFO("Action server \"%s\" started.", GENERATE_GRASPS_OR_ACTION_NAME.c_str());
+	ROS_INFO("Action server \"%s\" started.", QUERY_GRASPS_OR_ACTION_NAME.c_str());
 }
 
 void CobPickPlaceActionServer::run()
@@ -433,46 +433,46 @@ void CobPickPlaceActionServer::fillGraspsOR(std::string object_name, unsigned in
 	bool finished_before_timeout;
 	grasps.clear();
 	
-	cob_grasp_generation::GenerateGraspsGoal goal_generate_grasps;
-	goal_generate_grasps.object_name = object_name;
-	goal_generate_grasps.grasp_id = grasp_id;
-	goal_generate_grasps.num_grasps = 0;
-	goal_generate_grasps.threshold = 0;//0.012;
+	cob_grasp_generation::QueryGraspsGoal goal_query_grasps;
+	goal_query_grasps.object_name = object_name;
+	goal_query_grasps.grasp_id = grasp_id;
+	goal_query_grasps.num_grasps = 0;
+	goal_query_grasps.threshold = 0;//0.012;
 	
-	ac_grasps_or->sendGoal(goal_generate_grasps);
+	ac_grasps_or->sendGoal(goal_query_grasps);
 	
-	ROS_INFO("Generating grasps...");
+	ROS_INFO("Querying grasps...");
 	finished_before_timeout = ac_grasps_or->waitForResult(ros::Duration(70.0));
 	actionlib::SimpleClientGoalState state_grasps_or = ac_grasps_or->getState();
-	boost::shared_ptr<const cob_grasp_generation::GenerateGraspsResult> result_generate_grasps = ac_grasps_or->getResult();
+	boost::shared_ptr<const cob_grasp_generation::QueryGraspsResult> result_query_grasps = ac_grasps_or->getResult();
 	if (finished_before_timeout)
 	{
 		ROS_INFO("Action finished: %s",state_grasps_or.toString().c_str());
 		
-		ROS_INFO("Found %d grasps for this object", result_generate_grasps.get()->grasp_list.size());
-		for(unsigned int i=0; i<result_generate_grasps.get()->grasp_list.size(); i++)
+		ROS_INFO("Found %d grasps for this object", result_query_grasps.get()->grasp_list.size());
+		for(unsigned int i=0; i<result_query_grasps.get()->grasp_list.size(); i++)
 		{
-			ROS_DEBUG_STREAM("Grasp "<< i << ": " << result_generate_grasps.get()->grasp_list[i]);
+			ROS_DEBUG_STREAM("Grasp "<< i << ": " << result_query_grasps.get()->grasp_list[i]);
 		}
 		
-		for(unsigned int i=0; i<result_generate_grasps.get()->grasp_list.size(); i++)
+		for(unsigned int i=0; i<result_query_grasps.get()->grasp_list.size(); i++)
 		{
 			manipulation_msgs::Grasp current_grasp;
 			//~~~ HandGraspConfig ~~~
-			current_grasp.grasp_posture = result_generate_grasps.get()->grasp_list[i].grasp_posture;
+			current_grasp.grasp_posture = result_query_grasps.get()->grasp_list[i].grasp_posture;
 			for(unsigned int k=0; k<current_grasp.grasp_posture.position.size(); k++)
 			{
 				if(current_grasp.grasp_posture.position[k] < -1.5707) current_grasp.grasp_posture.position[k] = -1.5707;
 				if(current_grasp.grasp_posture.position[k] >  1.5707) current_grasp.grasp_posture.position[k] =  1.5707;
 			}
 			//~~~ HandPreGraspConfig ~~~
-			current_grasp.pre_grasp_posture = result_generate_grasps.get()->grasp_list[i].pre_grasp_posture;
+			current_grasp.pre_grasp_posture = result_query_grasps.get()->grasp_list[i].pre_grasp_posture;
 			
 			//~~~ TCPGraspPose ~~~
 			///GOAL: -> Get TCPGraspPose for arm_7_link wrt base_footprint
 			
 			// O_from_SDH
-			geometry_msgs::Pose current_grasp_pose = result_generate_grasps.get()->grasp_list[i].grasp_pose.pose;
+			geometry_msgs::Pose current_grasp_pose = result_query_grasps.get()->grasp_list[i].grasp_pose.pose;
 			tf::Transform transform_grasp_O_from_SDH = tf::Transform(
 				tf::Quaternion(current_grasp_pose.orientation.x, current_grasp_pose.orientation.y, current_grasp_pose.orientation.z, current_grasp_pose.orientation.w),
 				tf::Vector3(current_grasp_pose.position.x, current_grasp_pose.position.y, current_grasp_pose.position.z));
@@ -554,7 +554,7 @@ void CobPickPlaceActionServer::fillGraspsOR(std::string object_name, unsigned in
 		
 	}
 	else
-		ROS_ERROR("Grasps not generated within timeout");
+		ROS_ERROR("Grasps not queried within timeout");
 }
 
 

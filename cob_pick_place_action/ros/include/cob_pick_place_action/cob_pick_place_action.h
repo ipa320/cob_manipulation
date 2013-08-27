@@ -48,7 +48,7 @@
 
 #include <cob_pick_place_action/CobPickAction.h>
 #include <cob_pick_place_action/CobPlaceAction.h>
-#include <cob_grasp_generation/GenerateGraspsAction.h>
+#include <cob_grasp_generation/QueryGraspsAction.h>
 #include <GraspTable.h>
 
 
@@ -64,7 +64,7 @@ private:
 	boost::scoped_ptr<actionlib::SimpleActionServer<cob_pick_place_action::CobPickAction> > as_pick;
 	boost::scoped_ptr<actionlib::SimpleActionServer<cob_pick_place_action::CobPlaceAction> > as_place;
 	
-	boost::scoped_ptr<actionlib::SimpleActionClient<cob_grasp_generation::GenerateGraspsAction> > ac_grasps_or;
+	boost::scoped_ptr<actionlib::SimpleActionClient<cob_grasp_generation::QueryGraspsAction> > ac_grasps_or;
 	
 	moveit::planning_interface::MoveGroup group;
 	
