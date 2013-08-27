@@ -20,7 +20,7 @@ def setup_environment():
 	
 	### Add a floor
 	smi_.add_ground()
-
+	
 	### Add table
 	pose = PoseStamped()
 	pose.header.frame_id = "/base_footprint"
@@ -46,12 +46,12 @@ def cob_pick_action_client():
 	
 	# Creates a goal to send to the action server.
 	goal = cob_pick_place_action.msg.CobPickGoal()
-	#goal.object_id = 18
-	#goal.object_name = "yellowsaltcube"
+	goal.object_id = 18
+	goal.object_name = "yellowsaltcube"
 	#goal.object_id = 50
 	#goal.object_name = "instantsoup"
-	goal.object_id = 103
-	goal.object_name = "instanttomatosoup"
+	#goal.object_id = 103
+	#goal.object_name = "instanttomatosoup"
 	
 	goal.object_pose.header.stamp = rospy.Time.now()
 	goal.object_pose.header.frame_id = "/base_footprint"
@@ -59,10 +59,6 @@ def cob_pick_action_client():
 	goal.object_pose.pose.position.y = random.uniform(-0.3,  0.3)#0.0  
 	goal.object_pose.pose.position.z = random.uniform( 0.8,  1.1)#0.85
 	goal.object_pose.pose.orientation.x, goal.object_pose.pose.orientation.y, goal.object_pose.pose.orientation.z, goal.object_pose.pose.orientation.w = quaternion_from_euler(random.uniform(-pi/2, pi/2),random.uniform(-pi/2, pi/2),random.uniform(-pi/2, pi/2)) 
-	#goal.object_pose.pose.orientation.w = 0.707106781 
-	#goal.object_pose.pose.orientation.x = 0.707106781
-	#goal.object_pose.pose.orientation.y = 0.0
-	#goal.object_pose.pose.orientation.z = 0.0 
 	
 	#goal.grasp_id = 21
 	#goal.grasp_database = "KIT"
