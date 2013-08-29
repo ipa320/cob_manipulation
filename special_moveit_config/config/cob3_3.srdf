@@ -9,12 +9,13 @@
     <!--JOINTS: When a joint is specified, the child link of that joint (which will always exist) is automatically included-->
     <!--CHAINS: When a chain is specified, all the links along the chain (including endpoints) are included in the group. Additionally, all the joints that are parents to included links are also included. This means that joints along the chain and the parent joint of the base link are included in the group-->
     <!--SUBGROUPS: Groups can also be formed by referencing to already defined group names-->
-    <group name="base">
-        <chain base_link="base_placement_odom_link" tip_link="base_footprint" />
+
+    <group name="base"> 
+        <joint name="world_joint" />
     </group>
     <group name="arm">
         <chain base_link="arm_0_link" tip_link="arm_7_link" />
-    </group>
+    </group> 
     <group name="sdh">
         <joint name="sdh_palm_joint" />
         <joint name="sdh_finger_21_joint" />
@@ -35,29 +36,39 @@
     <group name="lookat">
         <chain base_link="base_link" tip_link="lookat_focus_frame" />
     </group>
+<!--
+    <group name="base">
+        <chain base_link="base_placement_odom_link" tip_link="base_footprint" />
+    </group>
     <group name="base_arm">
         <chain base_link="base_placement_odom_link" tip_link="arm_7_link" />
     </group>
-<!--
-    <group name="focus">
-        <link name="lookat_focus_frame" />
-    </group>
 -->
+
     <!--END EFFECTOR: Purpose: Represent information about an end effector.-->
-    <end_effector name="base_ee" parent_link="base_footprint" group="base" />
     <end_effector name="arm_ee" parent_link="arm_7_link" group="sdh" />
     <end_effector name="lookat_ee" parent_link="lookat_focus_frame" group="lookat" />
     <end_effector name="torso_ee" parent_link="torso_upper_neck_tilt_link" group="torso" />
+<!--
+    <end_effector name="base_ee" parent_link="base_footprint" group="base" />
+-->
     <!--VIRTUAL JOINT: Purpose: this element defines a virtual joint between a robot link and an external frame of reference (considered fixed with respect to the robot)-->
+    <virtual_joint name="world_joint" type="planar" parent_frame="odom_combined" child_link="base_footprint" />    
+<!--
     <virtual_joint name="world_joint" type="fixed" parent_frame="odom_combined" child_link="base_placement_odom_link" />
+-->
+    
     <!--PASSIVE JOINT: Purpose: this element is used to mark joints that are not actuated-->
-    <passive_joint name="base_placement_x_joint" />
-    <passive_joint name="base_placement_y_joint" />
-    <passive_joint name="base_placement_theta_joint" />
     <passive_joint name="lookat_back_joint" />
     <passive_joint name="lookat_x_joint" />
     <passive_joint name="lookat_y_joint" />
-    <passive_joint name="lookat_z_joint" />
+    <passive_joint name="lookat_z_joint" />    
+<!--
+    <passive_joint name="base_placement_x_joint" />
+    <passive_joint name="base_placement_y_joint" />
+    <passive_joint name="base_placement_theta_joint" />
+-->
+    
     <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
     <disable_collisions link1="arm_0_link" link2="arm_1_link" reason="Adjacent" />
     <disable_collisions link1="arm_0_link" link2="arm_2_link" reason="Never" />

@@ -3,12 +3,10 @@
   <arg name="load_robot_description" default="false"/>
 
   <!-- Load universal robotic description format (URDF) -->
-  <!--param if="$(arg load_robot_description)" name="robot_description" textfile="$(find special_moveit_config)/config/description.urdf.xacro" /-->
-
-  <param if="$(arg load_robot_description)" name="robot_description" command="$(find xacro)/xacro.py '$(find special_moveit_config)/config/description.urdf.xacro'" />
+  <param name="special_robot_description" command="$(find xacro)/xacro.py '$(find special_moveit_config)/config/description.urdf.xacro'" />
       
   <!-- The semantic description that corresponds to the URDF -->
-  <param name="robot_description_semantic" textfile="$(find special_moveit_config)/config/cob3_3.srdf" />
+  <param name="special_robot_description_semantic" textfile="$(find special_moveit_config)/config/cob3_3.srdf" />
   
   <!-- Load to the parameter server yaml files -->
   <group ns="robot_description_planning">    

@@ -17,30 +17,6 @@ planner_configs:
     type: geometric::RRTstar
   BKPIECEkConfigDefault:
     type: geometric::BKPIECE
-base:
-  planner_configs:
-    - SBLkConfigDefault
-    - LBKPIECEkConfigDefault
-    - RRTkConfigDefault
-    - RRTConnectkConfigDefault
-    - ESTkConfigDefault
-    - KPIECEkConfigDefault
-    - BKPIECEkConfigDefault
-    - RRTStarkConfigDefault
-  projection_evaluator: joints(base_placement_x_joint,base_placement_y_joint)
-  longest_valid_segment_fraction: 0.05
-base_arm:
-  planner_configs:
-    - SBLkConfigDefault
-    - LBKPIECEkConfigDefault
-    - RRTkConfigDefault
-    - RRTConnectkConfigDefault
-    - ESTkConfigDefault
-    - KPIECEkConfigDefault
-    - BKPIECEkConfigDefault
-    - RRTStarkConfigDefault
-  projection_evaluator: joints(base_placement_x_joint,base_placement_y_joint)
-  longest_valid_segment_fraction: 0.05
 arm:
   planner_configs:
     - SBLkConfigDefault
@@ -52,40 +28,4 @@ arm:
     - BKPIECEkConfigDefault
     - RRTStarkConfigDefault
   projection_evaluator: joints(arm_1_joint,arm_2_joint)
-  longest_valid_segment_fraction: 0.05
-sdh:
-  planner_configs:
-    - SBLkConfigDefault
-    - LBKPIECEkConfigDefault
-    - RRTkConfigDefault
-    - RRTConnectkConfigDefault
-    - ESTkConfigDefault
-    - KPIECEkConfigDefault
-    - BKPIECEkConfigDefault
-    - RRTStarkConfigDefault
-  projection_evaluator: joints(sdh_finger_22_joint,sdh_finger_23_joint)
-  longest_valid_segment_fraction: 0.05
-torso:
-  planner_configs:
-    - SBLkConfigDefault
-    - LBKPIECEkConfigDefault
-    - RRTkConfigDefault
-    - RRTConnectkConfigDefault
-    - ESTkConfigDefault
-    - KPIECEkConfigDefault
-    - BKPIECEkConfigDefault
-    - RRTStarkConfigDefault
-  projection_evaluator: joints(torso_lower_neck_tilt_joint,torso_pan_joint)
-  longest_valid_segment_fraction: 0.05
-lookat:
-  planner_configs:
-    - SBLkConfigDefault
-    - LBKPIECEkConfigDefault
-    - RRTkConfigDefault
-    - RRTConnectkConfigDefault
-    - ESTkConfigDefault
-    - KPIECEkConfigDefault
-    - BKPIECEkConfigDefault
-    - RRTStarkConfigDefault
-  projection_evaluator: joints(torso_lower_neck_tilt_joint,torso_pan_joint)
   longest_valid_segment_fraction: 0.05
