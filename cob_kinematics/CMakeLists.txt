@@ -36,3 +36,10 @@ target_link_libraries(ik_wrapper_node planning_environment)
 rosbuild_add_executable(urdf_openrave ros/src/urdf_openrave.cpp)
 
 add_subdirectory(ikfast)
+
+rosbuild_add_library(cob3_arm_kinematics
+  ros/src/kdl_arm_kinematics_plugin.cpp
+)
+
+# rosbuild_add_executable(kinematics_node ros/src/kinematics_node.cpp) TODO: BROKEN
+

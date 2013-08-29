@@ -1,5 +1,7 @@
 <launch>
-    <include file="$(find cob_hardware_config)/common/upload_robot.launch" />
+    <include file="$(find cob_hardware_config)/common/upload_robot.launch" >
+	    <arg name="robot" value="$(env ROBOT)" />
+    </include>
     <include file="$(find cob_arm_navigation)/launch/planning_environment.xml" />
     <include file="$(find planning_environment)/launch/planning_environment_visualization_prerequisites.launch" />
     <include file="$(find cob_arm_navigation)/launch/constraint_aware_kinematics.xml" />
@@ -21,6 +23,8 @@
         <remap from="/cob3_6_arm_kinematics/get_ik" to="/cob_arm_kinematics/get_ik"/>
         <remap from="/icob_arm_kinematics/get_constraint_aware_ik" to="/cob_arm_kinematics/get_constraint_aware_ik"/>
         <remap from="/icob_arm_kinematics/get_ik" to="/cob_arm_kinematics/get_ik"/>
+        <remap from="/powerball_arm_kinematics/get_constraint_aware_ik" to="/cob_arm_kinematics/get_constraint_aware_ik"/>
+        <remap from="/powerball_arm_kinematics/get_ik" to="/cob_arm_kinematics/get_ik"/>
     </node>
     <node pkg="robot_state_publisher" type="state_publisher" name="rob_st_pub" />
 </launch>
