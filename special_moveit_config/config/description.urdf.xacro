@@ -5,8 +5,8 @@
        xmlns:xacro="http://playerstage.sourceforge.net/gazebo/xmlschema/#interface"
        name="cob3_3" >
   
-  <!-- common stuff -->
-  <include filename="$(find cob_hardware_config)/cob3-3/urdf/cob3-3-macro.urdf.xacro" />
+  <!-- bring in the robot -->
+  <include filename="$(find cob_hardware_config)/cob3-3/urdf/cob3-3.urdf.xacro" />
  
   <!-- base_placement -->
 <!--
@@ -24,10 +24,7 @@
     <child link="base_footprint"/>
   </joint>  
 -->
- 
-  <!-- composition of the robot -->
-  <xacro:cob3-3/> 
-  
+   
   <xacro:cob_lookat name="lookat" parent="torso_upper_neck_tilt_link">
     <origin xyz="${head_x} ${head_y} ${head_z}" rpy="${head_roll} ${head_pitch} ${head_yaw}" />
     <axis xyz="-1 0 0"/>
