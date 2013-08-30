@@ -9,12 +9,35 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_kinematics_special</url>
 
-  <depend package="kinematics_msgs"/>
   <depend package="roscpp"/>
+  <depend package="kdl"/>  
   <depend package="kdl_parser"/>
   <depend package="tf_conversions"/>
-  <depend package="kdl"/>
-
+  <depend package="kinematics_msgs"/>
+  
+  <depend package="pluginlib"/>
+  <depend package="geometry_msgs"/>  
+  <depend package="moveit_msgs"/>
+  <depend package="moveit_core"/>
+  <depend package="moveit_ros_planning"/>
+<!--
+  <depend package="robot_model"/>
+  <depend package="robot_state"/>
+  <depend package="kinematics_base"/>
+  <depend package="kdl_kinematics_plugin"/>
+  <depend package="rdf_loader"/>
+  <depend package="srdfdom"/>
+  <depend package="urdf_model"/>
+  <depend package="class_loader"/>
+-->
+  <export>
+      <moveit_core plugin="${prefix}/plugins.xml" />
+  </export>
+<!--
+  <export>
+    <cob_kinematics_special plugin="${prefix}/plugins.xml" />
+  </export>
+-->
 </package>
 
 
