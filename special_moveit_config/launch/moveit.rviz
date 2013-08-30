@@ -7,6 +7,7 @@ Panels:
         - /Global Options1
         - /Status1
         - /MotionPlanning1
+        - /MotionPlanning1/Scene Robot1
         - /MotionPlanning1/Planning Request1
         - /MotionPlanning1/Planned Path1
         - /TF1/Frames1
@@ -414,7 +415,7 @@ Visualization Manager:
         Goal State Color: 0; 0; 255
         Interactive Marker Size: 1
         Joint Violation Color: 255; 0; 255
-        Planning Group: torso
+        Planning Group: lookat
         Query Goal State: true
         Query Start State: false
         Show Workspace: false
@@ -704,7 +705,7 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
         Robot Alpha: 0.5
-        Show Scene Robot: true
+        Show Scene Robot: false
       Value: true
     - Class: rviz/Axes
       Enabled: false
@@ -1039,5 +1040,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1535
-  X: 57
-  Y: -4
+  X: 58
+  Y: 24
