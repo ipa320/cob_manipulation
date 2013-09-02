@@ -1,7 +1,0 @@
-<launch>
-	<arg name="robot" default="$(env ROBOT)"/>
-
-	<include file="$(find cob_arm_navigation)/launch/move_single_arm.xml">
-		<arg name="robot" value="$(arg robot)"/>
-	</include>
-</launch>
