@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<launch>
+
+	<!-- start trajectory manager -->
+	<!--<node pkg="cob_mmcontroller" type="cob_config_controller" name="arm_mmcontroller_node" ns="arm_controller" cwd="node" respawn="false" output="screen" launch-prefix="/usr/bin/gdb args" -->
+	<node pkg="cob_mmcontroller" type="cob_config_controller" name="arm_mmcontroller_node" ns="arm_controller" cwd="node" respawn="false" output="screen">
+		<remap from="/arm_controller/cart/command" to="/cmd_vel"/>
+        <param name="arm_base" value="arm_0_link" />
+        <param name="arm_end_effector" value="sdh_tip_link" />
+        <param name="default_control_mode" value="arm_base" />
+        <param name="base_to_arm_ratio" value="0.5" />
+	</node>
+	<!--<node pkg="spacenav_node" type="spacenav_node" name="spacenav_node" cwd="node" respawn="false" output="screen"/>-->
+	<node pkg="cob_mmcontroller" type="cob_cartesian_trajectories_PID" name="cob_cartesian_trajectories_PID" cwd="node" respawn="false" output="screen">
+        <param name="p_gain" value="1.0" />
+        <param name="i_gain" value="0.0002" /> <!--"0.0002" /-->
+        <param name="d_gain" value="0.001" />	
+    </node>
+
+    <node pkg="cob_mmcontroller" type="cob_spnav_filter" name="cob_spnav_filter" cwd="node" respawn="false" output="screen"/>
+
+<!--	<node pkg="cob_mmcontroller" type="cob_manipulability" name="arm_manipulability_node" ns="arm_controller" cwd="node" respawn="false" output="screen"/>
+-->
+
+</launch>
