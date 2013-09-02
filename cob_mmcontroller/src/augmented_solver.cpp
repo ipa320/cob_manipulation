@@ -19,12 +19,123 @@ namespace KDL
         maxiter(_maxiter)
     {
 		base_is_actived_ = true;
+		base_to_arm_factor_ = 1.0;
+                vel_x_ = 0.0;
+                vel_y_ = 0.0;
+                vel_theta_ = 0.0;
     }
 
 	augmented_solver::~augmented_solver()
     {
     }
 
+    void augmented_solver::setBaseVel(double vel_x, double vel_y, double vel_theta)
+    {
+        vel_x_ = vel_x;
+        vel_y_ = vel_y;
+        vel_theta_ = vel_theta;
+
+    }
+
+    void augmented_solver::ManipulabilityTask(const JntArray q_in, Eigen::Matrix<double, 10, 1> &z_in, Eigen::Matrix<double, 10 , 10> &jac_c,  Eigen::Matrix<double, 10, 10>  &W_c)
+    {
+         /* ### Definition of Manipulability additional task ###
+                Define z_in, jac_c and W_c for inverse kinematic calculation
+                Parameters: 
+                        ??
+        */
+
+        jnt2jac.JntToJac(q_in,jac);
+        Eigen::Matrix<double,6,6> prod = jac.data * jac.data.transpose();
+        float d = prod.determinant();
+        //std::cerr << "Current Manipulability: " << d << "\n";
+
+        Eigen::MatrixXd NULLSPACE = jac.data.fullPivLu().kernel();
+        
+        
+    }
+
+    void augmented_solver::BaseObstacleTask(const JntArray q_in, Eigen::Matrix<double, 10, 1> &z_in, Eigen::Matrix<double, 10 , 10> &jac_c,  Eigen::Matrix<double, 10, 10>  &W_c)
+    {
+        /* ### Definition of BaseObstacle additional task ###
+                Define z_in, jac_c and W_c for inverse kinematic calculation
+                Parameters: 
+                        ??
+        */
+        //additional jacobian
+        int i = 7;
+        z_in(i,0) = vel_x_;
+        jac_c(i,i) = 1;
+        W_c(i,i) = 0.01;
+    }
+    
+
+    void augmented_solver::JLATask(const JntArray q_in, Eigen::Matrix<double, 10, 1> &z_in, Eigen::Matrix<double, 10 , 10> &jac_c,  Eigen::Matrix<double, 10, 10>  &W_c)
+    {
+        /* ### Definition of JLA additional task ###
+                Define z_in, jac_c and W_c for inverse kinematic calculation
+                Parameters: 
+                        q_max (max joint limit for each manipulator joint)
+                        tau (begin avoidance tau rad from joint limit)
+                        W_0 (force of avoidance)
+        */
+
+        /*TODO:
+                * read Parameters out of yaml file
+                * read Joint limits out of urdf
+                * Tune parameters
+                * Test, test, test
+        */
+
+        std::vector<double> q_max;
+        q_max.push_back(1.1); //Joint 0
+        q_max.push_back(1.1); //Joint 1
+        q_max.push_back(1.1); //Joint 2
+        q_max.push_back(1.1); //Joint 3
+        q_max.push_back(1.1); //Joint 4
+        q_max.push_back(1.1); //Joint 5
+        q_max.push_back(1.1); //Joint 6
+
+        double tau = 0.1;
+        double W_0 = 0.01;
+
+        // End Parameters
+
+
+        for(unsigned int i = 0; i < 7; i++)
+        {
+                if(q_in(i) <= 0.0)
+                        z_in(i,0) = -1 * q_max.at(i);
+                else
+                        z_in(i,0) = 1 * q_max.at(i);
+        }
+        
+        //additional jacobian
+        for(unsigned int i=0 ; i<7 ; i++)
+                jac_c(i,i) = 1;
+
+        //weighting of JLA
+        for(unsigned int i=0 ; i<7 ; i++)
+        {
+                if(fabs(q_in(i)-z_in(i,0)) > tau)
+                {
+                        W_c(i,i) = 0.0;
+                }
+                else
+                {
+                        std::cerr << "near joint limit at joint: " << i << " val: " << fabs(q_in(i)-z_in(i,0)) << "\n"; 
+                        if(fabs(q_in(i)-z_in(i,0)) < 0.0)       
+                        {
+                                W_c(i,i) = W_0/4*(1+cos(3.14*(fabs(q_in(i)-z_in(i,0))/tau)));        
+                        }
+                        else
+                        {
+                                W_c(i,i) = W_0/2;
+                        }
+                }
+        }
+        
+    }
 
     int augmented_solver::CartToJnt(const JntArray& q_in, Twist& v_in, JntArray& qdot_out, JntArray& qdot_base_out)
     {
@@ -34,16 +145,21 @@ namespace KDL
         //the current joint positions "q_in"
         jnt2jac.JntToJac(q_in,jac);
 
-		//v_in.vel.z(0.01);
+	/*v_in.vel.x(0.0);
+        v_in.vel.y(0.0);
+        v_in.vel.z(-0.02);
+        v_in.rot.x(0.0);
+        v_in.rot.y(0.0);
+        v_in.rot.z(0.0);*/
 
         //Create standard platform jacobian
         Eigen::Matrix<double,6,3> jac_base;
         jac_base.setZero();
         if(base_is_actived_)
         {
-        	jac_base(0,0) = 1.0;
-        	jac_base(1,1) = 1.0;
-        	jac_base(5,2) = 1.0;
+        	jac_base(0,0) = base_to_arm_factor_;
+        	jac_base(1,1) = base_to_arm_factor_;
+        	jac_base(5,2) = base_to_arm_factor_;
         }
 
         //Put full jacobian matrix together
@@ -58,6 +174,7 @@ namespace KDL
         Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> W_v;
         W_v.resize(num_dof,num_dof);
         W_v.setZero();
+
         for(int i=0 ; i<num_dof ; i++)
         	W_v(i,i) = damping_factor;
 
@@ -71,7 +188,18 @@ namespace KDL
         	std::cout << "Weight matrix defined\n";
         //W_e.setIdentity(6,6);
 
-        //Definition of additional task for platform
+
+        //Matrices for additional tasks
+        Eigen::Matrix<double, 10, 1> z_in;
+        z_in.setZero();
+        Eigen::Matrix<double, 10 , 10> jac_c;
+        jac_c.setZero();        
+        Eigen::Matrix<double, 10, 10> W_c;
+        W_c.setZero();
+
+        //JLATask(q_in, z_in, jac_c, W_c);
+        //ManipulabilityTask(q_in, z_in, jac_c, W_c);
+        //BaseObstacleTask(q_in, z_in, jac_c, W_c);
 
 
         //Inversion
@@ -79,8 +207,9 @@ namespace KDL
         Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> damped_inversion;
         damped_inversion.resize(num_dof,num_dof);
 
-        damped_inversion = (jac_full.transpose() * W_e * jac_full) + W_v;  /* +  jac_augmented.transpose() * W_c * jac_augmented / + W_v;*/
-        if(DEBUG)
+        //damped_inversion = (jac_full.transpose() * W_e * jac_full) +  (jac_c.transpose() * W_c * jac_c) + W_v;
+        damped_inversion = (jac_full.transpose() * W_e * jac_full) + W_v;
+	if(DEBUG)
         	std::cout << "Inversion done\n";
 
         Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> q_dot_conf_control;
@@ -92,7 +221,8 @@ namespace KDL
         v_in_eigen(3,0) = v_in.rot.x();
         v_in_eigen(4,0) = v_in.rot.y();
         v_in_eigen(5,0) = v_in.rot.z();
-        q_dot_conf_control = damped_inversion.inverse() * jac_full.transpose() * W_e * v_in_eigen;
+        //q_dot_conf_control = damped_inversion.inverse() * ((jac_full.transpose() * W_e * v_in_eigen) + (jac_c.transpose() * W_c * z_in));
+	q_dot_conf_control = damped_inversion.inverse() * jac_full.transpose() * W_e * v_in_eigen;
 
         if(DEBUG)
         	std::cout << "Endergebnis: \n" << q_dot_conf_control << "\n";

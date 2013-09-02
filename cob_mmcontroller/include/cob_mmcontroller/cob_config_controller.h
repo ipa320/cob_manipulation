@@ -15,6 +15,7 @@
 
 
 #include <kdl/chainfksolverpos_recursive.hpp>
+#include <kdl/chainfksolvervel_recursive.hpp>
 #include <cob_mmcontroller/augmented_solver.h>
 #include <kdl/frames_io.hpp>
 #include <kdl/jntarray.hpp>
@@ -28,7 +29,7 @@ class cob_config_controller
 public:
 	cob_config_controller();
 private:
-	JntArray parseJointStates(std::vector<std::string> names, std::vector<double> positions);
+	JntArray parseJointStates(std::vector<std::string> names, std::vector<double> positions, std::vector<double> velocities, JntArray& q, JntArray& q_dot);
 	void cartTwistCallback(const geometry_msgs::Twist::ConstPtr& msg);
 	void baseTwistCallback(const nav_msgs::Odometry::ConstPtr& msg);
 	bool SyncMMTriggerStart(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response);
@@ -39,6 +40,7 @@ private:
 
 	ros::NodeHandle n;
 	int zeroCounter;
+	int zeroCounter_base;
 	int zeroCounterTwist;
 
 	//configuration
@@ -51,15 +53,19 @@ private:
 	KDL::Chain arm_chain;
 	KDL::JntArray VirtualQ;
 	KDL::JntArray q;
+	KDL::JntArray q_dot;
 	KDL::JntArray q_last;
 	bool started;
 	KDL::Twist extTwist;
 	ros::Time last;
 
 	KDL::Frame base_odom_;
+	KDL::Twist base_twist_;
 	KDL::Frame arm_pose_;
+	KDL::FrameVel arm_vel_;
 
 	ChainFkSolverPos_recursive *  fksolver1;
+	ChainFkSolverVel_recursive * fksolver1_vel;
 	augmented_solver * iksolver1v;//Inverse velocity solver
 
 	bool RunSyncMM;
@@ -67,6 +73,7 @@ private:
 	ros::Publisher base_pub_;  //publish topic base_controller/command
 	ros::Publisher debug_cart_pub_;
 	ros::Publisher cart_position_pub_;
+	ros::Publisher cart_twist_pub_;
 
 	ros::ServiceServer serv_start;
 	ros::ServiceServer serv_stop;

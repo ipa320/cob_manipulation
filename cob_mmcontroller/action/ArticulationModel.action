@@ -1,5 +1,4 @@
 # Define the goal
-uint32 model_id
 articulation_msgs/ModelMsg model
 duration target_duration
 ---

@@ -6,9 +6,12 @@ cob_config_controller::cob_config_controller()
 	//parsing urdf for KDL chain
 	KDL::Tree my_tree;
 	ros::NodeHandle node;
-	node.param("arm_base", arm_base_name_, std::string("arm_0_link"));
-	node.param("arm_end_effector", arm_ee_name_, std::string("arm_7_link"));
-	node.param("default_control_mode", kinematic_mode_, std::string("arm_base"));
+	double base_to_arm_ratio_ = 0.1;
+	node.param("/arm_controller/arm_mmcontroller_node/arm_base", arm_base_name_, std::string("arm_0_link"));
+	node.param("/arm_controller/arm_mmcontroller_node/arm_end_effector", arm_ee_name_, std::string("arm_7_link"));
+	node.param("/arm_controller/arm_mmcontroller_node/default_control_mode", kinematic_mode_, std::string("arm_base"));
+	node.param("/arm_controller/arm_mmcontroller_node/base_to_arm_ratio", base_to_arm_ratio_, 0.1);
+	ROS_INFO("Starting node with arm_end_effector: %s; default_control_mode: %s", arm_ee_name_.c_str(), kinematic_mode_.c_str());
 
 	std::string robot_desc_string;
 	node.param("/robot_description", robot_desc_string, string());
@@ -17,11 +20,18 @@ cob_config_controller::cob_config_controller()
 			  return;
 	}
 	my_tree.getChain("base_link",arm_ee_name_, arm_base_chain);
+	if(arm_base_chain.getNrOfJoints() == 0)
+	{
+		ROS_ERROR("Specified arm_end_effector doesn't seem to exist in urdf description");
+		exit(0);
+	}
 	my_tree.getChain(arm_base_name_,arm_ee_name_, arm_chain);
 
 	//Initializing configuration control solver
 	iksolver1v = new augmented_solver(arm_base_chain);//Inverse velocity solver
 	fksolver1 = new ChainFkSolverPos_recursive(arm_base_chain);
+	fksolver1_vel = new ChainFkSolverVel_recursive(arm_base_chain);
+	iksolver1v->setBaseToArmFactor(base_to_arm_ratio_);
 
 	//Initializing communication
 
@@ -31,22 +41,25 @@ cob_config_controller::cob_config_controller()
 
 	ROS_INFO("Creating publishers");
 	arm_pub_ = n.advertise<brics_actuator::JointVelocities>("/arm_controller/command_vel",1);
-	base_pub_ = n.advertise<geometry_msgs::Twist>("/base_controller/command",1);
+	base_pub_ = n.advertise<geometry_msgs::Twist>("/base_controller/command_direct",1);
 	debug_cart_pub_ = n.advertise<geometry_msgs::PoseArray>("/arm_controller/debug/cart",1);
 	cart_position_pub_ = n.advertise<geometry_msgs::PoseStamped>("/arm_controller/cart_state",1);
+	cart_twist_pub_ = n.advertise<geometry_msgs::Twist>("/arm_controller/cart_twist_state",1);
 
 	serv_start = n.advertiseService("/mm/start", &cob_config_controller::SyncMMTriggerStart, this);
 	serv_stop = n.advertiseService("/mm/stop", &cob_config_controller::SyncMMTriggerStop, this);
 
 	ROS_INFO("Running cartesian velocity controller.");
 	zeroCounter = 0;
+    zeroCounter_base = 0;
 	zeroCounterTwist = 0;
 }
 
 
-JntArray cob_config_controller::parseJointStates(std::vector<std::string> names, std::vector<double> positions)
+JntArray cob_config_controller::parseJointStates(std::vector<std::string> names, std::vector<double> positions, std::vector<double> velocities, JntArray& q, JntArray& q_dot)
 {
 	JntArray q_temp(7);
+	JntArray q_dot_temp(7);
 	int count = 0;
 	bool parsed = false;
 	for(unsigned int i = 0; i < names.size(); i++)
@@ -54,6 +67,7 @@ JntArray cob_config_controller::parseJointStates(std::vector<std::string> names,
 			if(strncmp(names[i].c_str(), "arm_", 4) == 0)
 			{
 				q_temp(count) = positions[i];
+				q_dot_temp(count) = velocities[i];
 				count++;
 				parsed = true;
 			}
@@ -74,6 +88,8 @@ JntArray cob_config_controller::parseJointStates(std::vector<std::string> names,
 		std::cout << VirtualQ(0) << "\n";
 
 	}
+	q = q_temp;
+	q_dot = q_dot_temp;
 	return q_temp;
 }
 
@@ -91,6 +107,7 @@ void cob_config_controller::cartTwistCallback(const geometry_msgs::Twist::ConstP
 void cob_config_controller::baseTwistCallback(const nav_msgs::Odometry::ConstPtr& msg)
 {
 	tf::PoseMsgToKDL(msg->pose.pose, base_odom_);
+	tf::TwistMsgToKDL(msg->twist.twist, base_twist_);
 }
 
 
@@ -168,22 +185,53 @@ void cob_config_controller::sendVel(JntArray q_t, JntArray q_dot, JntArray q_dot
 	}
 
 	//send to base
-	geometry_msgs::Twist cmd;
+	bool nonzero_base = false;
+    geometry_msgs::Twist cmd;
 	if(q_dot_base(0) != 0.0 || q_dot_base(1) != 0.0 || q_dot_base(2) != 0.0)
 	{
 		cmd.linear.x = q_dot_base(0);
 		cmd.linear.y = q_dot_base(1);
 		cmd.angular.z = q_dot_base(2);
-		base_pub_.publish(cmd);
+		nonzero_base = true;
+        zeroCounter_base = 0;
 	}
+    else
+    {
+		cmd.linear.x = 0.0;
+		cmd.linear.y = 0.0;
+		cmd.angular.z = 0.0;
+    }
+    if(zeroCounter_base <= 4)
+    {
+        zeroCounter_base++;
+        if(!nonzero_base)
+            std::cout << "Sending additional zero twist to base\n";
+        nonzero_base = true;
+    }
+    if(!started)
+        nonzero = true;
+    if(nonzero_base)
+    {
+        base_pub_.publish(cmd);
+    }
 }
 void cob_config_controller::sendCartPose()
 {
 	KDL::Frame F_current;
-	F_current = arm_pose_ * base_odom_;
+	//KDL::Frame F_test;
+	F_current = base_odom_ * arm_pose_;
+	//std::cout << "Test fwcalc: " << F_current.p.x() << ", " << F_current.p.y() << " | " << arm_pose_.p.x() + base_odom_.p.x() << ", " << arm_pose_.p.y() + base_odom_.p.y() << "\n";
+	//F_current.p.x(arm_pose_.p.x() + base_odom_.p.x());
+	//F_current.p.y(arm_pose_.p.y() + base_odom_.p.y());
 	geometry_msgs::PoseStamped pose;
 	tf::PoseKDLToMsg(F_current, pose.pose);
+	pose.header.stamp = ros::Time::now();
 	cart_position_pub_.publish(pose);
+
+	geometry_msgs::Twist twist;
+	KDL::Twist twist_sum = arm_vel_.GetTwist() + base_twist_;
+	tf::TwistKDLToMsg(twist_sum, twist);
+	cart_twist_pub_.publish(twist);
 }
 
 void cob_config_controller::controllerStateCallback(const sensor_msgs::JointState::ConstPtr& msg)
@@ -192,12 +240,15 @@ void cob_config_controller::controllerStateCallback(const sensor_msgs::JointStat
 	JntArray q_dot_base(3);
 	std::vector<std::string> names = msg->name;
 	std::vector<double> positions = msg->position;
-	q = parseJointStates(names,positions);
+	std::vector<double> velocities = msg->velocity;
+	q = parseJointStates(names,positions,velocities,q,q_dot);
 	fksolver1->JntToCart(q, arm_pose_);
+	KDL::JntArrayVel q_dot_array(q,q_dot);
+	fksolver1_vel->JntToCart(q_dot_array, arm_vel_); 
 	sendCartPose();
 	if(RunSyncMM)
 	{
-		if(extTwist.vel.x() != 0.0 || extTwist.vel.y() != 0.0 || extTwist.vel.z() != 0.0)
+		if(extTwist.vel.x() != 0.0 || extTwist.vel.y() != 0.0 || extTwist.vel.z() != 0.0 || extTwist.rot.x() != 0.0 || extTwist.rot.y() != 0.0 || extTwist.rot.z() != 0.0)
 		{
 			zeroCounterTwist = 0;
 			int ret = iksolver1v->CartToJnt(q, extTwist, q_out, q_dot_base);

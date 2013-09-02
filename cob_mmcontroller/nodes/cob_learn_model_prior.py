@@ -214,7 +214,7 @@ def main():
         cob_learn_model_prior()
         rospy.spin()
 
-    except rospy.ROSInterruptException as e: rospy.signalShutdown(str(e))
+    except rospy.ROSInterruptException as e: rospy.signal_shutdown(str(e))
     
 if __name__ == '__main__':
     main()

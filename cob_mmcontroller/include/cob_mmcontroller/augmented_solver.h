@@ -43,6 +43,14 @@ namespace KDL
         virtual int CartToJnt(const JntArray& q_init, const FrameVel& v_in, JntArrayVel& q_out){return -1;};
 
         void setAugmentedJacobian(Eigen::Matrix<double,6,Eigen::Dynamic> _jac_augmented);
+
+        void JLATask(const JntArray q_in, Eigen::Matrix<double, 10, 1> &z_in, Eigen::Matrix<double, 10 , 10> &jac_c,  Eigen::Matrix<double, 10, 10> &W_c);
+        void ManipulabilityTask(const JntArray q_in, Eigen::Matrix<double, 10, 1> &z_in, Eigen::Matrix<double, 10 , 10> &jac_c,  Eigen::Matrix<double, 10, 10> &W_c);
+        void BaseObstacleTask(const JntArray q_in, Eigen::Matrix<double, 10, 1> &z_in, Eigen::Matrix<double, 10 , 10> &jac_c,  Eigen::Matrix<double, 10, 10> &W_c);
+        void setBaseVel(double vel_x, double vel_y, double vel_theta);
+
+
+	void setBaseToArmFactor(double base_to_arm_factor){ base_to_arm_factor_ = base_to_arm_factor; }
     private:
         const Chain chain;
         ChainJntToJacSolver jnt2jac;
@@ -55,6 +63,12 @@ namespace KDL
         double eps;
         int maxiter;
         bool base_is_actived_;
+	    double base_to_arm_factor_;
+
+        double vel_x_;
+        double vel_y_;
+        double vel_theta_;
+
     };
 }
 #endif

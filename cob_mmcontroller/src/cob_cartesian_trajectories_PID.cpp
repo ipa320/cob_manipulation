@@ -9,6 +9,7 @@ cob_cartesian_trajectories::cob_cartesian_trajectories() : as_model_(n, "moveMod
     ROS_INFO("Starting PID controller with P: %e, I: %e, D: %e", p_gain_, i_gain_, d_gain_);
     
     cart_state_sub_ = n.subscribe("/arm_controller/cart_state", 1, &cob_cartesian_trajectories::cartStateCallback, this);
+    cart_twist_state_sub_ = n.subscribe("/arm_controller/cart_twist_state", 1, &cob_cartesian_trajectories::cartTwistStateCallback, this);
     joint_state_sub_ = n.subscribe("/joint_states", 1, &cob_cartesian_trajectories::jointStateCallback, this);
     cart_command_pub = n.advertise<geometry_msgs::Twist>("/arm_controller/cart_command",1);
     debug_cart_pub_ = n.advertise<geometry_msgs::PoseArray>("/mm/debug",1);
@@ -34,10 +35,9 @@ cob_cartesian_trajectories::cob_cartesian_trajectories() : as_model_(n, "moveMod
     tf::TransformBroadcaster br;
     tf::TransformListener listener;
         
-    //int axis_center;    // axis of F_handle pointing to the rotational axis of articulation
-    
     bHandle = false;
     debug = true;
+
 }
 
 
@@ -265,9 +265,21 @@ bool cob_cartesian_trajectories::start() //TODO request->model.params // start
         trajectory_points.clear();
         result_.exit_code = 1;
         Error_last = Twist::Zero();
+        Error_last2 = Twist::Zero();
         return true;
     }    
 }
+
+void cob_cartesian_trajectories::cartTwistStateCallback(const geometry_msgs::Twist::ConstPtr& msg)
+{
+    geometry_msgs::Twist aux_twist;
+    aux_twist.linear = msg->linear;
+    aux_twist.angular = msg->angular;
+    KDL::Twist aux_twist_KDL;
+    tf::TwistMsgToKDL(aux_twist, aux_twist_KDL);
+    vec_vel_ist.push_back(aux_twist_KDL);
+}
+
 
 //Pose is global pose with odometry
 void cob_cartesian_trajectories::cartStateCallback(const geometry_msgs::PoseStamped::ConstPtr& msg)
@@ -328,6 +340,54 @@ void cob_cartesian_trajectories::stopTrajectory()
     Error = Twist::Zero();
     Error_sum = Twist::Zero();
     Error_dot = Twist::Zero();
+
+    //print error vector
+    std::cout << "error vector:" << "\n";
+    for(std::vector<KDL::Twist>::iterator it = vec_err_p.begin(); it != vec_err_p.end(); ++it) {
+        std::cout << *it << ", ";
+    }
+    std::cout << "\n\n\n\n\n\n\n\n";
+    sleep(2);
+
+    //print error vector
+    std::cout << "tb error vector:" << "\n";
+    for(std::vector<KDL::Twist>::iterator it = vec_err_tb.begin(); it != vec_err_tb.end(); ++it) {
+        std::cout << *it << ", ";
+    }
+    std::cout << "\n\n\n\n\n\n\n\n";
+    sleep(2);
+
+    //print error vector
+    std::cout << "vel ist vector:" << "\n";
+    for(std::vector<KDL::Twist>::iterator it = vec_vel_ist.begin(); it != vec_vel_ist.end(); ++it) {
+        std::cout << *it << ", ";
+    }
+    std::cout << "\n\n\n\n\n\n\n\n";
+    sleep(2);
+
+    ////print error vector
+    //std::cout << "vel ist vector:" << "\n";
+    //for(std::vector<KDL::Twist>::iterator it = vec_vel_ist.begin(); it != vec_vel_ist.end(); ++it) {
+    //    std::cout << *it << ", ";
+    //}
+    //std::cout << "\n\n\n\n\n\n\n\n";
+    //sleep(2);
+
+    //print error vector
+    std::cout << "pos ist vector:" << "\n";
+    for(std::vector<KDL::Vector>::iterator it = vec_pos_ist.begin(); it != vec_pos_ist.end(); ++it) {
+        std::cout << *it << ", ";
+    }
+    std::cout << "\n\n\n\n\n\n\n\n";
+    sleep(2);
+
+    //print error vector
+    std::cout << "pos soll vector:" << "\n";
+    for(std::vector<KDL::Vector>::iterator it = vec_pos_soll.begin(); it != vec_pos_soll.end(); ++it) {
+        std::cout << *it << ", ";
+    }
+    std::cout << "\n\n\n\n\n\n\n\n";
+    sleep(2);
 }
 
 geometry_msgs::Twist cob_cartesian_trajectories::getTwist(double dt, Frame F_current)
@@ -342,6 +402,8 @@ geometry_msgs::Twist cob_cartesian_trajectories::getTwist(double dt, Frame F_cur
     if(!bStarted)
     {
         F_EE_start = F_current;
+        F_last_ist = F_current;
+        F_last_soll = F_current;
         F_EE_start.M.GetRPY(last_rpy_angles["target_roll"], last_rpy_angles["target_pitch"], last_rpy_angles["target_yaw"]);
         F_EE_start.M.GetRPY(last_rpy_angles["current_roll"], last_rpy_angles["current_pitch"], last_rpy_angles["current_yaw"]);
         bStarted = true;
@@ -411,7 +473,13 @@ void cob_cartesian_trajectories::getPriTarget(double dt, KDL::Frame &F_target)
     
     length = getParamValue("action");
     
-    partial_length = length * (dt/targetDuration);
+    partial_length = length * (1. - cos(PI*(dt/(targetDuration-1.))))/2.;
+    if (dt > (targetDuration-1.))
+            partial_length = length;
+
+    //partial_length = length * (dt/targetDuration);
+    
+    std::cout << "partial length: " << partial_length << "\n";
     
     // calculate F_track
     F_track.p.z(partial_length);
@@ -531,19 +599,17 @@ void cob_cartesian_trajectories::getRotTarget(double dt, KDL::Frame &F_target)
     angle = getParamValue("action");
 
     // calculating partial_angle
-    partial_angle = angle * (dt/targetDuration);
+    partial_angle = angle * (1. - cos(PI*(dt/(targetDuration-1.))))/2.;
+    if (dt > (targetDuration-1.))
+            partial_angle = angle;
+    //partial_angle = angle * (dt/targetDuration);
 
     // creating trajectory frame w.r.t. the track_start frame
     // orientation is like sdh_tip_link frame
-    F_track.p[axis_center] = rot_radius*(1-cos(partial_angle)) * opening_side;
-    F_track.p[2] = -rot_radius*sin(partial_angle) * opening_side;
+    F_track.p[0] = rot_radius*(1-cos(partial_angle));
+    F_track.p[2] = rot_radius*sin(partial_angle);
 
-    if (axis_center == 0)
-        F_track.M.DoRotY(-partial_angle);
-    else if (axis_center == 1)
-        F_track.M.DoRotX(partial_angle);
-    else
-        ROS_ERROR("Wrong rotation axis in F_track");
+    F_track.M.DoRotY(partial_angle);
 
     // transformation of trajectory frame into base_link frame ??? map frame
     F_target.p = F_track_start*F_track.p;       // transform F_Track in F_track_start 
@@ -580,8 +646,6 @@ void cob_cartesian_trajectories::getRotStart(KDL::Frame &F_handle)
     Eigen::Vector3d articulation_O;
     Eigen::Vector3d handle_O;
     Eigen::Vector3d perpendicular;
-    Eigen::Vector3d perpendicular_EE;
-    Eigen::Vector3d trans_ee_art_EE;
 
     Eigen::Hyperplane<double, 3> handle_plane;
     
@@ -589,7 +653,22 @@ void cob_cartesian_trajectories::getRotStart(KDL::Frame &F_handle)
 
     //tf transform
     tf::Transform transform_handle;
-    
+    tf::StampedTransform transform_map_base;
+
+    // lookup transform from map to base_link
+    try
+    {
+        listener.lookupTransform("/map", "/base_link", ros::Time(0), transform_map_base);
+    }
+    catch (tf::TransformException ex)
+    {
+        ROS_ERROR("%s",ex.what());
+    }
+    // convert to KDL::Frame
+    KDL::Frame F_base_link;
+    tf::TransformTFToKDL(transform_map_base, F_base_link);
+    debug ? (std::cout << "F_base_link" <<  F_base_link << "\n" ) : (std::cout << ""); //debug
+
     // set up articulation frame
     F_articulation.p.x(getParamValue("rot_center.x"));
     F_articulation.p.y(getParamValue("rot_center.y"));
@@ -630,9 +709,6 @@ void cob_cartesian_trajectories::getRotStart(KDL::Frame &F_handle)
     if (perpendicular.norm() < 1e-6)
         ROS_ERROR("Normals are parallel");
 
-    std::cout << "perdendicular norm" << "\n" <<  perpendicular.norm() << "\n"; //debug
-    std::cout << "perpendicular normalized" << "\n" <<  perpendicular/perpendicular.norm() << "\n"; //debug
-
     // translation from EE start to articulation in global coord
     KDL::Vector trans_ee_art_KDL = F_articulation.p - F_EE_start.p;
     std::cout << "trans_ee_art_KDL" << "\n" <<  trans_ee_art_KDL << "\n"; //debug
@@ -644,55 +720,26 @@ void cob_cartesian_trajectories::getRotStart(KDL::Frame &F_handle)
     // transform perpendicular into EE frame
     KDL::Vector perpendicular_EE_KDL = F_EE_start.M.Inverse()*KDL::Vector(perpendicular[0], perpendicular[1], perpendicular[2]);
     std::cout << "perpendicular_EE_KDL" << "\n" <<  perpendicular_EE_KDL << "\n"; //debug
-    vector3dKDLToEigen(perpendicular_EE_KDL, perpendicular_EE);
-    std::cout << "perpendicular_EE" << "\n" <<  perpendicular_EE << "\n"; //debug
 
     // get actual rot_radius
-    rot_radius_actual = abs(dot(trans_ee_art_KDL_EE, perpendicular_EE_KDL));
+    rot_radius_actual = dot(trans_ee_art_KDL_EE, perpendicular_EE_KDL);
     std::cout << "rot_radius_actual" << "\n" <<  rot_radius_actual << "\n"; //debug
 
-    // normalize trans_ee_art_KDL(_EE)
-    trans_ee_art_KDL.Normalize();
-    trans_ee_art_KDL_EE.Normalize();
-
-    // get axis pointing on articulation --> use maxCoeff of absolute x and y axes 
-    vector3dKDLToEigen(trans_ee_art_KDL_EE, trans_ee_art_EE);
-    // take only x and y axes 
-    Eigen::Vector2d xORy = Eigen::Vector2d(abs(trans_ee_art_EE[0]), abs(trans_ee_art_EE[1]));
-    xORy.maxCoeff(&axis_no);  // index correlates with axis
-    std::cout << "axis_no" << "\n" << axis_no << "\n"; //debug
-
-    // check if articulation origin is on the right (positive) or left (negative) side w.r.t. the handle frame
-    // meaning the current door is opening on the left or the right side
-    // and check and set direction of perpendicular depending on this
-    if (trans_ee_art_EE[axis_no] > 0.0)
-    {
-        opening_side = 1.0;
-        if (sign(trans_ee_art_EE[axis_no]) != sign(perpendicular_EE[axis_no]))
-            perpendicular *= (-1.0);
-            perpendicular_EE *= (-1.0);
-    }
-    else
-    {
-        opening_side = -1.0;
-        if (sign(trans_ee_art_EE[axis_no]) == sign(perpendicular_EE[axis_no]))
-            perpendicular *= (-1.0);
-            perpendicular_EE *= (-1.0);
-    }
-    std::cout << "opening side" << "\n" <<  opening_side << "\n"; //debug
-    std::cout << "perpendicular" << "\n" <<  perpendicular << "\n"; //debug
-    std::cout << "perpendicular_EE" << "\n" <<  perpendicular_EE << "\n"; //debug
-
-    // collect vectors for F_handle orientation
-    vector3dEigenToKDL(perpendicular, handle_rot[axis_no]);
+    // set direction of perpendicular and set as handle_rot x-axis
+    if (rot_radius_actual < 0.0)
+        perpendicular *= (-1.0);
+    vector3dEigenToKDL(perpendicular, handle_rot[0]);
+        
+    // absolute value
+    rot_radius_actual = abs(rot_radius_actual);
 
     // check direction of articulation_Z and set up second vector of handle_rot (parallel to articulation_Z)
-    std::cout << "other axis" << "\n" << abs(axis_no-1) << "\n"; //debug
-    KDL::Vector articulation_Z_KDL_EE = F_EE_start*articulation_Z_KDL;
-    if (articulation_Z_KDL_EE[abs(axis_no-1)] < 0.0)
-        handle_rot[abs(axis_no-1)] = (-1.0)*articulation_Z_KDL;
+    KDL::Vector articulation_Z_KDL_BL = F_base_link.M.Inverse()*articulation_Z_KDL;
+    Eigen::Vector3d(abs(articulation_Z_KDL_BL.x()), abs(articulation_Z_KDL_BL.y()), abs(articulation_Z_KDL_BL.z())).maxCoeff(&axis_no);
+    if (articulation_Z_KDL_BL[axis_no] < 0.0)
+        handle_rot[1] = (-1.0)*articulation_Z_KDL;
     else
-        handle_rot[abs(axis_no-1)] = articulation_Z_KDL;
+        handle_rot[1] = articulation_Z_KDL;
     
     // calculate cross produkt to get handle_rot z-axis 
     handle_rot[2] = vector3dEigenToKDL(vector3dKDLToEigen(handle_rot[0]).cross(vector3dKDLToEigen(handle_rot[1])));
@@ -724,7 +771,6 @@ void cob_cartesian_trajectories::getRotStart(KDL::Frame &F_handle)
     }
     rot_radius = rot_radius_actual;
 
-    axis_center = axis_no;
     bHandle = false;
 }
 
@@ -790,23 +836,56 @@ geometry_msgs::Twist cob_cartesian_trajectories::PIDController(const double dt, 
     cout << "Error_dot twist: " << "\n" << Error_dot << "\n";
     
     // create twist
+    p_gain_ = 1.5;
     twist.linear.x = p_gain_*Error.vel.x() + i_gain_*Error_sum.vel.x() + d_gain_*Error_dot.vel.x();
+    p_gain_ = 1.5;
     twist.linear.y = p_gain_*Error.vel.y() + i_gain_*Error_sum.vel.y() + d_gain_*Error_dot.vel.y(); 
+    p_gain_ = 1.;
     twist.linear.z = p_gain_*Error.vel.z() + i_gain_*Error_sum.vel.z() + d_gain_*Error_dot.vel.z();
+    p_gain_ = 1.;
     twist.angular.x = -(p_gain_*Error.rot.x() + i_gain_*Error_sum.rot.x() + d_gain_*Error_dot.rot.x());
+    p_gain_ = 1.;
     twist.angular.y = -(p_gain_*Error.rot.y() + i_gain_*Error_sum.rot.y() + d_gain_*Error_dot.rot.y());
+    p_gain_ = 1.;
     twist.angular.z = p_gain_*Error.rot.z() + i_gain_*Error_sum.rot.z() + d_gain_*Error_dot.rot.z();
 
     pubTrack(1, ros::Duration(0.5), F_target);
     pubTrack(9, ros::Duration(0.5), F_current);
     pubTwistMarkers(ros::Duration(1.0), twist, F_current);
     
+    Error_last2.vel.x(Error_last.vel.x());
+    Error_last2.vel.y(Error_last.vel.y());
+    Error_last2.vel.z(Error_last.vel.z());
+    Error_last2.rot.x(Error_last.rot.x());
+    Error_last2.rot.y(Error_last.rot.y());
+    Error_last2.rot.z(Error_last.rot.z());
+
     Error_last.vel.x(Error.vel.x());
     Error_last.vel.y(Error.vel.y());
     Error_last.vel.z(Error.vel.z());
     Error_last.rot.x(Error.rot.x());
     Error_last.rot.y(Error.rot.y());
     Error_last.rot.z(Error.rot.z());
+
+
+    vec_frames.push_back(F_target);
+    if((int)vec_frames.size() > 30){
+        vec_err_tb.push_back(KDL::diff(*vec_frames.begin(), F_current, 1.));
+        vec_frames.erase(vec_frames.begin());
+    }
+
+    // target and current position vector
+    vec_pos_ist.push_back(F_current.p);
+    vec_pos_soll.push_back(F_target.p);
+
+    // vector of velocities
+    //vec_vel_ist.push_back(KDL::diff(F_current, F_last_ist, dt));
+    //vec_vel_soll.push_back(KDL::diff(F_target, F_last_soll, dt));
+    //F_last_ist = F_current;
+    //F_last_soll = F_target;
+
+    // add error to vector
+    vec_err_p.push_back(Error);
 
     // broadcast twist
     tf::Transform transform_twist;
