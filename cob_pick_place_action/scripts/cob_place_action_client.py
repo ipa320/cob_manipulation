@@ -3,6 +3,9 @@
 import roslib; roslib.load_manifest('cob_pick_place_action')
 import rospy
 import actionlib
+import random
+from math import pi
+from tf.transformations import *
 
 from geometry_msgs.msg import PoseStamped
 import cob_pick_place_action.msg 
@@ -24,13 +27,14 @@ def cob_place_action_client():
 	#goal.object_name = "instantsoup"
 	goal.destination.header.stamp = rospy.Time.now()
 	goal.destination.header.frame_id = "base_footprint"
-	goal.destination.pose.position.x = -0.7
-	goal.destination.pose.position.y = -0.3  
-	goal.destination.pose.position.z =  0.85
-	goal.destination.pose.orientation.w = 1.0
-	goal.destination.pose.orientation.x = 0.0
-	goal.destination.pose.orientation.y = 0.0
-	goal.destination.pose.orientation.z = 0.0
+	#goal.destination.pose.position.x = random.uniform(-0.8, -0.6)
+	#goal.destination.pose.position.y = random.uniform(-0.3,  0.3)
+	#goal.destination.pose.position.z = random.uniform( 0.8,  1.1)
+	#goal.destination.pose.orientation.x, goal.destination.pose.orientation.y, goal.destination.pose.orientation.z, goal.destination.pose.orientation.w = quaternion_from_euler(random.uniform(-pi/2, pi/2),random.uniform(-pi/2, pi/2),random.uniform(-pi/2, pi/2)) 
+	goal.destination.pose.position.x = -0.7 
+	goal.destination.pose.position.y = 0.0  
+	goal.destination.pose.position.z = 0.85
+	goal.destination.pose.orientation.x, goal.destination.pose.orientation.y, goal.destination.pose.orientation.z, goal.destination.pose.orientation.w = quaternion_from_euler(0,0,0) 
 	
 	
 	# Sends the goal to the action server.
