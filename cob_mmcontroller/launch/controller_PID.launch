@@ -4,7 +4,7 @@
     <!-- start trajectory manager -->
     <!--<node pkg="cob_mmcontroller" type="cob_config_controller" name="arm_mmcontroller_node" ns="arm_controller" cwd="node" respawn="false" output="screen" launch-prefix="/usr/bin/gdb args" -->
     <node pkg="cob_mmcontroller" type="cob_config_controller" name="arm_mmcontroller_node" ns="arm_controller" cwd="node" respawn="false" output="screen">
-        <remap from="/arm_controller/cart/command" to="/cmd_vel"/>
+        <!--remap from="/arm_controller/cart_command" to="/cmd_vel"/-->
         <param name="arm_base" value="arm_0_link" />
         <param name="arm_end_effector" value="sdh_tip_link" />
         <param name="default_control_mode" value="arm_base" />
