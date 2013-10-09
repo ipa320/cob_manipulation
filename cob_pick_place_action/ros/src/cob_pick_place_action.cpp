@@ -49,7 +49,33 @@ void CobPickPlaceActionServer::initialize()
 {
 	pub_co = nh_.advertise<moveit_msgs::CollisionObject>("collision_object", 10);
 	pub_ao = nh_.advertise<moveit_msgs::AttachedCollisionObject>("attached_collision_object", 10);
-
+	
+	//ToDo: Generate this mapping from GraspTable.txt?
+	map_classid_to_classname[11]="sauerkraut";
+	map_classid_to_classname[13]="fruittea";
+	map_classid_to_classname[16]="orangemarmelade";
+	map_classid_to_classname[18]="yellowsaltcube";
+	map_classid_to_classname[27]="hotpot";
+	map_classid_to_classname[30]="bluesaltcube";
+	map_classid_to_classname[31]="yellowsaltcylinder";
+	map_classid_to_classname[44]="knaeckebrot";
+	map_classid_to_classname[46]="liviosunfloweroil";
+	map_classid_to_classname[50]="instantsoup";
+	map_classid_to_classname[52]="hotpot2";
+	map_classid_to_classname[57]="mueslibars";
+	map_classid_to_classname[65]="fruitdrink";
+	map_classid_to_classname[99]="ruskwholemeal";
+	map_classid_to_classname[101]="koalacandy";
+	map_classid_to_classname[103]="instanttomatosoup";
+	map_classid_to_classname[106]="bakingsoda";
+	map_classid_to_classname[107]="sweetener";
+	map_classid_to_classname[109]="chocoicing";
+	map_classid_to_classname[119]="tomatoherbsauce";
+	map_classid_to_classname[122]="peanuts";
+	map_classid_to_classname[126]="herbsalt";
+	map_classid_to_classname[128]="bathdetergent";
+	
+	
 	static const std::string COB_PICKUP_ACTION_NAME = "cob_pick_action";
 	as_pick.reset(new actionlib::SimpleActionServer<cob_pick_place_action::CobPickAction>(nh_, COB_PICKUP_ACTION_NAME, boost::bind(&CobPickPlaceActionServer::pick_goal_cb, this, _1), false));
 	as_pick->start();
@@ -92,7 +118,7 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 	ROS_DEBUG_STREAM(*(goal.get()));
 
 	///Updating the object collision_object
-	insertObject(goal->object_name, goal->object_pose);
+	//insertObject(goal->object_name, goal->object_pose);
 	
 	///Get grasps from corresponding GraspTable
 	std::vector<manipulation_msgs::Grasp> grasps;
@@ -113,14 +139,14 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 	else if(goal->grasp_database=="OpenRAVE")
 	{
         ROS_INFO("Using OpenRAVE grasp table");
-		fillGraspsOR(goal->object_name, goal->grasp_id, goal->object_pose, grasps);
+		fillGraspsOR(goal->object_id, goal->grasp_id, goal->object_pose, grasps);
 	}
 	else if(goal->grasp_database=="ALL")
 	{
         ROS_INFO("Using all available databases");
 		std::vector<manipulation_msgs::Grasp> grasps_OR, grasps_KIT;
 		fillAllGraspsKIT(goal->object_id, goal->object_pose, grasps_KIT);
-		fillGraspsOR(goal->object_name, goal->grasp_id, goal->object_pose, grasps_OR);
+		fillGraspsOR(goal->object_id, goal->grasp_id, goal->object_pose, grasps_OR);
 		
 		grasps = grasps_KIT;
 		std::vector<manipulation_msgs::Grasp>::iterator it = grasps.end();
@@ -192,24 +218,39 @@ void CobPickPlaceActionServer::place_goal_cb(const cob_pick_place_action::CobPla
 		return; 
 	}
 	
+	if(goal->destinations.empty())
+	{
+		ROS_ERROR("Object %s cannot be placed", goal->object_name.c_str());
+		result.success.data = false;
+		response = "No destinations given";
+		as_place->setAborted(result, response);
+		last_grasp_valid = false;
+		last_object_name.clear();
+		return; 
+	}
+	
 	std::vector<manipulation_msgs::PlaceLocation> locations;
-	manipulation_msgs::PlaceLocation place_location;
 	
-	place_location.id = "Last_"+goal->object_name+"_grasp";
-	place_location.post_place_posture = last_grasp.pre_grasp_posture;
-	place_location.place_pose = goal->destination;
-	place_location.approach.direction.header.frame_id = "/base_footprint";
-	place_location.approach.direction.vector.z = -1.0;
-	place_location.approach.min_distance = 0.1;
-	place_location.approach.desired_distance = 0.15;
-	place_location.retreat.direction.header.frame_id = "/base_footprint";
-	place_location.retreat.direction.vector.z = 1.0;
-	place_location.retreat.min_distance = 0.1;
-	place_location.retreat.desired_distance = 0.15;
-	
-	locations.push_back(place_location);
+	for(unsigned int i=0; i<goal->destinations.size(); i++)
+	{
+		manipulation_msgs::PlaceLocation place_location;
+		
+		place_location.id = "Last_"+goal->object_name+"_grasp";
+		place_location.post_place_posture = last_grasp.pre_grasp_posture;
+		place_location.place_pose = goal->destinations[i];
+		place_location.approach.direction.header.frame_id = "/base_footprint";
+		place_location.approach.direction.vector.z = -1.0;
+		place_location.approach.min_distance = 0.1;
+		place_location.approach.desired_distance = 0.15;
+		place_location.retreat.direction.header.frame_id = "/base_footprint";
+		place_location.retreat.direction.vector.z = 1.0;
+		place_location.retreat.min_distance = 0.1;
+		place_location.retreat.desired_distance = 0.15;
+		
+		locations.push_back(place_location);
+	}
 
-	group.setPlanningTime(60.0);	//default is 5.0 s
+	group.setPlanningTime(300.0);	//default is 5.0 s
 	
 	success = group.place(goal->object_name, locations);
 
@@ -441,13 +482,21 @@ void CobPickPlaceActionServer::convertGraspKIT(Grasp* current_grasp, geometry_ms
 
 
 
-void CobPickPlaceActionServer::fillGraspsOR(std::string object_name, unsigned int grasp_id, geometry_msgs::PoseStamped object_pose, std::vector<manipulation_msgs::Grasp> &grasps)
+void CobPickPlaceActionServer::fillGraspsOR(unsigned int objectClassId, unsigned int grasp_id, geometry_msgs::PoseStamped object_pose, std::vector<manipulation_msgs::Grasp> &grasps)
 {
 	bool finished_before_timeout;
 	grasps.clear();
 	
+	//ToDo: resolve object_class_name from objectClassId
+	if(map_classid_to_classname.find(objectClassId) == map_classid_to_classname.end())
+	{
+		ROS_ERROR("Unable to resolve class_name for class_id %d", objectClassId);
+		return;
+	}
+	
+	
 	cob_grasp_generation::QueryGraspsGoal goal_query_grasps;
-	goal_query_grasps.object_name = object_name;
+	goal_query_grasps.object_name = map_classid_to_classname.find(objectClassId)->second;
 	goal_query_grasps.grasp_id = grasp_id;
 	goal_query_grasps.num_grasps = 0;
 	goal_query_grasps.threshold = 0;//0.012;

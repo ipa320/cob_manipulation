@@ -5,7 +5,7 @@ uint32 object_id
 
 string object_name
 
-geometry_msgs/PoseStamped destination
+geometry_msgs/PoseStamped[] destinations
 
 ---
 ##########################################################
