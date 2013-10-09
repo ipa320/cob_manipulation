@@ -54,11 +54,15 @@ def cob_pick_action_client():
 	#goal.object_name = "instanttomatosoup"
 	
 	goal.object_pose.header.stamp = rospy.Time.now()
-	goal.object_pose.header.frame_id = "/base_footprint"
-	goal.object_pose.pose.position.x = random.uniform(-0.8, -0.6)#-0.7
-	goal.object_pose.pose.position.y = random.uniform(-0.3,  0.3)#0.0  
-	goal.object_pose.pose.position.z = random.uniform( 0.8,  1.1)#0.85
-	goal.object_pose.pose.orientation.x, goal.object_pose.pose.orientation.y, goal.object_pose.pose.orientation.z, goal.object_pose.pose.orientation.w = quaternion_from_euler(random.uniform(-pi/2, pi/2),random.uniform(-pi/2, pi/2),random.uniform(-pi/2, pi/2)) 
+	goal.object_pose.header.frame_id = "base_footprint"
+	#goal.object_pose.pose.position.x = random.uniform(-0.8, -0.6)
+	#goal.object_pose.pose.position.y = random.uniform(-0.3,  0.3)
+	#goal.object_pose.pose.position.z = random.uniform( 0.8,  1.1)
+	#goal.object_pose.pose.orientation.x, goal.object_pose.pose.orientation.y, goal.object_pose.pose.orientation.z, goal.object_pose.pose.orientation.w = quaternion_from_euler(random.uniform(-pi/2, pi/2),random.uniform(-pi/2, pi/2),random.uniform(-pi/2, pi/2)) 
+	goal.object_pose.pose.position.x = -0.7
+	goal.object_pose.pose.position.y = 0.0  
+	goal.object_pose.pose.position.z = 0.78
+	goal.object_pose.pose.orientation.x, goal.object_pose.pose.orientation.y, goal.object_pose.pose.orientation.z, goal.object_pose.pose.orientation.w = quaternion_from_euler(0,0,0) 
 	
 	#goal.grasp_id = 21
 	#goal.grasp_database = "KIT"

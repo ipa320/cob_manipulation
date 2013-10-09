@@ -11,7 +11,10 @@ def generate_grasps_client():
     client.wait_for_server()
 
     goal = cob_grasp_generation.msg.GenerateGraspsGoal()
-    goal.object_name="yellowsaltcube"
+    #goal.object_name="yellowsaltcube"
+    #goal.object_name="hotpot"
+    #goal.object_name="hotpot2"
+    goal.object_name="instanttomatosoup"
     goal.viewer = True
     goal.replan = True
     #ToDo: set the other OpenRAVE parameters for grasp_generation

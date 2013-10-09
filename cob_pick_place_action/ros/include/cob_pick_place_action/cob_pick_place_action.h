@@ -76,6 +76,8 @@ private:
 	manipulation_msgs::Grasp last_grasp;
 	tf::TransformListener tf_listener_;
 	
+	std::map<unsigned int,std::string> map_classid_to_classname;
+	
 public:
 	CobPickPlaceActionServer() : group("arm") {}
 	~CobPickPlaceActionServer();
@@ -92,7 +94,7 @@ public:
 	void fillSingleGraspKIT(unsigned int objectClassId, unsigned int grasp_id, geometry_msgs::PoseStamped object_pose, std::vector<manipulation_msgs::Grasp> &grasps);
 	void convertGraspKIT(Grasp* current_grasp, geometry_msgs::PoseStamped object_pose, std::vector<manipulation_msgs::Grasp> &grasps);
 	
-	void fillGraspsOR(std::string object_name, unsigned int grasp_id, geometry_msgs::PoseStamped object_pose, std::vector<manipulation_msgs::Grasp> &grasps);
+	void fillGraspsOR(unsigned int objectClassId, unsigned int grasp_id, geometry_msgs::PoseStamped object_pose, std::vector<manipulation_msgs::Grasp> &grasps);
 	
 	sensor_msgs::JointState MapHandConfiguration(sensor_msgs::JointState table_config);
 	tf::Transform transformPose(tf::Transform transform_O_from_SDH, tf::Transform transform_HEADER_from_OBJECT, std::string object_frame_id);
