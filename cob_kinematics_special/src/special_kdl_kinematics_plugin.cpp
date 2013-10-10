@@ -68,16 +68,193 @@ bool SpecialKDLKinematicsPlugin::initialize(const std::string &robot_description
                                      const std::string& tip_frame,
                                      double search_discretization)
 {
-  //const std::string special_robot_description = "special_robot_description";
-  //setValues(special_robot_description, group_name, base_frame, tip_frame, search_discretization);
   setValues(robot_description, group_name, base_frame, tip_frame, search_discretization);
 
   ros::NodeHandle private_handle("~");
   rdf_loader::RDFLoader rdf_loader(robot_description_);
-  //rdf_loader::RDFLoader special_rdf_loader(special_robot_description);
   const boost::shared_ptr<srdf::Model> &srdf = rdf_loader.getSRDF();
-  const boost::shared_ptr<urdf::ModelInterface>& urdf_model = rdf_loader.getURDF();
-  //const boost::shared_ptr<urdf::ModelInterface>& urdf_model = special_rdf_loader.getURDF();
+  //const boost::shared_ptr<urdf::ModelInterface>& urdf_model = rdf_loader.getURDF();
+  
+  
+  ///Modifications for special_lookat_kinematics:
+
+  urdf::ModelInterface special_model = * rdf_loader.getURDF();
+  
+  //boost::shared_ptr< urdf::Joint > head_lookat_joint = special_model.joints_["head_lookat_joint"];
+  //head_lookat_joint->name = "head_lookat_joint";
+  //head_lookat_joint->type = urdf::Joint::PRISMATIC;
+  //head_lookat_joint->axis = urdf::Vector3(1.0, 0.0, 0.0); //along head_base_link's x-axis
+  //head_lookat_joint->child_link_name = "head_lookat_rotx_link";
+  //head_lookat_joint->parent_link_name = "head_base_link";
+  //head_lookat_joint->parent_to_joint_origin_transform = urdf::Pose();
+  //head_lookat_joint->limits->lower = -5.0;
+  //head_lookat_joint->limits->lower =  5.0;
+  //head_lookat_joint->limits->effort = 10.0;
+  //head_lookat_joint->limits->velocity = 1.0;
+  
+  urdf::Joint head_lookat_joint = urdf::Joint();
+  head_lookat_joint.name = "head_lookat_joint";
+  head_lookat_joint.type = urdf::Joint::PRISMATIC;
+  head_lookat_joint.axis = urdf::Vector3(1.0, 0.0, 0.0); //along head_base_link's x-axis
+  head_lookat_joint.child_link_name = "head_lookat_rotx_link";
+  head_lookat_joint.parent_link_name = "head_base_link";
+  head_lookat_joint.parent_to_joint_origin_transform = urdf::Pose();
+  head_lookat_joint.limits = boost::shared_ptr< urdf::JointLimits >(new urdf::JointLimits);
+  head_lookat_joint.limits->lower = -5.0;
+  head_lookat_joint.limits->lower =  5.0;
+  head_lookat_joint.limits->effort = 10.0;
+  head_lookat_joint.limits->velocity = 1.0;
+  
+  urdf::Joint head_lookat_rotx_joint = urdf::Joint();
+  head_lookat_rotx_joint.name = "head_lookat_rotx_joint";
+  head_lookat_rotx_joint.type = urdf::Joint::REVOLUTE;
+  head_lookat_rotx_joint.axis = urdf::Vector3(1.0, 0.0, 0.0); //about head_lookat_lin_link's x-axis
+  head_lookat_rotx_joint.child_link_name = "head_lookat_roty_link";
+  head_lookat_rotx_joint.parent_link_name = "head_lookat_rotx_link";
+  head_lookat_rotx_joint.parent_to_joint_origin_transform = urdf::Pose();
+  head_lookat_rotx_joint.limits = boost::shared_ptr< urdf::JointLimits >(new urdf::JointLimits);
+  head_lookat_rotx_joint.limits->lower = -M_PI;
+  head_lookat_rotx_joint.limits->lower =  M_PI;
+  head_lookat_rotx_joint.limits->effort = 10.0;
+  head_lookat_rotx_joint.limits->velocity = 1.0;
+  
+  urdf::Joint head_lookat_roty_joint = urdf::Joint();
+  head_lookat_roty_joint.name = "head_lookat_roty_joint";
+  head_lookat_roty_joint.type = urdf::Joint::REVOLUTE;
+  head_lookat_roty_joint.axis = urdf::Vector3(0.0, 1.0, 0.0); //about head_lookat_lin_link's y-axis
+  head_lookat_roty_joint.child_link_name = "head_lookat_rotz_link";
+  head_lookat_roty_joint.parent_link_name = "head_lookat_roty_link";
+  head_lookat_roty_joint.parent_to_joint_origin_transform = urdf::Pose();
+  head_lookat_roty_joint.limits = boost::shared_ptr< urdf::JointLimits >(new urdf::JointLimits);
+  head_lookat_roty_joint.limits->lower = -M_PI;
+  head_lookat_roty_joint.limits->lower =  M_PI;
+  head_lookat_roty_joint.limits->effort = 10.0;
+  head_lookat_roty_joint.limits->velocity = 1.0;
+  
+  urdf::Joint head_lookat_rotz_joint = urdf::Joint();
+  head_lookat_rotz_joint.name = "head_lookat_rotz_joint";
+  head_lookat_rotz_joint.type = urdf::Joint::REVOLUTE;
+  head_lookat_rotz_joint.axis = urdf::Vector3(0.0, 0.0, 1.0); //about head_lookat_lin_link's z-axis
+  head_lookat_rotz_joint.child_link_name = "head_lookat_frame";
+  head_lookat_rotz_joint.parent_link_name = "head_lookat_rotz_link";
+  head_lookat_rotz_joint.parent_to_joint_origin_transform = urdf::Pose();
+  head_lookat_rotz_joint.limits = boost::shared_ptr< urdf::JointLimits >(new urdf::JointLimits);
+  head_lookat_rotz_joint.limits->lower = -M_PI;
+  head_lookat_rotz_joint.limits->lower =  M_PI;
+  head_lookat_rotz_joint.limits->effort = 10.0;
+  head_lookat_rotz_joint.limits->velocity = 1.0;
+  
+
+  
+  urdf::Link head_lookat_frame = urdf::Link();
+  head_lookat_frame.name = "head_lookat_frame";
+  head_lookat_frame.parent_joint = boost::make_shared< urdf::Joint >(head_lookat_rotz_joint);
+  head_lookat_frame.child_joints.clear();
+  head_lookat_frame.child_links.clear();
+ 
+  urdf::Link head_lookat_rotz_link = urdf::Link();
+  head_lookat_rotz_link.name = "head_lookat_rotz_link";
+  head_lookat_rotz_link.parent_joint = boost::make_shared< urdf::Joint >(head_lookat_roty_joint);
+  head_lookat_rotz_link.child_joints.push_back( boost::make_shared< urdf::Joint >(head_lookat_rotz_joint) );
+  head_lookat_rotz_link.child_links.push_back( boost::make_shared< urdf::Link >(head_lookat_frame) );
+
+  urdf::Link head_lookat_roty_link = urdf::Link();
+  head_lookat_roty_link.name = "head_lookat_roty_link";
+  head_lookat_roty_link.parent_joint = boost::make_shared< urdf::Joint >(head_lookat_rotx_joint);
+  head_lookat_roty_link.child_joints.push_back( boost::make_shared< urdf::Joint >(head_lookat_roty_joint) );
+  head_lookat_roty_link.child_links.push_back( boost::make_shared< urdf::Link >(head_lookat_rotz_link) );
+
+  urdf::Link head_lookat_rotx_link = urdf::Link();
+  head_lookat_rotx_link.name = "head_lookat_rotx_link";
+  head_lookat_rotx_link.parent_joint = boost::make_shared< urdf::Joint >(head_lookat_joint);
+  head_lookat_rotx_link.child_joints.push_back( boost::make_shared< urdf::Joint >(head_lookat_rotx_joint));
+  head_lookat_rotx_link.child_links.push_back( boost::make_shared< urdf::Link >(head_lookat_roty_link));
+  
+  
+  
+  
+  ///set pointers correctly
+  std::map< std::string, boost::shared_ptr< urdf::Link > >::iterator it;
+  if(special_model.links_.find("head_base_link")!=special_model.links_.end())
+  {
+    ROS_INFO("Found head_base_link");
+    special_model.links_["head_base_link"]->child_joints.clear(); //ToDo: only remove pointer to head_lookat_joint
+    special_model.links_["head_base_link"]->child_links.clear();  //ToDo: only remove pointer to head_lookat_frame
+    special_model.links_["head_base_link"]->child_joints.push_back( boost::make_shared< urdf::Joint >(head_lookat_joint) );
+    special_model.links_["head_base_link"]->child_links.push_back( boost::make_shared< urdf::Link >(head_lookat_rotx_link) );
+  }
+    
+  if(special_model.links_.find("head_lookat_rotx_link")!=special_model.links_.end())
+  {
+    ROS_INFO("removing existing head_lookat_rotx_link");
+    special_model.links_.erase(special_model.links_.find("head_lookat_rotx_link"));
+  }
+  special_model.links_.insert(std::pair< std::string, boost::shared_ptr< urdf::Link > > ("head_lookat_rotx_link", boost::make_shared< urdf::Link >(head_lookat_rotx_link)));
+  
+  if(special_model.links_.find("head_lookat_roty_link")!=special_model.links_.end())
+  {
+    ROS_INFO("removing existing head_lookat_roty_link");
+    special_model.links_.erase(special_model.links_.find("head_lookat_roty_link"));
+  }
+  special_model.links_.insert(std::pair< std::string, boost::shared_ptr< urdf::Link > > ("head_lookat_roty_link", boost::make_shared< urdf::Link >(head_lookat_roty_link)));
+  
+  if(special_model.links_.find("head_lookat_rotz_link")!=special_model.links_.end())
+  {
+    ROS_INFO("removing existing head_lookat_rotz_link");
+    special_model.links_.erase(special_model.links_.find("head_lookat_rotz_link"));
+  }
+  special_model.links_.insert(std::pair< std::string, boost::shared_ptr< urdf::Link > > ("head_lookat_rotz_link", boost::make_shared< urdf::Link >(head_lookat_rotz_link)));
+  
+  if(special_model.links_.find("head_lookat_frame")!=special_model.links_.end())
+  {
+    ROS_INFO("removing existing head_lookat_frame");
+    special_model.links_.erase(special_model.links_.find("head_lookat_frame"));
+  }
+  special_model.links_.insert(std::pair< std::string, boost::shared_ptr< urdf::Link > > ("head_lookat_frame", boost::make_shared< urdf::Link >(head_lookat_frame)));
+
+
+  if(special_model.joints_.find("head_lookat_joint")!=special_model.joints_.end())
+  {
+    ROS_INFO("removing existing head_lookat_joint");
+    special_model.joints_.erase(special_model.joints_.find("head_lookat_joint"));
+  }
+  special_model.joints_.insert(std::pair< std::string, boost::shared_ptr< urdf::Joint > > ("head_lookat_joint", boost::make_shared< urdf::Joint >(head_lookat_joint)));
+  
+  if(special_model.joints_.find("head_lookat_rotx_joint")!=special_model.joints_.end())
+  {
+    ROS_INFO("removing existing head_lookat_rotx_joint");
+    special_model.joints_.erase(special_model.joints_.find("head_lookat_rotx_joint"));
+  }
+  special_model.joints_.insert(std::pair< std::string, boost::shared_ptr< urdf::Joint > > ("head_lookat_rotx_joint", boost::make_shared< urdf::Joint >(head_lookat_rotx_joint)));
+  
+  if(special_model.joints_.find("head_lookat_roty_joint")!=special_model.joints_.end())
+  {
+    ROS_INFO("removing existing head_lookat_roty_joint");
+    special_model.joints_.erase(special_model.joints_.find("head_lookat_roty_joint"));
+  }
+  special_model.joints_.insert(std::pair< std::string, boost::shared_ptr< urdf::Joint > > ("head_lookat_roty_joint", boost::make_shared< urdf::Joint >(head_lookat_roty_joint)));
+  
+  if(special_model.joints_.find("head_lookat_rotz_joint")!=special_model.joints_.end())
+  {
+    ROS_INFO("removing existing head_lookat_rotz_joint");
+    special_model.joints_.erase(special_model.joints_.find("head_lookat_rotz_joint"));
+  }
+  special_model.joints_.insert(std::pair< std::string, boost::shared_ptr< urdf::Joint > > ("head_lookat_rotz_joint", boost::make_shared< urdf::Joint >(head_lookat_rotz_joint)));
+
+  
+
+  
+  const boost::shared_ptr<urdf::ModelInterface>& urdf_model = boost::make_shared< urdf::ModelInterface >(special_model);
+  
+  //Debug
+  for (std::map< std::string, boost::shared_ptr< urdf::Joint > >::iterator it=urdf_model->joints_.begin(); it!=urdf_model->joints_.end(); ++it)
+    ROS_INFO("Joints: %s", it->first.c_str());
+  for (std::map< std::string, boost::shared_ptr< urdf::Link > >::iterator it=urdf_model->links_.begin(); it!=urdf_model->links_.end(); ++it)
+    ROS_INFO("Links: %s", it->first.c_str());
+  
+  
+  
+  
 
   if (!urdf_model || !srdf)
   {
@@ -86,6 +263,26 @@ bool SpecialKDLKinematicsPlugin::initialize(const std::string &robot_description
   }
 
   kinematic_model_.reset(new robot_model::RobotModel(urdf_model, srdf));
+  //kinematic_model_.reset(new robot_model::RobotModel(boost::make_shared< urdf::ModelInterface >(special_model), srdf));
+  
+  
+  //Debug
+  for(unsigned int i=0; i<kinematic_model_->getJointModels().size(); i++)
+    ROS_INFO("KinematicModelJoints: %s", kinematic_model_->getJointModels()[i]->getName().c_str());
+  for(unsigned int i=0; i<kinematic_model_->getLinkModels().size(); i++)
+    ROS_INFO("KinematicModelLinks: %s", kinematic_model_->getLinkModels()[i]->getName().c_str());
+  
+  //Debug
+  const boost::shared_ptr<const urdf::ModelInterface> check_model = kinematic_model_->getURDF();
+  std::map< std::string, boost::shared_ptr< urdf::Joint > > check_joints = check_model->joints_;
+  std::map< std::string, boost::shared_ptr< urdf::Link > > check_links = check_model->links_;
+  for (std::map< std::string, boost::shared_ptr< urdf::Joint > >::iterator it=check_joints.begin(); it!=check_joints.end(); ++it)
+    ROS_INFO("CheckJoints: %s", it->first.c_str());
+  for (std::map< std::string, boost::shared_ptr< urdf::Link > >::iterator it=check_links.begin(); it!=check_links.end(); ++it)
+    ROS_INFO("CheckLinks: %s", it->first.c_str());
+  
+  
+  
 
   if(!kinematic_model_->hasJointModelGroup(group_name))
   {
@@ -106,6 +303,13 @@ bool SpecialKDLKinematicsPlugin::initialize(const std::string &robot_description
     ROS_ERROR_NAMED("kdl","Could not initialize tree object");
     return false;
   }
+  
+  //Debug
+  KDL::SegmentMap tree_segments = kdl_tree.getSegments();
+  for (KDL::SegmentMap::iterator it=tree_segments.begin(); it!=tree_segments.end(); ++it)
+    ROS_INFO("CheckTreeSegments: %s", it->first.c_str());
+  
+  
   if (!kdl_tree.getChain(base_frame_, tip_frame_, kdl_chain_))
   {
     ROS_ERROR_NAMED("kdl","Could not initialize chain object");
@@ -211,6 +415,15 @@ bool SpecialKDLKinematicsPlugin::initialize(const std::string &robot_description
   max_solver_iterations_ = max_solver_iterations;
   epsilon_ = epsilon;
 
+
+  //Debug
+  for(std::size_t i=0; i < kdl_chain_.getNrOfSegments(); ++i)
+  {
+    ROS_INFO("Segment %d: ", i);
+    ROS_INFO("Name: %s", kdl_chain_.segments[i].getName().c_str());
+    ROS_INFO("Joint: %s", kdl_chain_.segments[i].getJoint().getName().c_str());
+  }
+
   active_ = true;
   ROS_DEBUG_NAMED("kdl","KDL solver initialized");
   return true;
@@ -293,6 +506,7 @@ void SpecialKDLKinematicsPlugin::getRandomConfiguration(const KDL::JntArray &see
                                                  KDL::JntArray &jnt_array,
                                                  bool lock_redundancy) const
 {
+  ROS_INFO("getRandomConfiguration");
   std::vector<double> values, near;
   for(std::size_t i=0; i < dimension_; ++i)
   {
