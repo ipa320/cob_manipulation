@@ -15,7 +15,6 @@
   
   <!-- base -->
   <include filename="$(find cob_description)/urdf/base/base.urdf.xacro" />
-  <include filename="$(find cob_description)/urdf/base_placement/base_placement.urdf.xacro"/>
 
   <!-- tray -->
   <include filename="$(find cob_description)/urdf/tray/tray.urdf.xacro" />
@@ -36,14 +35,6 @@
   <!-- generic simulator_gazebo plugins for starting mechanism control, ros time, ros battery -->
   <include filename="$(find cob_description)/gazebo/gazebo.urdf.xacro" />
   
-
-  <xacro:cob_base_placement name="base_placement"/>
-
-  <joint name="base_placement_helper_joint" type="fixed">
-    <parent link="base_placement_theta_link"/>
-    <child link="base_footprint"/>
-  </joint>  
- 
   <!-- composition of the robot -->
   <xacro:cob_base name="base"/>
 

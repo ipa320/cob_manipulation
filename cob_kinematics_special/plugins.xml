@@ -1,5 +1,0 @@
-<library path="lib/libspecial_kdl_kinematics_plugin">
-  <class name="cob_kinematics_special/special_kdl_kinematics_plugin" type="cob_kinematics_special::SpecialKDLKinematicsPlugin" base_class_type="kinematics::KinematicsBase">
-    <description>This is KDL kinematics plugin for lookat.</description>
-  </class> 
-</library>

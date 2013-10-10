@@ -21,33 +21,33 @@ KDL::Chain chain;
 
 void getKDLChainInfo(kinematics_msgs::KinematicSolverInfo &chain_info)
 {
-    unsigned int nj = chain.getNrOfJoints();
-    unsigned int nl = chain.getNrOfSegments();
+	unsigned int nj = chain.getNrOfJoints();
+	unsigned int nl = chain.getNrOfSegments();
 
-    //---setting up response
+	//---setting up response
 
-    //joint_names
-    for(unsigned int i=0; i<nj; i++)
+	//joint_names
+	for(unsigned int i=0; i<nj; i++)
   {
-        chain_info.joint_names.push_back(chain.getSegment(i).getJoint().getName());
+		chain_info.joint_names.push_back(chain.getSegment(i).getJoint().getName());
   }
-    //limits
-        //joint limits are only saved in KDL::ChainIkSolverPos_NR_JL iksolverpos -> ik_solve().....but this is not visible here!
+	//limits
+		//joint limits are only saved in KDL::ChainIkSolverPos_NR_JL iksolverpos -> ik_solve().....but this is not visible here!
 /*for(unsigned int i=0; i<nj; i++)
   {
-        chain_info.limits[i].joint_name=chain.getSegment(i).getJoint().getName();
-        chain_info.limits[i].has_position_limits=
-        chain_info.limits[i].min_position=
-        chain_info.limits[i].max_position=    
-        chain_info.limits[i].has_velocity_limits=
-        chain_info.limits[i].max_velocity=
-        chain_info.limits[i].has_acceleration_limits=
-        chain_info.limits[i].max_acceleration=
-    }*/
-    //link_names    
-    for(unsigned int i=0; i<nl; i++)
+		chain_info.limits[i].joint_name=chain.getSegment(i).getJoint().getName();
+		chain_info.limits[i].has_position_limits=
+		chain_info.limits[i].min_position=
+		chain_info.limits[i].max_position=	
+		chain_info.limits[i].has_velocity_limits=
+		chain_info.limits[i].max_velocity=
+		chain_info.limits[i].has_acceleration_limits=
+		chain_info.limits[i].max_acceleration=
+	}*/
+	//link_names	
+	for(unsigned int i=0; i<nl; i++)
   {
-        chain_info.link_names.push_back(chain.getSegment(i).getName());
+		chain_info.link_names.push_back(chain.getSegment(i).getName());
   }
 }
 
@@ -68,25 +68,25 @@ int getJointIndex(const std::string &name,
 bool ik_solve(kinematics_msgs::GetPositionIK::Request  &req,
          kinematics_msgs::GetPositionIK::Response &res )
 {
-    ROS_INFO("get_ik_service has been called!");
+	ROS_INFO("get_ik_service has been called!");
 
-    unsigned int nj = chain.getNrOfJoints();
+	unsigned int nj = chain.getNrOfJoints();
 
-    JntArray q_min(nj);
-    JntArray q_max(nj);
-    for(int i = 0; i < nj; i++)
-    {
-        q_min(i) = -6.0;
-        q_max(i) = 6.0;
-    }
+	JntArray q_min(nj);
+	JntArray q_max(nj);
+	for(int i = 0; i < nj; i++)
+	{
+		q_min(i) = -6.0;
+		q_max(i) = 6.0;
+	}
 
 
-    ChainFkSolverPos_recursive fksolver1(chain);//Forward position solver
-    ChainIkSolverVel_pinv iksolver1v(chain);//Inverse velocity solver
-    ChainIkSolverPos_NR_JL iksolverpos(chain, q_min, q_max, fksolver1,iksolver1v,1000,1e-6);//Maximum 100 iterations, stop at accuracy 1e-6
+	ChainFkSolverPos_recursive fksolver1(chain);//Forward position solver
+	ChainIkSolverVel_pinv iksolver1v(chain);//Inverse velocity solver
+	ChainIkSolverPos_NR_JL iksolverpos(chain, q_min, q_max, fksolver1,iksolver1v,1000,1e-6);//Maximum 100 iterations, stop at accuracy 1e-6
 
-    JntArray q(nj);
-    JntArray q_init(nj);
+	JntArray q(nj);
+	JntArray q_init(nj);
     try{
         for(int i = 0; i < nj; i++)
             q_init(i) = req.ik_request.ik_seed_state.joint_state.position[i];
@@ -95,41 +95,41 @@ bool ik_solve(kinematics_msgs::GetPositionIK::Request  &req,
             q_init(i) = 0;
         }
     }
-    Frame F_dest;
-    Frame F_ist;
-    fksolver1.JntToCart(q_init, F_ist);
-    tf::PoseMsgToKDL(req.ik_request.pose_stamped.pose, F_dest);
-    std::cout << "Getting Goal\n";
-    std::cout << F_dest <<"\n";
-    std::cout << "Calculated Position out of Configuration:\n";
-    std::cout << F_ist <<"\n";
+	Frame F_dest;
+	Frame F_ist;
+	fksolver1.JntToCart(q_init, F_ist);
+	tf::PoseMsgToKDL(req.ik_request.pose_stamped.pose, F_dest);
+	std::cout << "Getting Goal\n";
+	std::cout << F_dest <<"\n";
+	std::cout << "Calculated Position out of Configuration:\n";
+	std::cout << F_ist <<"\n";
 
-    //uhr-fm: here comes the actual IK-solver-call -> could be replaced by analytical-IK-solver (cob)
-    int ret = iksolverpos.CartToJnt(q_init,F_dest,q);
-    res.solution.joint_state.name = req.ik_request.ik_seed_state.joint_state.name;
-    res.solution.joint_state.position.resize(nj);
-    if(ret < 0)
-    {
-        res.error_code.val = -1;
-        ROS_INFO("Inverse Kinematic found no solution");
-        std::cout << "RET: " << ret << std::endl;
-        for(int i = 0; i < nj; i++)    
-            res.solution.joint_state.position[i] = q_init(i);
-    }
-    else
-    {
-        ROS_INFO("Inverse Kinematic found a solution");
-        res.error_code.val = 1;
-        for(int i = 0; i < nj; i++)    
-            res.solution.joint_state.position[i] = q(i);
-    }
-    //std::cout << "q_init\n";
-    ROS_DEBUG("q_init: %f %f %f %f %f %f %f", q_init(0), q_init(1), q_init(2), q_init(3), q_init(4), q_init(5), q_init(6));
-    ROS_DEBUG("q_out: %f %f %f %f %f %f %f", q(0), q(1), q(2), q(3), q(4), q(5), q(6));        
-    //std::cout << "Solved with " << ret << " as return\n";
-    //std::cout << q(0) << " " << q(1) << " " << q(2) << " " << q(3) << " " << q(4) << " " << q(5) << " " << q(6)  << "\n";    
+	//uhr-fm: here comes the actual IK-solver-call -> could be replaced by analytical-IK-solver (cob)
+	int ret = iksolverpos.CartToJnt(q_init,F_dest,q);
+	res.solution.joint_state.name = req.ik_request.ik_seed_state.joint_state.name;
+	res.solution.joint_state.position.resize(nj);
+	if(ret < 0)
+	{
+		res.error_code.val = -1;
+		ROS_INFO("Inverse Kinematic found no solution");
+		std::cout << "RET: " << ret << std::endl;
+		for(int i = 0; i < nj; i++)	
+			res.solution.joint_state.position[i] = q_init(i);
+	}
+	else
+	{
+		ROS_INFO("Inverse Kinematic found a solution");
+		res.error_code.val = 1;
+		for(int i = 0; i < nj; i++)	
+			res.solution.joint_state.position[i] = q(i);
+	}
+	//std::cout << "q_init\n";
+	ROS_DEBUG("q_init: %f %f %f %f %f %f %f", q_init(0), q_init(1), q_init(2), q_init(3), q_init(4), q_init(5), q_init(6));
+	ROS_DEBUG("q_out: %f %f %f %f %f %f %f", q(0), q(1), q(2), q(3), q(4), q(5), q(6));		
+	//std::cout << "Solved with " << ret << " as return\n";
+	//std::cout << q(0) << " " << q(1) << " " << q(2) << " " << q(3) << " " << q(4) << " " << q(5) << " " << q(6)  << "\n";	
 
-    return true;
+	return true;
 }
 
 
@@ -137,63 +137,63 @@ bool ik_solve(kinematics_msgs::GetPositionIK::Request  &req,
 bool constraint_aware_ik_solve(kinematics_msgs::GetConstraintAwarePositionIK::Request  &req,
          kinematics_msgs::GetConstraintAwarePositionIK::Response &res )
 {
-    kinematics_msgs::GetPositionIK::Request request;
-    kinematics_msgs::GetPositionIK::Response response;
+	kinematics_msgs::GetPositionIK::Request request;
+	kinematics_msgs::GetPositionIK::Response response;
 
-    //transform GetConstraintAwarePositionIK-msgs to GetPositionIK-msgs
-    request.ik_request=req.ik_request;
-    request.timeout=req.timeout;
-    //all other fields of GetConstraintAwarePositionIK::Request (allowed_contacts, ordered_collision_operations, link_padding, constraints) are dropped
+	//transform GetConstraintAwarePositionIK-msgs to GetPositionIK-msgs
+	request.ik_request=req.ik_request;
+	request.timeout=req.timeout;
+	//all other fields of GetConstraintAwarePositionIK::Request (allowed_contacts, ordered_collision_operations, link_padding, constraints) are dropped
 
-    bool success = ik_solve(request, response);
+	bool success = ik_solve(request, response);
 
-    res.solution=response.solution;
-    res.error_code=response.error_code;
+	res.solution=response.solution;
+	res.error_code=response.error_code;
 
-    return true;
+	return true;
 }
 
 
 bool getIKSolverInfo(kinematics_msgs::GetKinematicSolverInfo::Request  &req,
          kinematics_msgs::GetKinematicSolverInfo::Response &res )
 {
-    ROS_INFO("[TESTING]: get_ik_solver_info_service has been called!");
+	ROS_INFO("[TESTING]: get_ik_solver_info_service has been called!");
 
-    getKDLChainInfo(res.kinematic_solver_info);
+	getKDLChainInfo(res.kinematic_solver_info);
 
-    return true;
+	return true;
 }
 
 bool fk_solve_TCP(kinematics_msgs::GetPositionFK::Request &req,
-         kinematics_msgs::GetPositionFK::Response &res )
+		 kinematics_msgs::GetPositionFK::Response &res )
 {
-    ROS_INFO("[TESTING]: get_fk_TCP_service has been called!");
+	ROS_INFO("[TESTING]: get_fk_TCP_service has been called!");
 
-    unsigned int nj = chain.getNrOfJoints();
+	unsigned int nj = chain.getNrOfJoints();
 
-    ChainFkSolverPos_recursive fksolver1(chain);//Forward position solver
+	ChainFkSolverPos_recursive fksolver1(chain);//Forward position solver
 
-    JntArray conf(nj);
+	JntArray conf(nj);
     geometry_msgs::PoseStamped pose;
     tf::Stamped<tf::Pose> tf_pose;
 
-    for(int i = 0; i < nj; i++)
-        conf(i) = req.robot_state.joint_state.position[i];
-    Frame F_ist;
-    res.pose_stamped.resize(1);
-    res.fk_link_names.resize(1);
-    if(fksolver1.JntToCart(conf, F_ist) >= 0)
-    {
-        std::cout << "Calculated Position out of Configuration:\n";
-        std::cout << F_ist <<"\n";
+	for(int i = 0; i < nj; i++)
+		conf(i) = req.robot_state.joint_state.position[i];
+	Frame F_ist;
+	res.pose_stamped.resize(1);
+	res.fk_link_names.resize(1);
+	if(fksolver1.JntToCart(conf, F_ist) >= 0)
+	{
+		std::cout << "Calculated Position out of Configuration:\n";
+		std::cout << F_ist <<"\n";
 
-        //TODO: fill out response!!!
+		//TODO: fill out response!!!
 
         tf_pose.frame_id_ = "base_link";//root_name_;
         tf_pose.stamp_ = ros::Time();
         tf::PoseKDLToTF(F_ist,tf_pose);
         try
-        {
+		{
           //tf_.transformPose(req.header.frame_id,tf_pose,tf_pose);
         }
         catch(...)
@@ -206,87 +206,87 @@ bool fk_solve_TCP(kinematics_msgs::GetPositionFK::Request &req,
         res.pose_stamped[0] = pose;
         res.fk_link_names[0] = "arm_7_link";
         res.error_code.val = res.error_code.SUCCESS;
-    }
-    else
-    {
+	}
+	else
+	{
         ROS_ERROR("Could not compute FK for arm_7_link");
         res.error_code.val = res.error_code.NO_FK_SOLUTION;
-    }
+	}
 
-    return true;
+	return true;
 }
 
 bool fk_solve_all(kinematics_msgs::GetPositionFK::Request &req,
-          kinematics_msgs::GetPositionFK::Response &res )
+		  kinematics_msgs::GetPositionFK::Response &res )
 {
-    ROS_INFO("[TESTING]: get_fk_all_service has been called!");
+	ROS_INFO("[TESTING]: get_fk_all_service has been called!");
 
-    unsigned int nj = chain.getNrOfJoints();
-    unsigned int nl = chain.getNrOfSegments();
+	unsigned int nj = chain.getNrOfJoints();
+	unsigned int nl = chain.getNrOfSegments();
 
-    ChainFkSolverPos_recursive fksolver1(chain);//Forward position solver
+	ChainFkSolverPos_recursive fksolver1(chain);//Forward position solver
 
-    JntArray conf(nj);
+	JntArray conf(nj);
     geometry_msgs::PoseStamped pose;
     tf::Stamped<tf::Pose> tf_pose;
 
-    for(int i = 0; i < nj; i++)
-        conf(i) = req.robot_state.joint_state.position[i];
-    Frame F_ist;
-        res.pose_stamped.resize(nl);
-    res.fk_link_names.resize(nl);
-    for(int j = 0; j < nl; j++)
-    {
-        if(fksolver1.JntToCart(conf, F_ist, j+1) >= 0)
-        {
-        std::cout << "Calculated Position out of Configuration for segment " << j+1 << ":\n";
-            std::cout << F_ist <<"\n";
+	for(int i = 0; i < nj; i++)
+		conf(i) = req.robot_state.joint_state.position[i];
+	Frame F_ist;
+		res.pose_stamped.resize(nl);
+	res.fk_link_names.resize(nl);
+	for(int j = 0; j < nl; j++)
+	{
+		if(fksolver1.JntToCart(conf, F_ist, j+1) >= 0)
+		{
+		std::cout << "Calculated Position out of Configuration for segment " << j+1 << ":\n";
+			std::cout << F_ist <<"\n";
 
-            std::cout << "Calculated Position out of Configuration:\n";
-            std::cout << F_ist <<"\n";
+			std::cout << "Calculated Position out of Configuration:\n";
+			std::cout << F_ist <<"\n";
 
-            //TODO: fill out response!!!
+			//TODO: fill out response!!!
 
-            tf_pose.frame_id_ = "base_link";//root_name_;
-            tf_pose.stamp_ = ros::Time();
-            tf::PoseKDLToTF(F_ist,tf_pose);
-            try
-            {
-              //tf_.transformPose(req.header.frame_id,tf_pose,tf_pose);
-            }
-            catch(...)
-            {
-              ROS_ERROR("Could not transform FK pose to frame: %s",req.header.frame_id.c_str());
-              res.error_code.val = res.error_code.FRAME_TRANSFORM_FAILURE;
-              return false;
-            }
-            tf::poseStampedTFToMsg(tf_pose,pose);
-            res.pose_stamped[j] = pose;
-            res.fk_link_names[j] = chain.getSegment(j).getName();
-            res.error_code.val = res.error_code.SUCCESS;
-        }
-        else
-        {
-            ROS_ERROR("Could not compute FK for segment %d", j);
-            res.error_code.val = res.error_code.NO_FK_SOLUTION;
-        }
+		    tf_pose.frame_id_ = "base_link";//root_name_;
+		    tf_pose.stamp_ = ros::Time();
+		    tf::PoseKDLToTF(F_ist,tf_pose);
+		    try
+			{
+		      //tf_.transformPose(req.header.frame_id,tf_pose,tf_pose);
+		    }
+		    catch(...)
+		    {
+		      ROS_ERROR("Could not transform FK pose to frame: %s",req.header.frame_id.c_str());
+		      res.error_code.val = res.error_code.FRAME_TRANSFORM_FAILURE;
+		      return false;
+		    }
+		    tf::poseStampedTFToMsg(tf_pose,pose);
+		    res.pose_stamped[j] = pose;
+		    res.fk_link_names[j] = chain.getSegment(j).getName();
+		    res.error_code.val = res.error_code.SUCCESS;
+		}
+		else
+		{
+		    ROS_ERROR("Could not compute FK for segment %d", j);
+		    res.error_code.val = res.error_code.NO_FK_SOLUTION;
+		}
 
 
-        //TODO: fill out response!!!
-        //res.pose_stamped[j]
-    }
+		//TODO: fill out response!!!
+		//res.pose_stamped[j]
+	}
 
-    return true;
+	return true;
 }
 
 
 bool fk_solve(kinematics_msgs::GetPositionFK::Request  &req,
          kinematics_msgs::GetPositionFK::Response &res )
 {
-    ROS_INFO("[TESTING]: get_fk_service has been called!");
+	ROS_INFO("[TESTING]: get_fk_service has been called!");
 
 //from pr2_arm_kinematics
-/*    if(!active_)
+/*	if(!active_)
     {
       ROS_ERROR("FK service not active");
       return true;
@@ -344,47 +344,47 @@ bool fk_solve(kinematics_msgs::GetPositionFK::Request  &req,
     }
 */
     return true;
-}    
+}	
 
 
 bool getFKSolverInfo(kinematics_msgs::GetKinematicSolverInfo::Request &req, 
                                      kinematics_msgs::GetKinematicSolverInfo::Response &res)
 {
-    ROS_INFO("[TESTING]: get_fk_solver_info_service has been called!");
+	ROS_INFO("[TESTING]: get_fk_solver_info_service has been called!");
 
-    getKDLChainInfo(res.kinematic_solver_info);
+	getKDLChainInfo(res.kinematic_solver_info);
 
-    return true;
+	return true;
 }
 
 
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "cob_ik_solver");
-    ros::NodeHandle n;
-    KDL::Tree lookat_tree;
-    ros::NodeHandle node;
-    std::string robot_desc_string;
-    node.param("/robot_description_lookat", robot_desc_string, string());
-    if (!kdl_parser::treeFromString(robot_desc_string, lookat_tree)){
-        ROS_ERROR("Failed to construct kdl tree");
-        return false;
-    }
-    lookat_tree.getChain("base_link","lookat_focus_frame", chain);
+	ros::init(argc, argv, "cob_ik_solver");
+	ros::NodeHandle n;
+	KDL::Tree my_tree;
+	ros::NodeHandle node;
+	std::string robot_desc_string;
+	node.param("/robot_description_lookat", robot_desc_string, string());
+	if (!kdl_parser::treeFromString(robot_desc_string, my_tree)){
+	      ROS_ERROR("Failed to construct kdl tree");
+      	      return false;
+	}
+	my_tree.getChain("base_link","lookat_focus_frame", chain);
 
 
-    ros::ServiceServer get_ik_service = n.advertiseService("lookat_get_ik", ik_solve);
-    ros::ServiceServer get_constraint_aware_ik_service = n.advertiseService("lookat_get_constraint_aware_ik", constraint_aware_ik_solve);
-    ros::ServiceServer get_ik_solver_info_service = n.advertiseService("lookat_get_ik_solver_info", getIKSolverInfo);
-    ros::ServiceServer get_fk_service = n.advertiseService("lookat_get_fk", fk_solve);
-    ros::ServiceServer get_fk_tcp_service = n.advertiseService("lookat_get_fk_tcp", fk_solve_TCP);
-    ros::ServiceServer get_fk_all_service = n.advertiseService("lookat_get_fk_all", fk_solve_all);
-    ros::ServiceServer get_fk_solver_info_service = n.advertiseService("lookat_get_fk_solver_info", getFKSolverInfo);
+	ros::ServiceServer get_ik_service = n.advertiseService("lookat_get_ik", ik_solve);
+	ros::ServiceServer get_constraint_aware_ik_service = n.advertiseService("lookat_get_constraint_aware_ik", constraint_aware_ik_solve);
+	ros::ServiceServer get_ik_solver_info_service = n.advertiseService("lookat_get_ik_solver_info", getIKSolverInfo);
+	ros::ServiceServer get_fk_service = n.advertiseService("lookat_get_fk", fk_solve);
+	ros::ServiceServer get_fk_tcp_service = n.advertiseService("lookat_get_fk_tcp", fk_solve_TCP);
+	ros::ServiceServer get_fk_all_service = n.advertiseService("lookat_get_fk_all", fk_solve_all);
+	ros::ServiceServer get_fk_solver_info_service = n.advertiseService("lookat_get_fk_solver_info", getFKSolverInfo);
 
 
-    ROS_INFO("IK Server Running.");
-    ros::spin();
+	ROS_INFO("IK Server Running.");
+	ros::spin();
 
-    return 0;
+	return 0;
 }
