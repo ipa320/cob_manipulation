@@ -4,6 +4,7 @@ import roslib; roslib.load_manifest('cob_pick_place_action')
 import rospy
 import actionlib
 import random
+import numpy
 from math import pi
 from tf.transformations import *
 
@@ -116,31 +117,39 @@ if __name__ == '__main__':
 		rospy.sleep(1.0)
 		
 		filename = roslib.packages.get_pkg_dir('cob_pick_place_action')+"/files/meshes/yellowsaltcube.stl"
-		pose1 = gen_pose(pos=[-0.7, 0.0, 0.78])
+		pose1 = gen_pose(pos=[-0.7, 0.0, 0.85], euler=[random.uniform(-pi, pi), random.uniform(-pi, pi), random.uniform(-pi, pi)])
 		psi.add_mesh("cube1", pose1, filename)
 		rospy.sleep(1.0)
 	
-		pose2 = gen_pose(pos=[-0.7, -0.3, 0.78])
+		pose2 = gen_pose(pos=[-0.7, 0.2, 0.85], euler=[random.uniform(-pi, pi), random.uniform(-pi, pi), random.uniform(-pi, pi)])
 		psi.add_mesh("cube2", pose2, filename)
 		rospy.sleep(1.0)
+		
+		
+		destinations = []
+		for x in numpy.arange(-0.9, -0.6, 0.1):
+			for y in numpy.arange(-0.3, -0.2, 0.1):
+				for theta in numpy.arange(-pi, pi, pi/2):
+					destination = gen_pose(pos=[x,y,0.78], euler=[0,0,theta])
+					destinations.append(destination)
 		
 		
 		
 		result = cob_pick_action_client(18, "cube1", pose1)
 		
-		destinations = []
-		destination1 = gen_pose(pos=[-0.7, -0.15, 0.78])
-		destinations.append(destination1)
+		#destinations = []
+		#destination1 = gen_pose(pos=[-0.7, -0.15, 0.78])
+		#destinations.append(destination1)
 		result = cob_place_action_client(18, "cube1", destinations)
 		
 		
 		
 		result = cob_pick_action_client(18, "cube2", pose2)
 		
-		destination2 = gen_pose(pos=[-0.7, -0.30, 0.78])
-		destinations.append(destination2)
-		destinations.append(pose1)
-		destinations.append(pose2)
+		#destination2 = gen_pose(pos=[-0.7, -0.30, 0.78])
+		#destinations.append(destination2)
+		#destinations.append(pose1)
+		#destinations.append(pose2)
 		result = cob_place_action_client(18, "cube2", destinations)
 		
 		
