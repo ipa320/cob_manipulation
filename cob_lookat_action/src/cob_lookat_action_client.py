@@ -21,9 +21,11 @@ def cob_lookat_action_client():
 
     # Waits until the action server has started up and started
     # listening for goals.
+    print "Waiting for Lookat-AS..."
     client.wait_for_server()
+
     
-    
+    print "Waiting for IK-Services..."
     rospy.wait_for_service('/compute_fk')
     get_fk = rospy.ServiceProxy('/compute_fk', GetPositionFK)
     

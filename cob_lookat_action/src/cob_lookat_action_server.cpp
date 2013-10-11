@@ -40,7 +40,9 @@ public:
     {
         ik_client  =  nh.serviceClient<moveit_msgs::GetPositionIK>("/compute_ik");
         
+	ROS_WARN("Waiting for Torso-AS");
         torso_ac.waitForServer();
+	ROS_WARN("Waiting for Head-AS");
         head_ac.waitForServer();
 
         lookat_as.start();
