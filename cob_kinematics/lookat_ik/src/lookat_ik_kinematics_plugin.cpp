@@ -204,7 +204,8 @@ bool LookatIKKinematicsPlugin::initialize(const std::string &robot_description,
   double epsilon;
   bool position_ik;
 
-  private_handle.param("max_solver_iterations", max_solver_iterations, 500);
+  //private_handle.param("max_solver_iterations", max_solver_iterations, 500);
+  private_handle.param("max_solver_iterations", max_solver_iterations, 50);
   private_handle.param("epsilon", epsilon, 1e-5);
   private_handle.param(group_name+"/position_only_ik", position_ik, false);
   ROS_DEBUG_NAMED("kdl","Looking in private handle: %s for param name: %s",
