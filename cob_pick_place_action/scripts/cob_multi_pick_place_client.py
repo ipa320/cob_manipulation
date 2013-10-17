@@ -41,7 +41,7 @@ def setup_environment():
 	pose.pose.orientation.y = 0
 	pose.pose.orientation.z = 0
 	pose.pose.orientation.w = 1
-	psi.add_box("support_surface", pose, size=(0.5, 1.5, 0.78))
+	psi.add_box("bookcase", pose, size=(0.5, 1.5, 0.78))
 	rospy.sleep(1.0)
 	
 
@@ -53,14 +53,14 @@ def cob_pick_action_client(object_class, object_name, object_pose):
 	
 	# Creates a goal to send to the action server.
 	goal = cob_pick_place_action.msg.CobPickGoal()
-	goal.object_id = object_class
+	goal.object_class = object_class
 	goal.object_name = object_name
 	goal.object_pose = object_pose
 	
 	#goal.grasp_id = 21
 	#goal.grasp_database = "KIT"
 	goal.grasp_database = "OpenRAVE"
-	goal.support_surface = "support_surface"
+	goal.support_surface = "bookcase"
 	
 	#print goal
 	# Sends the goal to the action server.
@@ -87,9 +87,10 @@ def cob_place_action_client(object_class, object_name, destinations):
 	
 	# Creates a goal to send to the action server.
 	goal = cob_pick_place_action.msg.CobPlaceGoal()
-	goal.object_id = object_class
+	goal.object_class = object_class
 	goal.object_name = object_name
 	goal.destinations = destinations
+    goal.support_surface = "bookcase"
 	
 	#print goal
 	# Sends the goal to the action server.
