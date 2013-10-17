@@ -1,8 +1,0 @@
-num_steps: 0 #if numsteps = 0: go with rot_spacing and pos_spacing
-pos_spacing: 0.05 # every cm the arm moves, it creates a new trajectroy
-rot_spacing: 0.2 #
-collision_check_resolution: 0  #check collision every x steps
-consistent_angle: 0.00 #inconsistens if angle > 0
-collision_aware: 1 #collision check is on
-start_from_end: 0 #start from start
-steps_before_abort: 0 #allow no inconsistent angle
