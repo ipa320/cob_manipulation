@@ -1,7 +1,7 @@
 ##########################################################
 ##########     Object Information(goal)   ######################
 
-uint32 object_id
+uint32 object_class
 string object_name
 
 geometry_msgs/PoseStamped object_pose
