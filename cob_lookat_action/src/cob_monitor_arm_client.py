@@ -23,8 +23,8 @@ def cob_lookat_action_client():
     # listening for goals.
     client.wait_for_server()
     
-    while True:
-        client.cancel_goal()
+    while not rospy.is_shutdown():
+        #client.cancel_goal()
         
         # Creates a goal to send to the action server.
         goal = cob_lookat_action.msg.LookAtGoal()
@@ -33,17 +33,16 @@ def cob_lookat_action_client():
         focus.header.frame_id = "arm_7_link"
         focus.pose.orientation.w = 1.0
         goal.target = focus
-        print "GOAL: ", goal
+        #print "GOAL: ", goal
         
         ##Debug
         #focus_pub.publish(goal.target)
         #rospy.sleep(2.0)
-       
      
         # Sends the goal to the action server.
         client.send_goal(goal)
         
-        rospy.sleep(1.0)
+        #rospy.sleep(0.1)
 
 
     # Waits for the server to finish performing the action.
