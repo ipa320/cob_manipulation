@@ -1,4 +1,0 @@
-<launch>
-	<param name="/robot_description_lookat" command="$(find xacro)/xacro.py '$(find cob_kinematics_special)/$(env ROBOT)/description.urdf.xacro'"/>
-	<node name="lookat_ik" pkg="cob_kinematics_special" type="cob_ik_solver"/>
-</launch>
