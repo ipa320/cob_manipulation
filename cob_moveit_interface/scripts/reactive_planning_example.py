@@ -10,16 +10,18 @@ import simple_moveit_interface as smi
 #- robot facing a wall in the background
 #- lookat_action server and monitor started?
 #- lookat works for both arm positions?
+#
+#- These positions currently are cob3-3 specific
 
 
 if __name__ == '__main__':
 	rospy.init_node('move_example')
 	while rospy.get_time() == 0.0: pass
-	rospy.logerr('Did you make sure all requirements are met? Read the code file!') 
+	rospy.logerr('Are you using cob3-3? Did you make sure all requirements are met? Read the code file!') 
 	ans = raw_input('[y/n] ')
-	smi.add_ground()
-	rospy.sleep(1.0)
 	if ans == 'y':
+		smi.add_ground()
+		rospy.sleep(1.0)
 		while not rospy.is_shutdown():
 			print "Going Left"
 			success = smi.moveit_joint_goal("arm", [0.4474927123777702, -1.4042363503909014, -1.3427710033793065, 0.8556133802524375, 2.8670612914249532, 0.2447635934094972, -1.8559613290891581], True)
