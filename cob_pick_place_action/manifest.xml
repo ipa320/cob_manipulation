@@ -1,0 +1,27 @@
+<package>
+  <description brief="cob_pick_place_action">
+
+     cob_pick_place_action
+
+  </description>
+  <author>rohit chandra</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cob_pick_place_action</url>
+  <depend package="std_msgs"/>
+  <depend package="rospy"/>
+  <depend package="roscpp"/>
+  <depend package="actionlib"/>
+  <depend package="geometry_msgs"/>
+  <depend package="geometry_msgs"/>
+  <depend package="moveit_ros_planning_interface"/>
+  <depend package="moveit_ros_move_group"/>
+  <depend package="tf"/>
+  <depend package="geometry_msgs"/>
+  <depend package="joint_trajectory_action"/>
+  <depend package="cob_moveit_interface"/>
+  <depend package="cob_grasp_generation"/>
+
+</package>
+
+

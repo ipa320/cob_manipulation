@@ -2,29 +2,30 @@
   <description brief="cob_kinematics">
       IK solvers and utilities for Care-O-bot
   </description>
-  <author>Mathias Lüdtke</author>
+  <author>Mathias Lüdtke, Felix Messmer</author>
   <license>LGPL</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_kinematics</url>
 
   <depend package="roscpp"/>
-  <depend package="arm_navigation_msgs"/>
-  <depend package="planning_environment"/>
   <depend package="kinematics_msgs"/>
+  <depend package="moveit_msgs"/>
   <depend package="sensor_msgs"/>
   <depend package="geometry_msgs"/>
   <depend package="kdl"/>
-  <depend package="kdl_parser"/>  
+  <depend package="kdl_parser"/>
   <depend package="urdf"/>  
-  <depend package="urdf_parser"/>  
-  <depend package="tf_conversions"/>  
+  <depend package="urdf_parser"/>
+  <depend package="tf_conversions"/>
   <depend package="pluginlib"/>
-  <depend package="kinematics_base"/>  
-  
+  <depend package="moveit_core"/>
+  <depend package="moveit_ros_planning"/>
+  <depend package="kdl_conversions"/>
   <rosdep name="liblapack-dev"/>
   
   <export>
-      <kinematics_base plugin="${prefix}/ikfast/plugins.xml" /> <!-- includes"${prefix}/cob_kinematics_plugins.xml" as well -->
+      <moveit_core plugin="${prefix}/lookat_ik/plugins.xml" />
+      <moveit_core plugin="${prefix}/ikfast/plugins.xml" /> <!-- includes"${prefix}/cob_kinematics_plugins.xml" as well -->
   </export>
 
 </package>
