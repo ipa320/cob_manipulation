@@ -118,10 +118,10 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 	ROS_DEBUG_STREAM(*(goal.get()));
 
 	///Updating the object collision_object
-	//insertObject(goal->object_name, goal->object_pose);
+	insertObject(goal->object_name, goal->object_pose);
 	
 	///Get grasps from corresponding GraspTable
-	std::vector<manipulation_msgs::Grasp> grasps;
+	std::vector<moveit_msgs::Grasp> grasps;
 	if(goal->grasp_database=="KIT")
 	{
         ROS_INFO("Using KIT grasp table");
@@ -144,12 +144,12 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 	else if(goal->grasp_database=="ALL")
 	{
         ROS_INFO("Using all available databases");
-		std::vector<manipulation_msgs::Grasp> grasps_OR, grasps_KIT;
+		std::vector<moveit_msgs::Grasp> grasps_OR, grasps_KIT;
 		fillAllGraspsKIT(goal->object_class, goal->object_pose, grasps_KIT);
 		fillGraspsOR(goal->object_class, goal->grasp_id, goal->object_pose, grasps_OR);
 		
 		grasps = grasps_KIT;
-		std::vector<manipulation_msgs::Grasp>::iterator it = grasps.end();
+		std::vector<moveit_msgs::Grasp>::iterator it = grasps.end();
 		grasps.insert(it, grasps_OR.begin(), grasps_OR.end());
 	}
 	else
@@ -171,8 +171,9 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 	
 	
 	///Call Pick with result
-	manipulation_msgs::Grasp grasp_used;
-	success = group.pick(goal->object_name, grasps, grasp_used);
+	moveit_msgs::Grasp grasp_used;
+	//success = group.pick(goal->object_name, grasps, grasp_used);
+	success = group.pick(goal->object_name, grasps);
 	ROS_DEBUG_STREAM("Executed Grasp: " << grasp_used);
 	
 	
@@ -229,23 +230,23 @@ void CobPickPlaceActionServer::place_goal_cb(const cob_pick_place_action::CobPla
 		return; 
 	}
 	
-	std::vector<manipulation_msgs::PlaceLocation> locations;
+	std::vector<moveit_msgs::PlaceLocation> locations;
 	
 	for(unsigned int i=0; i<goal->destinations.size(); i++)
 	{
-		manipulation_msgs::PlaceLocation place_location;
+		moveit_msgs::PlaceLocation place_location;
 		
 		place_location.id = "Last_"+goal->object_name+"_grasp";
 		place_location.post_place_posture = last_grasp.pre_grasp_posture;
 		place_location.place_pose = goal->destinations[i];
-		place_location.approach.direction.header.frame_id = "/base_footprint";
-		place_location.approach.direction.vector.z = -1.0;
-		place_location.approach.min_distance = 0.1;
-		place_location.approach.desired_distance = 0.15;
-		place_location.retreat.direction.header.frame_id = "/base_footprint";
-		place_location.retreat.direction.vector.z = 1.0;
-		place_location.retreat.min_distance = 0.1;
-		place_location.retreat.desired_distance = 0.15;
+		place_location.pre_place_approach.direction.header.frame_id = "/base_footprint";
+		place_location.pre_place_approach.direction.vector.z = -1.0;
+		place_location.pre_place_approach.min_distance = 0.1;
+		place_location.pre_place_approach.desired_distance = 0.15;
+		place_location.post_place_retreat.direction.header.frame_id = "/base_footprint";
+		place_location.post_place_retreat.direction.vector.z = 1.0;
+		place_location.post_place_retreat.min_distance = 0.1;
+		place_location.post_place_retreat.desired_distance = 0.15;
 		
 		locations.push_back(place_location);
 	}
@@ -311,7 +312,7 @@ void CobPickPlaceActionServer::insertObject(std::string object_name, geometry_ms
 
 
 
-void CobPickPlaceActionServer::fillAllGraspsKIT(unsigned int objectClassId, geometry_msgs::PoseStamped object_pose, std::vector<manipulation_msgs::Grasp> &grasps)
+void CobPickPlaceActionServer::fillAllGraspsKIT(unsigned int objectClassId, geometry_msgs::PoseStamped object_pose, std::vector<moveit_msgs::Grasp> &grasps)
 {  
 	grasps.clear(); 
 	Grasp *current_grasp = NULL;
@@ -332,7 +333,7 @@ void CobPickPlaceActionServer::fillAllGraspsKIT(unsigned int objectClassId, geom
 	}
 }
 
-void CobPickPlaceActionServer::fillSingleGraspKIT(unsigned int objectClassId, unsigned int grasp_id, geometry_msgs::PoseStamped object_pose, std::vector<manipulation_msgs::Grasp> &grasps)
+void CobPickPlaceActionServer::fillSingleGraspKIT(unsigned int objectClassId, unsigned int grasp_id, geometry_msgs::PoseStamped object_pose, std::vector<moveit_msgs::Grasp> &grasps)
 {
 	grasps.clear(); 
 	Grasp *current_grasp = NULL;
@@ -349,10 +350,10 @@ void CobPickPlaceActionServer::fillSingleGraspKIT(unsigned int objectClassId, un
 		ROS_ERROR("Grasp %d NOT found", grasp_id);
 }
 
-void CobPickPlaceActionServer::convertGraspKIT(Grasp* current_grasp, geometry_msgs::PoseStamped object_pose, std::vector<manipulation_msgs::Grasp> &grasps)
+void CobPickPlaceActionServer::convertGraspKIT(Grasp* current_grasp, geometry_msgs::PoseStamped object_pose, std::vector<moveit_msgs::Grasp> &grasps)
 {
     bool debug = true;
-	manipulation_msgs::Grasp g;
+	moveit_msgs::Grasp g;
 	
 	//HandPreGraspConfig
 	std::vector<double> current_hand_pre_config = current_grasp->GetHandPreGraspConfig();
@@ -470,16 +471,18 @@ void CobPickPlaceActionServer::convertGraspKIT(Grasp* current_grasp, geometry_ms
         ROS_DEBUG_STREAM("msg_pose_pre_FOOTPRINT_from_ARM7:" << msg_pose_pre_FOOTPRINT_from_ARM7);
     }
 	
-	g.approach = calculateApproachDirection(msg_pose_grasp_FOOTPRINT_from_ARM7.pose, msg_pose_pre_FOOTPRINT_from_ARM7.pose);
+	g.pre_grasp_approach = calculateApproachDirection(msg_pose_grasp_FOOTPRINT_from_ARM7.pose, msg_pose_pre_FOOTPRINT_from_ARM7.pose);
 	
 	//~~~ RetreatDirection ~~~
-	g.retreat.direction.header.frame_id = g.approach.direction.header.frame_id;
-	g.retreat.direction.vector.x = -g.approach.direction.vector.x;
-	g.retreat.direction.vector.y = -g.approach.direction.vector.y;
-	g.retreat.direction.vector.z = -g.approach.direction.vector.z + 0.5; //also lift the object a little bit
+	g.post_grasp_retreat.direction.header.frame_id = g.pre_grasp_approach.direction.header.frame_id;
+	g.post_grasp_retreat.direction.vector.x = -g.pre_grasp_approach.direction.vector.x;
+	g.post_grasp_retreat.direction.vector.y = -g.pre_grasp_approach.direction.vector.y;
+	g.post_grasp_retreat.direction.vector.z = -g.pre_grasp_approach.direction.vector.z + 0.5; //also lift the object a little bit
 	
-	g.retreat.min_distance = g.approach.min_distance;
-	g.retreat.desired_distance = g.approach.desired_distance;
+	g.post_grasp_retreat.min_distance = g.pre_grasp_approach.min_distance;
+	g.post_grasp_retreat.desired_distance = g.pre_grasp_approach.desired_distance;
+	
+	g.post_place_retreat = g.post_grasp_retreat;
 	
 	grasps.push_back(g);
 }
@@ -487,7 +490,7 @@ void CobPickPlaceActionServer::convertGraspKIT(Grasp* current_grasp, geometry_ms
 
 
 
-void CobPickPlaceActionServer::fillGraspsOR(unsigned int objectClassId, unsigned int grasp_id, geometry_msgs::PoseStamped object_pose, std::vector<manipulation_msgs::Grasp> &grasps)
+void CobPickPlaceActionServer::fillGraspsOR(unsigned int objectClassId, unsigned int grasp_id, geometry_msgs::PoseStamped object_pose, std::vector<moveit_msgs::Grasp> &grasps)
 {
 	bool finished_before_timeout;
 	grasps.clear();
@@ -524,13 +527,13 @@ void CobPickPlaceActionServer::fillGraspsOR(unsigned int objectClassId, unsigned
 		
 		for(unsigned int i=0; i<result_query_grasps.get()->grasp_list.size(); i++)
 		{
-			manipulation_msgs::Grasp current_grasp;
+			moveit_msgs::Grasp current_grasp;
 			//~~~ HandGraspConfig ~~~
 			current_grasp.grasp_posture = result_query_grasps.get()->grasp_list[i].grasp_posture;
-			for(unsigned int k=0; k<current_grasp.grasp_posture.position.size(); k++)
+			for(unsigned int k=0; k<current_grasp.grasp_posture.points.size(); k++)
 			{
-				if(current_grasp.grasp_posture.position[k] < -1.5707) current_grasp.grasp_posture.position[k] = -1.5707;
-				if(current_grasp.grasp_posture.position[k] >  1.5707) current_grasp.grasp_posture.position[k] =  1.5707;
+				if(current_grasp.grasp_posture.points[k].positions[0] < -1.5707) current_grasp.grasp_posture.points[k].positions[0] = -1.5707;
+				if(current_grasp.grasp_posture.points[k].positions[0] >  1.5707) current_grasp.grasp_posture.points[k].positions[0] =  1.5707;
 			}
 			//~~~ HandPreGraspConfig ~~~
 			current_grasp.pre_grasp_posture = result_query_grasps.get()->grasp_list[i].pre_grasp_posture;
@@ -580,41 +583,43 @@ void CobPickPlaceActionServer::fillGraspsOR(unsigned int objectClassId, unsigned
 			current_grasp.grasp_pose = msg_pose_grasp_FOOTPRINT_from_ARM7;
 			
 			//~~~ ApproachDirection ~~~
-			//current_grasp.approach.direction.header.frame_id = "/base_footprint";
-			//current_grasp.approach.direction.vector.x = 0.0;
-			//current_grasp.approach.direction.vector.y = 0.0;
-			//current_grasp.approach.direction.vector.z = -1.0;
-			//current_grasp.approach.min_distance = 0.18;
-			//current_grasp.approach.desired_distance = 0.28;
+			//current_grasp.pre_grasp_approach.direction.header.frame_id = "/base_footprint";
+			//current_grasp.pre_grasp_approach.direction.vector.x = 0.0;
+			//current_grasp.pre_grasp_approach.direction.vector.y = 0.0;
+			//current_grasp.pre_grasp_approach.direction.vector.z = -1.0;
+			//current_grasp.pre_grasp_approach.min_distance = 0.18;
+			//current_grasp.pre_grasp_approach.desired_distance = 0.28;
 			
-			current_grasp.approach.direction.header.frame_id = "/arm_7_link";
-			current_grasp.approach.direction.vector.x = 0.0;
-			current_grasp.approach.direction.vector.y = 0.0;
-			current_grasp.approach.direction.vector.z = 1.0;
-			current_grasp.approach.min_distance = 0.18;
-			current_grasp.approach.desired_distance = 0.28;
+			current_grasp.pre_grasp_approach.direction.header.frame_id = "/arm_7_link";
+			current_grasp.pre_grasp_approach.direction.vector.x = 0.0;
+			current_grasp.pre_grasp_approach.direction.vector.y = 0.0;
+			current_grasp.pre_grasp_approach.direction.vector.z = 1.0;
+			current_grasp.pre_grasp_approach.min_distance = 0.18;
+			current_grasp.pre_grasp_approach.desired_distance = 0.28;
 			
-			//current_grasp.approach.direction.header.frame_id = "/base_footprint";
-			//current_grasp.approach.direction.vector.x = -msg_pose_grasp_FOOTPRINT_from_ARM7.pose.position.x+object_pose.pose.position.x;
-			//current_grasp.approach.direction.vector.y = -msg_pose_grasp_FOOTPRINT_from_ARM7.pose.position.y+object_pose.pose.position.y;
-			//current_grasp.approach.direction.vector.z = -msg_pose_grasp_FOOTPRINT_from_ARM7.pose.position.z+object_pose.pose.position.z;
-			//current_grasp.approach.min_distance = 0.18;
-			//current_grasp.approach.desired_distance = 0.28;
+			//current_grasp.pre_grasp_approach.direction.header.frame_id = "/base_footprint";
+			//current_grasp.pre_grasp_approach.direction.vector.x = -msg_pose_grasp_FOOTPRINT_from_ARM7.pose.position.x+object_pose.pose.position.x;
+			//current_grasp.pre_grasp_approach.direction.vector.y = -msg_pose_grasp_FOOTPRINT_from_ARM7.pose.position.y+object_pose.pose.position.y;
+			//current_grasp.pre_grasp_approach.direction.vector.z = -msg_pose_grasp_FOOTPRINT_from_ARM7.pose.position.z+object_pose.pose.position.z;
+			//current_grasp.pre_grasp_approach.min_distance = 0.18;
+			//current_grasp.pre_grasp_approach.desired_distance = 0.28;
 			
 			//~~~ RetreatDirection ~~~
-			current_grasp.retreat.direction.header.frame_id = "/base_footprint";
-			current_grasp.retreat.direction.vector.x = 0.0;
-			current_grasp.retreat.direction.vector.y = 0.0;
-			current_grasp.retreat.direction.vector.z = 1.0;
-			current_grasp.retreat.min_distance = 0.05;
-			current_grasp.retreat.desired_distance = 0.1;
+			current_grasp.post_grasp_retreat.direction.header.frame_id = "/base_footprint";
+			current_grasp.post_grasp_retreat.direction.vector.x = 0.0;
+			current_grasp.post_grasp_retreat.direction.vector.y = 0.0;
+			current_grasp.post_grasp_retreat.direction.vector.z = 1.0;
+			current_grasp.post_grasp_retreat.min_distance = 0.05;
+			current_grasp.post_grasp_retreat.desired_distance = 0.1;
 			
-			//~ current_grasp.retreat.direction.header.frame_id = "/arm_7_link";
-			//~ current_grasp.retreat.direction.vector.x = 0.0;
-			//~ current_grasp.retreat.direction.vector.y = 0.0;
-			//~ current_grasp.retreat.direction.vector.z = -1.0;
-			//~ current_grasp.retreat.min_distance = 0.1;
-			//~ current_grasp.retreat.desired_distance = 0.15;
+			// current_grasp.post_grasp_retreat.direction.header.frame_id = "/arm_7_link";
+			// current_grasp.post_grasp_retreat.direction.vector.x = 0.0;
+			// current_grasp.post_grasp_retreat.direction.vector.y = 0.0;
+			// current_grasp.post_grasp_retreat.direction.vector.z = -1.0;
+			// current_grasp.post_grasp_retreat.min_distance = 0.1;
+			// current_grasp.post_grasp_retreat.desired_distance = 0.15;
+			
+			current_grasp.post_place_retreat = current_grasp.post_grasp_retreat;
 			
 			grasps.push_back(current_grasp);
 		}
@@ -629,32 +634,46 @@ void CobPickPlaceActionServer::fillGraspsOR(unsigned int objectClassId, unsigned
 
 
 
-sensor_msgs::JointState CobPickPlaceActionServer::MapHandConfiguration(sensor_msgs::JointState table_config)
+trajectory_msgs::JointTrajectory CobPickPlaceActionServer::MapHandConfiguration(sensor_msgs::JointState table_config)
 {
-	sensor_msgs::JointState grasp_configuration;
-	grasp_configuration.position.resize(7);
-	grasp_configuration.position[0]= table_config.position[0];
-	grasp_configuration.position[1]= table_config.position[2];
-	grasp_configuration.position[2]= table_config.position[3];
-	grasp_configuration.position[3]= table_config.position[5];
-	grasp_configuration.position[4]= table_config.position[6];
-	grasp_configuration.position[5]= table_config.position[11];
-	grasp_configuration.position[6]= table_config.position[12];
+	trajectory_msgs::JointTrajectory grasp_configuration;
+	grasp_configuration.points.resize(7);
 	
-	grasp_configuration.name.resize(7);
-	grasp_configuration.name[0]=("sdh_knuckle_joint");
-	grasp_configuration.name[1]=("sdh_thumb_2_joint");
-	grasp_configuration.name[2]=("sdh_thumb_3_joint");
-	grasp_configuration.name[3]=("sdh_finger_12_joint");
-	grasp_configuration.name[4]=("sdh_finger_13_joint");
-	grasp_configuration.name[5]=("sdh_finger_22_joint");
-	grasp_configuration.name[6]=("sdh_finger_23_joint");    
+	trajectory_msgs::JointTrajectoryPoint point;
+	point.positions.resize(1);
+	point.velocities.push_back(0.0);
+	point.accelerations.push_back(0.0);
+	point.time_from_start = ros::Duration(3.0);
+	
+	point.positions[0] = table_config.position[0];
+	grasp_configuration.points.push_back(point);
+	point.positions[0] = table_config.position[2];
+	grasp_configuration.points.push_back(point);
+	point.positions[0] = table_config.position[3];
+	grasp_configuration.points.push_back(point);
+	point.positions[0] = table_config.position[5];
+	grasp_configuration.points.push_back(point);
+	point.positions[0] = table_config.position[6];
+	grasp_configuration.points.push_back(point);
+	point.positions[0] = table_config.position[11];
+	grasp_configuration.points.push_back(point);
+	point.positions[0] = table_config.position[12];
+	grasp_configuration.points.push_back(point);
+	
+	grasp_configuration.joint_names.resize(7);
+	grasp_configuration.joint_names[0]=("sdh_knuckle_joint");
+	grasp_configuration.joint_names[1]=("sdh_thumb_2_joint");
+	grasp_configuration.joint_names[2]=("sdh_thumb_3_joint");
+	grasp_configuration.joint_names[3]=("sdh_finger_12_joint");
+	grasp_configuration.joint_names[4]=("sdh_finger_13_joint");
+	grasp_configuration.joint_names[5]=("sdh_finger_22_joint");
+	grasp_configuration.joint_names[6]=("sdh_finger_23_joint");    
 
 	//cut joint_values according to joint_limits
-	for(unsigned int i=0; i<grasp_configuration.position.size();i++)
+	for(unsigned int i=0; i<grasp_configuration.points.size();i++)
 	{
-		if(grasp_configuration.position[i]>1.57079){grasp_configuration.position[i]=1.57079;}
-		if(grasp_configuration.position[i]<-1.57079){grasp_configuration.position[i]=-1.57079;}
+		if(grasp_configuration.points[i].positions[0]>1.57079){grasp_configuration.points[i].positions[0]=1.57079;}
+		if(grasp_configuration.points[i].positions[0]<-1.57079){grasp_configuration.points[i].positions[0]=-1.57079;}
 	}
 	return grasp_configuration;
 }
@@ -712,10 +731,10 @@ tf::Transform CobPickPlaceActionServer::transformPose(tf::Transform transform_O_
 	return transform_FOOTPRINT_from_ARM7;
 }
 
-manipulation_msgs::GripperTranslation CobPickPlaceActionServer::calculateApproachDirection(geometry_msgs::Pose msg_pose_grasp_FOOTPRINT_from_ARM7, geometry_msgs::Pose msg_pose_pre_FOOTPRINT_from_ARM7)
+moveit_msgs::GripperTranslation CobPickPlaceActionServer::calculateApproachDirection(geometry_msgs::Pose msg_pose_grasp_FOOTPRINT_from_ARM7, geometry_msgs::Pose msg_pose_pre_FOOTPRINT_from_ARM7)
 {
 	double finger_length = 0.18; //this is the lenght of the sdh ('home' configuration)
-	manipulation_msgs::GripperTranslation approach;
+	moveit_msgs::GripperTranslation approach;
 	approach.direction.header.frame_id = "/base_footprint";
 	//~ dis=sqrt((x1-x0)^2+(y1-y0)^2+(z1-z0)^2)
 	//~ direction.x= (x1-x0)/dis and likewise

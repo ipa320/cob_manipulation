@@ -1,5 +1,0 @@
-<library path="ros/lib/liblookat_ik_kinematics_plugin">
-  <class name="cob_kinematics/LookatKinematicsPlugin" type="cob_kinematics::LookatIKKinematicsPlugin" base_class_type="kinematics::KinematicsBase">
-    <description>This is KDL kinematics plugin for lookat.</description>
-  </class> 
-</library>

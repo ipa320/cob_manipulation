@@ -9,9 +9,9 @@ import operator, random
 
 #ROS
 import rospy, roslib
-from manipulation_msgs.msg import * 
+from moveit_msgs.msg import * 
 from geometry_msgs.msg import * 
-from sensor_msgs.msg import *
+from trajectory_msgs.msg import *
 
 
 class ORGraspGeneration:
@@ -374,22 +374,38 @@ class ORGraspGeneration:
 	def _fill_grasp_msg(self, grasp):
 		
 		#grasp posture
-		joint_config = JointState()
+		joint_config = JointTrajectory()
 		joint_config.header.stamp = rospy.Time.now()
 		#joint_config.header.frame_id = ""
-		joint_config.name = ['sdh_knuckle_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint']
+		joint_config.joint_names = ['sdh_knuckle_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint']
 		print "Optimize grasp_configuration"
-		#joint_config.position = [float(grasp['sdh_knuckle_joint']), float(grasp['sdh_finger_12_joint']), float(grasp['sdh_finger_13_joint']), float(grasp['sdh_finger_22_joint']), float(grasp['sdh_finger_23_joint']), float(grasp['sdh_thumb_2_joint']), float(grasp['sdh_thumb_3_joint'])]
-		#print joint_config.position
-		joint_config.position = [float(grasp['sdh_knuckle_joint']), 0.92*float(grasp['sdh_finger_12_joint']), float(grasp['sdh_finger_13_joint']), 0.92*float(grasp['sdh_finger_22_joint']), float(grasp['sdh_finger_23_joint']), 0.92*float(grasp['sdh_thumb_2_joint']), float(grasp['sdh_thumb_3_joint'])]
-		print joint_config.position
+		for joint_name in joint_config.joint_names:
+			point = JointTrajectoryPoint()
+			point.positions.append(float(grasp[joint_name]))
+			point.velocities.append(0.0)
+			point.accelerations.append(0.0)
+			point.time_from_start = rospy.Duration(3.0)
+			joint_config.points.append(point)
+		## WARNING: in hydro the message format has changed, thus the following does not work anymore
+		##joint_config.position = [float(grasp['sdh_knuckle_joint']), float(grasp['sdh_finger_12_joint']), float(grasp['sdh_finger_13_joint']), float(grasp['sdh_finger_22_joint']), float(grasp['sdh_finger_23_joint']), float(grasp['sdh_thumb_2_joint']), float(grasp['sdh_thumb_3_joint'])]
+		##print joint_config.position
+		#joint_config.position = [float(grasp['sdh_knuckle_joint']), 0.92*float(grasp['sdh_finger_12_joint']), float(grasp['sdh_finger_13_joint']), 0.92*float(grasp['sdh_finger_22_joint']), float(grasp['sdh_finger_23_joint']), 0.92*float(grasp['sdh_thumb_2_joint']), float(grasp['sdh_thumb_3_joint'])]
+		print joint_config
 
 		#pregrasp posture
-		pre_joint_config = JointState()
+		pre_joint_config = JointTrajectory()
 		pre_joint_config.header.stamp = rospy.Time.now()
+		pre_joint_config.joint_names = ['sdh_knuckle_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint']
+		cyl_open = [0.0, -0.9854, 0.9472, -0.9854, 0.9472, -0.9854, 0.9472]
 		#pre_joint_config.header.frame_id = ""
-		pre_joint_config.name = joint_config.name
-		pre_joint_config.position = [0.0, -0.9854, 0.9472, -0.9854, 0.9472, -0.9854, 0.9472]
+		for i in range(len(pre_joint_config.joint_names)):
+			point = JointTrajectoryPoint()
+			point.positions.append(cyl_open[i])
+			point.velocities.append(0.0)
+			point.accelerations.append(0.0)
+			point.time_from_start = rospy.Duration(3.0)
+			pre_joint_config.points.append(point)
+		print pre_joint_config
 
 		#grasp pose
 		grasp_pose = PoseStamped()

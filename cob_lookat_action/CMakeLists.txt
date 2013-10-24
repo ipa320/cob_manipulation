@@ -1,39 +1,56 @@
-cmake_minimum_required(VERSION 2.4.6)
-include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
+cmake_minimum_required(VERSION 2.8.3)
+project(cob_lookat_action)
 
-# Set the build type.  Options are:
-#  Coverage       : w/ debug symbols, w/o optimization, w/ code-coverage
-#  Debug          : w/ debug symbols, w/o optimization
-#  Release        : w/o debug symbols, w/ optimization
-#  RelWithDebInfo : w/ debug symbols, w/ optimization
-#  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
-#set(ROS_BUILD_TYPE RelWithDebInfo)
+find_package(catkin REQUIRED COMPONENTS rospy message_generation actionlib actionlib_msgs std_msgs geometry_msgs moveit_msgs control_msgs)
+find_package(Boost REQUIRED COMPONENTS thread)
 
-rosbuild_find_ros_package(actionlib_msgs)
-include(${actionlib_msgs_PACKAGE_PATH}/cmake/actionbuild.cmake)
-genaction()
+#######################################
+## Declare ROS messages and services ##
+#######################################
+
+add_action_files(
+  FILES
+  LookAt.action
+)
+
+generate_messages(
+  DEPENDENCIES std_msgs actionlib_msgs geometry_msgs moveit_msgs control_msgs
+)
 
 
-rosbuild_init()
+###################################
+## catkin specific configuration ##
+###################################
+catkin_package(
+    DEPENDS rospy message_runtime actionlib actionlib_msgs std_msgs geometry_msgs moveit_msgs control_msgs
+    CATKIN_DEPENDS # TODO
+    INCLUDE_DIRS # TODO
+    LIBRARIES # TODO
+)
 
-#set the default path for built executables to the "bin" directory
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
-#set the default path for built libraries to the "lib" directory
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
-#uncomment if you have defined messages
-rosbuild_genmsg()
-#uncomment if you have defined services
-#rosbuild_gensrv()
 
-#common commands for building c++ executables and libraries
-#rosbuild_add_library(${PROJECT_NAME} src/example.cpp)
-#target_link_libraries(${PROJECT_NAME} another_library)
-#rosbuild_add_boost_directories()
-#rosbuild_link_boost(${PROJECT_NAME} thread)
-#rosbuild_add_executable(example examples/example.cpp)
-#target_link_libraries(example ${PROJECT_NAME})
+###########
+## Build ##
+###########
 
-rosbuild_add_boost_directories()
-rosbuild_add_executable(cob_lookat_action_server src/cob_lookat_action_server.cpp)
-rosbuild_link_boost(cob_lookat_action_server thread)
+include_directories(${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
+
+add_executable(cob_lookat_action_server src/cob_lookat_action_server.cpp)
+add_dependencies(cob_lookat_action_server ${PROJECT_NAME}_gencpp)
+
+target_link_libraries(cob_lookat_action_server ${Boost_LIBRARIES})
+target_link_libraries(cob_lookat_action_server ${catkin_LIBRARIES})
+
+
+
+#############
+## Install ##
+#############
+## Mark executables and/or libraries for installation
+#install(TARGETS cob_pick_place_action
+  #ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  #LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  #RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+#)
+
