@@ -27,10 +27,8 @@
   <run_depend>cob_grasp_generation</run_depend>
   <run_depend>cob_pick_place_action</run_depend>
   <run_depend>cob_lookat_action</run_depend>
-  <run_depend>cob_kinematics</run_depend>  
-<!--
+  <run_depend>cob_kinematics</run_depend>
   <run_depend>cob_mmcontroller</run_depend>
--->
 
   <!-- Dependencies needed only for running tests. -->
 
