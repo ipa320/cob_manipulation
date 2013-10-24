@@ -1,0 +1,42 @@
+<package>
+  <name>cob_grasp_generation</name>
+  <version>0.5.0</version>
+  <description>
+     Grasp generation for Care-o-bot based on OpenRAVE
+  </description>
+  <author>Witalij Siebert and Felix Messmer</author>
+  <maintainer email="fxm@ipa.fhg.de">Felix Messmer</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://ros.org/wiki/cob_manipulation/</url>
+  <url type="bugtracker">https://github.com/ipa320/cob_manipulation/issues</url>
+  <url type="repository">https://github.com/ipa320/cob_manipulation</url>
+  
+  <buildtool_depend>catkin</buildtool_depend>
+  
+  <build_depend>rospy</build_depend>
+  <build_depend>message_generation</build_depend>
+  <build_depend>actionlib</build_depend>
+  <build_depend>actionlib_msgs</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>manipulation_msgs</build_depend>
+
+  
+  <run_depend>rospy</run_depend>
+  <run_depend>message_runtime</run_depend>
+  <run_depend>actionlib</run_depend>
+  <run_depend>actionlib_msgs</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>manipulation_msgs</run_depend>
+  <run_depend>tf</run_depend>  
+  <run_depend>openrave</run_depend>
+  <run_depend>geometry_msgs</run_depend>
+
+  <export>
+    <cpp cflags="-I${prefix}/msg/cpp"/>
+  </export>
+  
+</package>
+
+
