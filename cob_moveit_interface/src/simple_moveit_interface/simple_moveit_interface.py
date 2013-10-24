@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-
 import roslib; roslib.load_manifest('cob_moveit_interface')
 import threading
 from copy import deepcopy
@@ -9,7 +8,6 @@ import rospy
 import tf
 from geometry_msgs.msg import PoseStamped
 from moveit_commander import MoveGroupCommander, PlanningSceneInterface
-
 
 
 
