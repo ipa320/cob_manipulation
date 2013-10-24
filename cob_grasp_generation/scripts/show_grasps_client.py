@@ -3,7 +3,7 @@ import roslib; roslib.load_manifest('cob_grasp_generation')
 import rospy
 
 import actionlib
-import manipulation_msgs.msg
+import moveit_msgs.msg
 import cob_grasp_generation.msg 
 
 def show_grasps_client():
