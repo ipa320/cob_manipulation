@@ -1,5 +1,0 @@
-# THIS IS A SHARED CONFIG, DO NOT EDIT! CREATE AN OVERLAY INSTEAD!
-group: arm
-arm: {root_name: arm_0_link, tip_name: arm_7_link}
-kinematics_solver: cob3_arm_kinematics/KDLArmKinematicsPlugin
-#kinematics_solver: cob_kinematics/IKFast_lwa
