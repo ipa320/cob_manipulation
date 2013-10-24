@@ -1,0 +1,22 @@
+<package>
+  <name>cob_tray_monitor</name>
+  <version>0.5.0</version>
+  <description>
+     cob_tray_monitor
+  </description>
+  <author email="fmw@ipa.fhg.de">Florian Weisshardt</author>
+  <maintainer email="fmw@ipa.fhg.de">Florian Weisshardt</maintainer>
+
+  <license>LGPL</license>
+
+  <url type="website">http://ros.org/wiki/cob_tactiletools</url>
+  <url type="bugtracker">https://github.com/ipa320/cob_manipulation/cob_tray_monitor/issues</url>
+  <url type="repository">https://github.com/ipa320/cob_manipulation/cob_tray_monitor</url>
+
+  <run_depend>rospy</run_depend>
+  <run_depend>cob_srvs</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+</package>
