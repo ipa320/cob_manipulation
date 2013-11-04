@@ -128,25 +128,25 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 		if(goal->grasp_id!=0)
 		{
 			ROS_INFO("Using specific grasp_id: %d", goal->grasp_id);
-			fillSingleGraspKIT(goal->object_id, goal->grasp_id, goal->object_pose, grasps);
+			fillSingleGraspKIT(goal->object_class, goal->grasp_id, goal->object_pose, grasps);
 		}
 		else
 		{
 			ROS_INFO("Using all grasps");
-			fillAllGraspsKIT(goal->object_id, goal->object_pose, grasps);
+			fillAllGraspsKIT(goal->object_class, goal->object_pose, grasps);
 		}
 	}
 	else if(goal->grasp_database=="OpenRAVE")
 	{
         ROS_INFO("Using OpenRAVE grasp table");
-		fillGraspsOR(goal->object_id, goal->grasp_id, goal->object_pose, grasps);
+		fillGraspsOR(goal->object_class, goal->grasp_id, goal->object_pose, grasps);
 	}
 	else if(goal->grasp_database=="ALL")
 	{
         ROS_INFO("Using all available databases");
 		std::vector<manipulation_msgs::Grasp> grasps_OR, grasps_KIT;
-		fillAllGraspsKIT(goal->object_id, goal->object_pose, grasps_KIT);
-		fillGraspsOR(goal->object_id, goal->grasp_id, goal->object_pose, grasps_OR);
+		fillAllGraspsKIT(goal->object_class, goal->object_pose, grasps_KIT);
+		fillGraspsOR(goal->object_class, goal->grasp_id, goal->object_pose, grasps_OR);
 		
 		grasps = grasps_KIT;
 		std::vector<manipulation_msgs::Grasp>::iterator it = grasps.end();
@@ -249,7 +249,12 @@ void CobPickPlaceActionServer::place_goal_cb(const cob_pick_place_action::CobPla
 		
 		locations.push_back(place_location);
 	}
-
+    
+    if(!(goal->support_surface.empty()))
+	{
+		ROS_INFO("Setting SupportSurface to %s", goal->support_surface.c_str());
+		group.setSupportSurfaceName(goal->support_surface);
+	}
 	group.setPlanningTime(300.0);	//default is 5.0 s
 	
 	success = group.place(goal->object_name, locations);
@@ -601,15 +606,15 @@ void CobPickPlaceActionServer::fillGraspsOR(unsigned int objectClassId, unsigned
 			current_grasp.retreat.direction.vector.x = 0.0;
 			current_grasp.retreat.direction.vector.y = 0.0;
 			current_grasp.retreat.direction.vector.z = 1.0;
-			current_grasp.retreat.min_distance = 0.1;
-			current_grasp.retreat.desired_distance = 0.15;
+			current_grasp.retreat.min_distance = 0.05;
+			current_grasp.retreat.desired_distance = 0.1;
 			
-			current_grasp.retreat.direction.header.frame_id = "/arm_7_link";
-			current_grasp.retreat.direction.vector.x = 0.0;
-			current_grasp.retreat.direction.vector.y = 0.0;
-			current_grasp.retreat.direction.vector.z = -1.0;
-			current_grasp.retreat.min_distance = 0.1;
-			current_grasp.retreat.desired_distance = 0.15;
+			//~ current_grasp.retreat.direction.header.frame_id = "/arm_7_link";
+			//~ current_grasp.retreat.direction.vector.x = 0.0;
+			//~ current_grasp.retreat.direction.vector.y = 0.0;
+			//~ current_grasp.retreat.direction.vector.z = -1.0;
+			//~ current_grasp.retreat.min_distance = 0.1;
+			//~ current_grasp.retreat.desired_distance = 0.15;
 			
 			grasps.push_back(current_grasp);
 		}

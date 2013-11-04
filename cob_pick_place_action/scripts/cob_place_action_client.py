@@ -21,9 +21,9 @@ def cob_place_action_client():
 	
 	# Creates a goal to send to the action server.
 	goal = cob_pick_place_action.msg.CobPlaceGoal()
-	goal.object_id = 18
+	goal.object_class = 18
 	goal.object_name = "yellowsaltcube"
-	#goal.object_id = 50
+	#goal.object_class = 50
 	#goal.object_name = "instantsoup"
 	
 	pose = PoseStamped()
