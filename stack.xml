@@ -28,7 +28,8 @@
   <depend stack="cob_perception_common"/> <!-- cob_object_detection_msgs -->
   <depend stack="moveit_ros_move_group"/>
   <depend stack="moveit_ros_planning_interface"/>
-  <depend stack="moveit_ros_moveit_commander"/>
+  <depend stack="moveit_ros_manipulation"/>
+  <depend stack="moveit_commander"/>
 
 
 </stack>
