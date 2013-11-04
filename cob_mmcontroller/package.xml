@@ -24,11 +24,11 @@
   <!--build_depend>kinematics_msgs</build_depend-->
   <build_depend>visualization_msgs</build_depend>
   <build_depend>nav_msgs</build_depend>
+  <!--build_depend>kdl</build_depend-->
   <build_depend>kdl_parser</build_depend>
   <build_depend>pr2_controllers_msgs</build_depend>
   <build_depend>tf_conversions</build_depend>
   <build_depend>tf</build_depend>
-  <build_depend>kdl</build_depend>
   <build_depend>actionlib</build_depend>
   <build_depend>actionlib_msgs</build_depend>
   <build_depend>cob_srvs</build_depend>
@@ -44,11 +44,11 @@
   <!--run_depend>kinematics_msgs</run_depend-->
   <run_depend>visualization_msgs</run_depend>
   <run_depend>nav_msgs</run_depend>
+  <!--run_depend>kdl</run_depend-->
   <run_depend>kdl_parser</run_depend>
   <run_depend>pr2_controllers_msgs</run_depend>
   <run_depend>tf_conversions</run_depend>
   <run_depend>tf</run_depend>
-  <run_depend>kdl</run_depend>
   <run_depend>actionlib</run_depend>
   <run_depend>actionlib_msgs</run_depend>
   <run_depend>cob_srvs</run_depend>
