@@ -26,7 +26,9 @@
   <depend stack="warehousewg" /> <!-- mongodb -->
   <depend stack="common_rosdeps" /> <!-- assimp -->
   <depend stack="cob_perception_common"/> <!-- cob_object_detection_msgs -->
-  <depend stack="moveit_ros"/>
+  <depend stack="moveit_ros_move_group"/>
+  <depend stack="moveit_ros_planning_interface"/>
+  <depend stack="moveit_ros_moveit_commander"/>
 
 
 </stack>
