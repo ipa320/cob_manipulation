@@ -31,8 +31,5 @@ rosbuild_gensrv()
 #target_link_libraries(example ${PROJECT_NAME})
 
 #rosbuild_add_executable(urdf_openrave ros/src/urdf_openrave.cpp)
-#add_subdirectory(ikfast)
-
-#rosbuild_add_executable(kinematics_node ros/src/kinematics_node.cpp)
-
+add_subdirectory(ikfast)
 add_subdirectory(lookat_ik)
