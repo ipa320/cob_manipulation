@@ -1,4 +1,0 @@
----
-bool success
-string error_message
-articulation_msgs/ModelMsg model
