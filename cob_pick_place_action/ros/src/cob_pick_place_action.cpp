@@ -118,7 +118,7 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 	ROS_DEBUG_STREAM(*(goal.get()));
 
 	///Updating the object collision_object
-	//insertObject(goal->object_name, goal->object_pose);
+	insertObject(goal->object_name, goal->object_pose);
 	
 	///Get grasps from corresponding GraspTable
 	std::vector<manipulation_msgs::Grasp> grasps;
@@ -170,11 +170,8 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 	group.setPlanningTime(300.0);	//default is 5.0 s
 	
 	
-	///Call Pick with result
-	manipulation_msgs::Grasp grasp_used;
-	success = group.pick(goal->object_name, grasps, grasp_used);
-	ROS_DEBUG_STREAM("Executed Grasp: " << grasp_used);
-	
+	///Call Pick
+	success = group.pick(goal->object_name, grasps);
 	
 	///Setting result
 	cob_pick_place_action::CobPickResult result;
@@ -187,7 +184,6 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 		as_pick->setSucceeded(result, response);
 		last_grasp_valid = true;
 		last_object_name = goal->object_name;
-		last_grasp = grasp_used;
 	}
 	else
 	{
@@ -230,13 +226,31 @@ void CobPickPlaceActionServer::place_goal_cb(const cob_pick_place_action::CobPla
 	}
 	
 	std::vector<manipulation_msgs::PlaceLocation> locations;
+	sensor_msgs::JointState pre_grasp_posture;		//use cyl_open by default
+	pre_grasp_posture.header.stamp = ros::Time::now();
+	pre_grasp_posture.name.resize(7);
+	pre_grasp_posture.name[0] = "sdh_knuckle_joint";
+	pre_grasp_posture.name[1] = "sdh_finger_12_joint";
+	pre_grasp_posture.name[2] = "sdh_finger_13_joint";
+	pre_grasp_posture.name[3] = "sdh_finger_22_joint";
+	pre_grasp_posture.name[4] = "sdh_finger_23_joint";
+	pre_grasp_posture.name[5] = "sdh_thumb_2_joint";
+	pre_grasp_posture.name[6] = "sdh_thumb_3_joint";
+	pre_grasp_posture.position.resize(7);
+	pre_grasp_posture.position[0] =  0.0;
+	pre_grasp_posture.position[1] = -0.9854;
+	pre_grasp_posture.position[2] =  0.9472;
+	pre_grasp_posture.position[3] = -0.9854;
+	pre_grasp_posture.position[4] =  0.9472;
+	pre_grasp_posture.position[5] = -0.9854;
+	pre_grasp_posture.position[6] =  0.9472;
 	
 	for(unsigned int i=0; i<goal->destinations.size(); i++)
 	{
 		manipulation_msgs::PlaceLocation place_location;
 		
 		place_location.id = "Last_"+goal->object_name+"_grasp";
-		place_location.post_place_posture = last_grasp.pre_grasp_posture;
+		place_location.post_place_posture = pre_grasp_posture;
 		place_location.place_pose = goal->destinations[i];
 		place_location.approach.direction.header.frame_id = "/base_footprint";
 		place_location.approach.direction.vector.z = -1.0;
@@ -246,6 +260,8 @@ void CobPickPlaceActionServer::place_goal_cb(const cob_pick_place_action::CobPla
 		place_location.retreat.direction.vector.z = 1.0;
 		place_location.retreat.min_distance = 0.1;
 		place_location.retreat.desired_distance = 0.15;
+		
+		ROS_DEBUG_STREAM("place_location: \n" << place_location);
 		
 		locations.push_back(place_location);
 	}
