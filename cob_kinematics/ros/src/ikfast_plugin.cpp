@@ -249,10 +249,10 @@ public:
      * @return True if a valid solution was found, false otherwise
      */
     virtual bool getPositionIK(const geometry_msgs::Pose &ik_pose,
-                             const std::vector<double> &ik_seed_state,
-                             std::vector<double> &solution,
-                             moveit_msgs::MoveItErrorCodes &error_code,
-                             bool lock_redundant_joints = false) const {
+                                const std::vector<double> &ik_seed_state,
+                                std::vector<double> &solution,
+                                moveit_msgs::MoveItErrorCodes &error_code,
+                                const kinematics::KinematicsQueryOptions &options) const {
 
         return searchPositionIK(ik_pose, ik_seed_state, solution, min_max_,
                 error_code);
@@ -267,11 +267,11 @@ public:
      * @return True if a valid solution was found, false otherwise
      */
     virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
-                                const std::vector<double> &ik_seed_state,
-                                double timeout,
-                                std::vector<double> &solution,
-                                moveit_msgs::MoveItErrorCodes &error_code,
-                                bool lock_redundant_joints = false) const {
+                                   const std::vector<double> &ik_seed_state,
+                                   double timeout,
+                                   std::vector<double> &solution,
+                                   moveit_msgs::MoveItErrorCodes &error_code,
+                                   const kinematics::KinematicsQueryOptions &options) const {
 
         return searchPositionIK(ik_pose, ik_seed_state, solution, min_max_,
                 error_code, timeout);
@@ -287,12 +287,12 @@ public:
      * @return True if a valid solution was found, false otherwise
      */
     virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
-                                const std::vector<double> &ik_seed_state,
-                                double timeout,
-                                const std::vector<double> &consistency_limits,
-                                std::vector<double> &solution,
-                                moveit_msgs::MoveItErrorCodes &error_code,
-                                bool lock_redundant_joints = false) const {
+                                   const std::vector<double> &ik_seed_state,
+                                   double timeout,
+                                   const std::vector<double> &consistency_limits,
+                                   std::vector<double> &solution,
+                                   moveit_msgs::MoveItErrorCodes &error_code,
+                                   const kinematics::KinematicsQueryOptions &options) const {
 
         std::vector<std::pair<double, double> > min_max = min_max_;
         setConsistencyLimit(min_max, ik_seed_state, consistency_limits);
@@ -309,12 +309,13 @@ public:
      * @return True if a valid solution was found, false otherwise
      */
     virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
-                                const std::vector<double> &ik_seed_state,
-                                double timeout,
-                                std::vector<double> &solution,
-                                const IKCallbackFn &solution_callback,
-                                moveit_msgs::MoveItErrorCodes &error_code,
-                                bool lock_redundant_joints = false) const {
+                                   const std::vector<double> &ik_seed_state,
+                                   double timeout,
+                                   std::vector<double> &solution,
+                                   const IKCallbackFn &solution_callback,
+                                   moveit_msgs::MoveItErrorCodes &error_code,
+                                   const kinematics::KinematicsQueryOptions &options) const {
+                                    
         return searchPositionIK(ik_pose, ik_seed_state, solution, min_max_,
                 error_code, timeout, solution_callback);
     }
@@ -330,13 +331,14 @@ public:
      * @return True if a valid solution was found, false otherwise
      */
     virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
-                                const std::vector<double> &ik_seed_state,
-                                double timeout,
-                                const std::vector<double> &consistency_limits,
-                                std::vector<double> &solution,
-                                const IKCallbackFn &solution_callback,
-                                moveit_msgs::MoveItErrorCodes &error_code,
-                                bool lock_redundant_joints = false) const {
+                                   const std::vector<double> &ik_seed_state,
+                                   double timeout,
+                                   const std::vector<double> &consistency_limits,
+                                   std::vector<double> &solution,
+                                   const IKCallbackFn &solution_callback,
+                                   moveit_msgs::MoveItErrorCodes &error_code,
+                                   const kinematics::KinematicsQueryOptions &options) const {
+                                       
         std::vector<std::pair<double, double> > min_max = min_max_;
         setConsistencyLimit(min_max, ik_seed_state, consistency_limits);
         return searchPositionIK(ik_pose, ik_seed_state, solution, min_max,

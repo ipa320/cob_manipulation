@@ -73,7 +73,6 @@ private:
 	
 	bool last_grasp_valid;
 	std::string last_object_name;
-	manipulation_msgs::Grasp last_grasp;
 	tf::TransformListener tf_listener_;
 	
 	std::map<unsigned int,std::string> map_classid_to_classname;

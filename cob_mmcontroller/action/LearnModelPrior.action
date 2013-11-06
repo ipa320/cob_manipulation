@@ -1,9 +1,0 @@
-# Define the goal
-string database
----
-# Define the result
-bool success
-string error_message
----
-# Define a feedback message
-string message

@@ -13,14 +13,15 @@
   <depend package="roscpp"/>
   <depend package="actionlib"/>
   <depend package="geometry_msgs"/>
-  <depend package="geometry_msgs"/>
-  <depend package="moveit_ros_planning_interface"/>
-  <depend package="moveit_ros_move_group"/>
   <depend package="tf"/>
-  <depend package="geometry_msgs"/>
   <depend package="joint_trajectory_action"/>
+  <depend package="moveit_ros_move_group"/>
+  <depend package="moveit_ros_planning_interface"/>
+  <depend package="moveit_ros_manipulation"/>
+  <depend package="moveit_commander"/>
   <depend package="cob_moveit_interface"/>
   <depend package="cob_grasp_generation"/>
+
 
 </package>
 
