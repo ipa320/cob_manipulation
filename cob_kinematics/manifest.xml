@@ -9,23 +9,23 @@
 
   <depend package="roscpp"/>
   <depend package="kinematics_msgs"/>
-  <depend package="moveit_msgs"/>
   <depend package="sensor_msgs"/>
   <depend package="geometry_msgs"/>
+  <depend package="moveit_msgs"/>
   <depend package="kdl"/>
   <depend package="kdl_parser"/>
+  <depend package="kdl_conversions"/>
   <depend package="urdf"/>  
   <depend package="urdf_parser"/>
   <depend package="tf_conversions"/>
   <depend package="pluginlib"/>
   <depend package="moveit_core"/>
   <depend package="moveit_ros_planning"/>
-  <depend package="kdl_conversions"/>
   <rosdep name="liblapack-dev"/>
   
   <export>
       <moveit_core plugin="${prefix}/lookat_ik/plugins.xml" />
-      <moveit_core plugin="${prefix}/ikfast/plugins.xml" /> <!-- includes"${prefix}/cob_kinematics_plugins.xml" as well -->
+      <moveit_core plugin="${prefix}/ikfast/plugins.xml" />
   </export>
 
 </package>

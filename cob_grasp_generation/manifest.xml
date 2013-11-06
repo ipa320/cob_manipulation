@@ -11,7 +11,8 @@
   <depend package="rospy"/>
   <depend package="actionlib"/>
   <depend package="manipulation_msgs"/>
-  <!--depend package="openrave_scripts" /-->
+  <!--rosdep name="openrave0.8-dp-python"/-->
+
 </package>
 
 
