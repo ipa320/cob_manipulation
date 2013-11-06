@@ -20,7 +20,7 @@ foreach(fname ${yamls})
 
     add_library(${tname} MODULE ${cppout} ../ros/src/ikfast_plugin.cpp)
     set_target_properties(${tname} PROPERTIES COMPILE_DEFINITIONS IKFAST_NAMESPACE=${bname} )
-    target_link_libraries(${tname} lapack kdl_conversions)
+    target_link_libraries(${tname} lapack)
 
     file(APPEND plugins.xml "<library path=\"ros/lib/lib${tname}\">\n")
     file(APPEND plugins.xml "<class name=\"cob_kinematics/IKFast_${bname}\" type=\"${bname}::IKFastPlugin\" base_class_type=\"kinematics::KinematicsBase\"/>\n")

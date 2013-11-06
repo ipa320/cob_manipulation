@@ -170,12 +170,8 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 	group.setPlanningTime(300.0);	//default is 5.0 s
 	
 	
-	///Call Pick with result
-	moveit_msgs::Grasp grasp_used;
-	//success = group.pick(goal->object_name, grasps, grasp_used);
+	///Call Pick
 	success = group.pick(goal->object_name, grasps);
-	ROS_DEBUG_STREAM("Executed Grasp: " << grasp_used);
-	
 	
 	///Setting result
 	cob_pick_place_action::CobPickResult result;
@@ -188,7 +184,6 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 		as_pick->setSucceeded(result, response);
 		last_grasp_valid = true;
 		last_object_name = goal->object_name;
-		last_grasp = grasp_used;
 	}
 	else
 	{
@@ -231,13 +226,45 @@ void CobPickPlaceActionServer::place_goal_cb(const cob_pick_place_action::CobPla
 	}
 	
 	std::vector<moveit_msgs::PlaceLocation> locations;
+	trajectory_msgs::JointTrajectory pre_grasp_posture;		//use cyl_open by default
+	pre_grasp_posture.header.stamp = ros::Time::now();
+	pre_grasp_posture.joint_names.resize(7);
+	pre_grasp_posture.joint_names[0] = "sdh_knuckle_joint";
+	pre_grasp_posture.joint_names[1] = "sdh_finger_12_joint";
+	pre_grasp_posture.joint_names[2] = "sdh_finger_13_joint";
+	pre_grasp_posture.joint_names[3] = "sdh_finger_22_joint";
+	pre_grasp_posture.joint_names[4] = "sdh_finger_23_joint";
+	pre_grasp_posture.joint_names[5] = "sdh_thumb_2_joint";
+	pre_grasp_posture.joint_names[6] = "sdh_thumb_3_joint";
+	pre_grasp_posture.points.resize(7);
+	
+	trajectory_msgs::JointTrajectoryPoint point;
+	point.positions.resize(1);
+	point.velocities.push_back(0.0);
+	point.accelerations.push_back(0.0);
+	point.time_from_start = ros::Duration(3.0);
+	
+	point.positions[0] = 0.0;
+	pre_grasp_posture.points.push_back(point);
+	point.positions[0] = -0.9854;
+	pre_grasp_posture.points.push_back(point);
+	point.positions[0] = 0.9472;
+	pre_grasp_posture.points.push_back(point);
+	point.positions[0] = -0.9854;
+	pre_grasp_posture.points.push_back(point);
+	point.positions[0] = 0.9472;
+	pre_grasp_posture.points.push_back(point);
+	point.positions[0] = -0.9854;
+	pre_grasp_posture.points.push_back(point);
+	point.positions[0] = 0.9472;
+	pre_grasp_posture.points.push_back(point);
 	
 	for(unsigned int i=0; i<goal->destinations.size(); i++)
 	{
 		moveit_msgs::PlaceLocation place_location;
 		
 		place_location.id = "Last_"+goal->object_name+"_grasp";
-		place_location.post_place_posture = last_grasp.pre_grasp_posture;
+		place_location.post_place_posture = pre_grasp_posture;
 		place_location.place_pose = goal->destinations[i];
 		place_location.pre_place_approach.direction.header.frame_id = "/base_footprint";
 		place_location.pre_place_approach.direction.vector.z = -1.0;

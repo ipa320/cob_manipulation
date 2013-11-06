@@ -1,5 +1,0 @@
-articulation_msgs/ParamMsg[] params
-duration target_duration
----
-bool success
-string error_message
