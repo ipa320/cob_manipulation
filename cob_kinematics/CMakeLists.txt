@@ -34,10 +34,9 @@ catkin_package(
 ###########
 
 #include_directories(${PROJECT_SOURCE_DIR}/ros/include)
-#add_executable(kinematics_node ros/src/kinematics_node.cpp)
 
 #add_executable(urdf_openrave ros/src/urdf_openrave.cpp)
-#add_subdirectory(ikfast)
+add_subdirectory(ikfast)
 
 
 

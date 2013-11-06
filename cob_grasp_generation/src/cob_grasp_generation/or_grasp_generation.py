@@ -390,7 +390,7 @@ class ORGraspGeneration:
 		##joint_config.position = [float(grasp['sdh_knuckle_joint']), float(grasp['sdh_finger_12_joint']), float(grasp['sdh_finger_13_joint']), float(grasp['sdh_finger_22_joint']), float(grasp['sdh_finger_23_joint']), float(grasp['sdh_thumb_2_joint']), float(grasp['sdh_thumb_3_joint'])]
 		##print joint_config.position
 		#joint_config.position = [float(grasp['sdh_knuckle_joint']), 0.92*float(grasp['sdh_finger_12_joint']), float(grasp['sdh_finger_13_joint']), 0.92*float(grasp['sdh_finger_22_joint']), float(grasp['sdh_finger_23_joint']), 0.92*float(grasp['sdh_thumb_2_joint']), float(grasp['sdh_thumb_3_joint'])]
-		print joint_config
+		#print joint_config
 
 		#pregrasp posture
 		pre_joint_config = JointTrajectory()
