@@ -118,7 +118,7 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 	ROS_DEBUG_STREAM(*(goal.get()));
 
 	///Updating the object collision_object
-	insertObject(goal->object_name, goal->object_pose);
+	//insertObject(goal->object_name, goal->object_pose);
 	
 	///Get grasps from corresponding GraspTable
 	std::vector<manipulation_msgs::Grasp> grasps;

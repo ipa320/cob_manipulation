@@ -60,7 +60,7 @@ public:
         if(torso_available)
         {
             XmlRpc::XmlRpcValue tj;
-            nh.getParam("/torso_controller/joints", tj);
+            nh.getParam("/torso_controller/joint_names", tj);
             ROS_ASSERT(tj.getType() == XmlRpc::XmlRpcValue::TypeArray);
 
             for (int32_t i = 0; i < tj.size(); ++i) 
@@ -72,14 +72,18 @@ public:
             if(head_available)
             {
                 XmlRpc::XmlRpcValue hj;
-                nh.getParam("/head_controller/joints", hj);
-                ROS_ASSERT(hj.getType() == XmlRpc::XmlRpcValue::TypeArray);
+                nh.getParam("/head_controller/JointName", hj);
+                ROS_ASSERT(hj.getType() == XmlRpc::XmlRpcValue::TypeString);
+                head_joints.push_back(hj);
 
-                for (int32_t i = 0; i < hj.size(); ++i) 
-                {
-                  ROS_ASSERT(hj[i].getType() == XmlRpc::XmlRpcValue::TypeString);
-                  head_joints.push_back(hj[i]);
-                }
+                //nh.getParam("/head_controller/joints", hj);
+                //ROS_ASSERT(hj.getType() == XmlRpc::XmlRpcValue::TypeArray);
+
+                //for (int32_t i = 0; i < hj.size(); ++i) 
+                //{
+                //  ROS_ASSERT(hj[i].getType() == XmlRpc::XmlRpcValue::TypeString);
+                //  head_joints.push_back(hj[i]);
+                //}
             }
             
             //additional lookat joints
@@ -113,12 +117,12 @@ public:
         bool success = false;
         
         //  publish  info  to  the  console  for  the  user
-        ROS_INFO("%s:  New Goal!",  lookat_action_name.c_str());
+        //ROS_INFO("%s:  New Goal!",  lookat_action_name.c_str());
         
         moveit_msgs::GetPositionIK  srv;
         srv.request.ik_request.group_name  =  "lookat";
         srv.request.ik_request.ik_link_name  =  "lookat_focus_frame";
-        srv.request.ik_request.timeout  =  ros::Duration(1.0);
+        srv.request.ik_request.timeout  =  ros::Duration(0.1);
         srv.request.ik_request.attempts  =  1;
         srv.request.ik_request.pose_stamped  =  goal->target;
         
@@ -132,7 +136,7 @@ public:
 
         if  (ik_client.call(srv))
         {
-            ROS_DEBUG("IK  Result:  %d",  srv.response.error_code.val);
+            //ROS_DEBUG("IK  Result:  %d",  srv.response.error_code.val);
             if(srv.response.error_code.val  ==  1)
             {
                 ROS_INFO("IK  Solution  found");
@@ -142,10 +146,10 @@ public:
             {
                 ROS_ERROR("No  IK  Solution  found");
                 success  =  false;
-                lookat_res.success  =  success;
-                //  set  the  action  state  to  aborted
-                lookat_as->setAborted(lookat_res);
-                return;
+                //lookat_res.success  =  success;
+                ////  set  the  action  state  to  aborted
+                //lookat_as->setAborted(lookat_res);
+                //return;
             }
         }
         else
@@ -164,19 +168,22 @@ public:
         std::vector<double>  head_config;
         head_config.resize(head_joints.size());    
         
-        for(unsigned  int  i=0, j=0;  i<srv.response.solution.joint_state.name.size();  i++)
+        if(success)
         {
-            ROS_INFO("%s:  %f",  srv.response.solution.joint_state.name[i].c_str(),  srv.response.solution.joint_state.position[i]);
-            if(j<torso_joints.size() && srv.response.solution.joint_state.name[i]==torso_joints[j])
+            for(unsigned  int  i=0, j=0;  i<srv.response.solution.joint_state.name.size();  i++)
             {
-                torso_config[j]  =  srv.response.solution.joint_state.position[i];
-                j++;
+                //ROS_INFO("%s:  %f",  srv.response.solution.joint_state.name[i].c_str(),  srv.response.solution.joint_state.position[i]);
+                if(j<torso_joints.size() && srv.response.solution.joint_state.name[i]==torso_joints[j])
+                {
+                    torso_config[j]  =  srv.response.solution.joint_state.position[i];
+		    j++;
+		}
+		if(srv.response.solution.joint_state.name[i]  ==  "lookat_lin_joint")
+		    if(srv.response.solution.joint_state.position[i] >= 0)
+                        head_config[0] = 0.0;   //look backwards
+                    else
+                        head_config[0] = -3.1415926;    //lock forwards
             }
-            if(srv.response.solution.joint_state.name[i]  ==  "lookat_lin_joint")
-                if(srv.response.solution.joint_state.position[i] >= 0)
-                    head_config[0] = 0.0;   //look backwards
-                else
-                    head_config[0] = -3.1415926;    //lock forwards
         }
         
         //  send  a  goal  to  the  action
@@ -186,7 +193,7 @@ public:
         torso_goal.trajectory.joint_names = torso_joints;
         trajectory_msgs::JointTrajectoryPoint  torso_point;
         torso_point.positions  = torso_config;
-        torso_point.time_from_start  = ros::Duration(3.0);
+        torso_point.time_from_start  = ros::Duration(1.0);
         torso_goal.trajectory.points.push_back(torso_point);
         
         control_msgs::FollowJointTrajectoryGoal  head_goal;
@@ -195,13 +202,13 @@ public:
         head_goal.trajectory.joint_names = head_joints;
         trajectory_msgs::JointTrajectoryPoint  head_point;
         head_point.positions = head_config;
-        head_point.time_from_start = ros::Duration(3.0);
+        head_point.time_from_start = ros::Duration(1.0);
         head_goal.trajectory.points.push_back(head_point);
         
         torso_ac->sendGoal(torso_goal);
         head_ac->sendGoal(head_goal);
         
-        bool finished_before_timeout = torso_ac->waitForResult(ros::Duration(30.0)) && head_ac->waitForResult(ros::Duration(30.0));
+        bool finished_before_timeout = torso_ac->waitForResult(ros::Duration(5.0)) && head_ac->waitForResult(ros::Duration(5.0));
 
         if  (finished_before_timeout)
         {
@@ -217,7 +224,7 @@ public:
         
         if(success)
         {
-            ROS_INFO("%s:  Succeeded",  lookat_action_name.c_str());
+            //ROS_INFO("%s:  Succeeded",  lookat_action_name.c_str());
             lookat_res.success  =  success;
             
             //  set  the  action  state  to  succeeded
@@ -225,7 +232,7 @@ public:
         }
         else
         {
-            ROS_INFO("%s:  Failed  to  execute",  lookat_action_name.c_str());
+            //ROS_INFO("%s:  Failed  to  execute",  lookat_action_name.c_str());
             lookat_res.success  =  success;
             
             //  set  the  action  state  to  aborted
@@ -239,12 +246,12 @@ public:
         bool success = false;
         
         //  publish  info  to  the  console  for  the  user
-        ROS_INFO("%s:  New Goal!",  lookat_action_name.c_str());
+        //ROS_INFO("%s:  New Goal!",  lookat_action_name.c_str());
         
         moveit_msgs::GetPositionIK  srv;
         srv.request.ik_request.group_name  =  "lookat";
         srv.request.ik_request.ik_link_name  =  "lookat_focus_frame";
-        srv.request.ik_request.timeout  =  ros::Duration(1.0);
+        srv.request.ik_request.timeout  =  ros::Duration(0.1);
         srv.request.ik_request.attempts  =  1;
         srv.request.ik_request.pose_stamped  =  goal->target;
         
@@ -258,7 +265,7 @@ public:
 
         if  (ik_client.call(srv))
         {
-            ROS_DEBUG("IK  Result:  %d",  srv.response.error_code.val);
+            //ROS_DEBUG("IK  Result:  %d",  srv.response.error_code.val);
             if(srv.response.error_code.val  ==  1)
             {
                 ROS_INFO("IK  Solution  found");
@@ -268,10 +275,10 @@ public:
             {
                 ROS_ERROR("No  IK  Solution  found");
                 success  =  false;
-                lookat_res.success  =  success;
-                //  set  the  action  state  to  aborted
-                lookat_as->setAborted(lookat_res);
-                return;
+                //lookat_res.success  =  success;
+                ////  set  the  action  state  to  aborted
+                //lookat_as->setAborted(lookat_res);
+                //return;
             }
         }
         else
@@ -287,13 +294,16 @@ public:
         std::vector<double>  torso_config;
         torso_config.resize(torso_joints.size());
         
-        for(unsigned  int  i=0, j=0;  i<srv.response.solution.joint_state.name.size();  i++)
+        if(success)
         {
-            ROS_DEBUG("%s:  %f",  srv.response.solution.joint_state.name[i].c_str(),  srv.response.solution.joint_state.position[i]);
-            if(j<torso_joints.size() && srv.response.solution.joint_state.name[i]==torso_joints[j])
+            for(unsigned  int  i=0, j=0;  i<srv.response.solution.joint_state.name.size();  i++)
             {
-                torso_config[j]  =  srv.response.solution.joint_state.position[i];
-                j++;
+                //ROS_DEBUG("%s:  %f",  srv.response.solution.joint_state.name[i].c_str(),  srv.response.solution.joint_state.position[i]);
+                if(j<torso_joints.size() && srv.response.solution.joint_state.name[i]==torso_joints[j])
+                {
+                    torso_config[j]  =  srv.response.solution.joint_state.position[i];
+                    j++;
+                }
             }
         }
         
@@ -304,12 +314,12 @@ public:
         torso_goal.trajectory.joint_names = torso_joints;
         trajectory_msgs::JointTrajectoryPoint  torso_point;
         torso_point.positions  = torso_config;
-        torso_point.time_from_start  = ros::Duration(3.0);
+        torso_point.time_from_start  = ros::Duration(1.0);
         torso_goal.trajectory.points.push_back(torso_point);
         
         torso_ac->sendGoal(torso_goal);
         
-        bool finished_before_timeout = torso_ac->waitForResult(ros::Duration(30.0));
+        bool finished_before_timeout = torso_ac->waitForResult(ros::Duration(5.0));
 
         if  (finished_before_timeout)
         {
