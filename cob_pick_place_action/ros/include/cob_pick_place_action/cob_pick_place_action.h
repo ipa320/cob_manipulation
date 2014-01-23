@@ -87,7 +87,7 @@ public:
 	void pick_goal_cb(const cob_pick_place_action::CobPickGoalConstPtr &goal);
 	void place_goal_cb(const cob_pick_place_action::CobPlaceGoalConstPtr &goal);
 
-	void insertObject(std::string object_name, geometry_msgs::PoseStamped object_pose);
+	void insertObject(std::string object_name, unsigned int object_class, geometry_msgs::PoseStamped object_pose);
 	
 	void fillAllGraspsKIT(unsigned int objectClassId, geometry_msgs::PoseStamped object_pose, std::vector<manipulation_msgs::Grasp> &grasps);
 	void fillSingleGraspKIT(unsigned int objectClassId, unsigned int grasp_id, geometry_msgs::PoseStamped object_pose, std::vector<manipulation_msgs::Grasp> &grasps);
