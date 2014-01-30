@@ -21,8 +21,6 @@
   <build_depend>geometry_msgs</build_depend>
   <build_depend>moveit_msgs</build_depend>
   <build_depend>sensor_msgs</build_depend>
-  <!--build_depend>kinematics_msgs</build_depend-->
-  <!--build_depend>kdl</build_depend-->
   <build_depend>kdl_parser</build_depend>
   <build_depend>urdf</build_depend>
   <!--build_depend>urdf_parser</build_depend-->
@@ -39,8 +37,6 @@
   <run_depend>geometry_msgs</run_depend>
   <run_depend>moveit_msgs</run_depend>
   <run_depend>sensor_msgs</run_depend>
-  <!--run_depend>kinematics_msgs</run_depend-->
-  <!--run_depend>kdl</run_depend-->
   <run_depend>kdl_parser</run_depend>
   <run_depend>urdf</run_depend>
   <!--run_depend>urdf_parser</run_depend-->
