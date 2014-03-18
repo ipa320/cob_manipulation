@@ -118,7 +118,7 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 	ROS_DEBUG_STREAM(*(goal.get()));
 
 	///Updating the object collision_object
-	insertObject(goal->object_name, goal->object_pose);
+	insertObject(goal->object_name, goal->object_class, goal->object_pose);
 	
 	///Get grasps from corresponding GraspTable
 	std::vector<moveit_msgs::Grasp> grasps;
@@ -306,7 +306,7 @@ void CobPickPlaceActionServer::place_goal_cb(const cob_pick_place_action::CobPla
 	}
 }
 
-void CobPickPlaceActionServer::insertObject(std::string object_name, geometry_msgs::PoseStamped object_pose)
+void CobPickPlaceActionServer::insertObject(std::string object_name, unsigned int object_class, geometry_msgs::PoseStamped object_pose)
 {
 	ROS_INFO("Adding object to MoveIt! environment..");
 	
@@ -323,7 +323,7 @@ void CobPickPlaceActionServer::insertObject(std::string object_name, geometry_ms
 	co.id = object_name;
 	co.operation = co.ADD;
 	
-	std::string mesh_name = object_name;
+	std::string mesh_name = map_classid_to_classname[object_class];
 	std::transform(mesh_name.begin(), mesh_name.end(), mesh_name.begin(), ::tolower);
 	
 	boost::scoped_ptr<shapes::Mesh> mesh;
