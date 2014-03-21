@@ -1,6 +1,6 @@
 <package>
   <name>cob_manipulation</name>
-  <version>0.5.0</version>
+  <version>0.5.1</version>
   <description>The cob_manipulation stack includes packages that provide manipulation capabilities for Care-O-bot.</description>
   <maintainer email="felix.messmer@ipa.fraunhofer.de">Maintained by Mathias Luedtke and Felix Messmer</maintainer>
 

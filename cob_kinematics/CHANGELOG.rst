@@ -2,8 +2,8 @@
 Changelog for package cob_kinematics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.1 (2014-03-21)
+------------------
 * removed a lot of code related to packages not available in hydro anymore
 * added lapack to deps
 * move cob_mmcontroller + groovy_updates

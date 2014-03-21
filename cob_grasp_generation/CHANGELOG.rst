@@ -2,8 +2,8 @@
 Changelog for package cob_grasp_generation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.1 (2014-03-21)
+------------------
 * move cob_mmcontroller + groovy_updates
 * fix deps
 * pick_place now works with released version of moveit

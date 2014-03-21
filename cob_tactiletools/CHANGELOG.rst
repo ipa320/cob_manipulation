@@ -2,8 +2,8 @@
 Changelog for package cob_tactiletools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.1 (2014-03-21)
+------------------
 * update package.xml
 * catkinized
 * fixed tactile filters due to message movement to schunk repository

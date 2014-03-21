@@ -2,8 +2,8 @@
 Changelog for package cob_pick_place_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.1 (2014-03-21)
+------------------
 * Merge pull request `#11 <https://github.com/ipa320/cob_manipulation/issues/11>`_ from ipa-fxm/groovy_dev
   bring groovy updates to hydro
 * use object_class to determine mesh_file in insertObject
