@@ -28,8 +28,8 @@ generate_messages(
 ###################################
 
 catkin_package(
-    DEPENDS rospy message_runtime actionlib actionlib_msgs std_msgs moveit_msgs tf openrave geometry_msgs
-    CATKIN_DEPENDS # TODO
+    CATKIN_DEPENDS rospy message_runtime actionlib actionlib_msgs std_msgs moveit_msgs tf geometry_msgs
+    DEPENDS # TODO
     INCLUDE_DIRS 
     LIBRARIES # TODO
 )

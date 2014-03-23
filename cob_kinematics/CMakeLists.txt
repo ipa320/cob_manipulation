@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_kinematics)
 
-find_package(catkin REQUIRED COMPONENTS roscpp message_generation std_msgs geometry_msgs moveit_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp message_generation std_msgs geometry_msgs moveit_msgs moveit_core pluginlib urdf tf_conversions)
 
 #######################################
 ## Declare ROS messages and services ##
@@ -21,8 +21,8 @@ generate_messages(
 ## catkin specific configuration ##
 ###################################
 catkin_package(
-    DEPENDS roscpp message_runtime std_msgs geometry_msgs moveit_msgs
-    CATKIN_DEPENDS # TODO
+    CATKIN_DEPENDS roscpp message_runtime std_msgs geometry_msgs moveit_msgs
+    DEPENDS # TODO
     INCLUDE_DIRS # TODO
     LIBRARIES # TODO
 )
