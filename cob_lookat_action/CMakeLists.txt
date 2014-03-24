@@ -58,6 +58,6 @@ install(PROGRAMS src/cob_lookat_action_client.py src/cob_monitor_arm_client.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-install(DIRECTORY action/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/action
+install(DIRECTORY action
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )

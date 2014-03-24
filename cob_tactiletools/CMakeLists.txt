@@ -5,8 +5,8 @@ find_package(catkin REQUIRED)
 
 catkin_package()
 
-install(DIRECTORY launch/
-   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+install(DIRECTORY launch
+   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
 install(PROGRAMS nodes/tactile_data_gui.py nodes/tactile_filters.py
