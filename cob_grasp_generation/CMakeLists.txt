@@ -28,8 +28,20 @@ generate_messages(
 ###################################
 
 catkin_package(
-    DEPENDS rospy message_runtime actionlib actionlib_msgs std_msgs moveit_msgs tf openrave geometry_msgs
-    CATKIN_DEPENDS # TODO
+    CATKIN_DEPENDS rospy message_runtime actionlib actionlib_msgs std_msgs moveit_msgs tf geometry_msgs
+    DEPENDS # TODO
     INCLUDE_DIRS 
     LIBRARIES # TODO
+)
+
+install(DIRECTORY action
+   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
+
+install(DIRECTORY files
+   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
+
+install(PROGRAMS scripts/cob_grasp_generation_action_server.py scripts/generate_grasps_client.py scripts/query_grasps_client.py scripts/show_grasps_client.py
+   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
