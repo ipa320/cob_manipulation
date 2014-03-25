@@ -14,6 +14,6 @@ install(DIRECTORY ros/launch
 )
 
 install(PROGRAMS ros/src/tray_monitor.py
-   DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION}/ros/src
+   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/ros/src
 )
 
