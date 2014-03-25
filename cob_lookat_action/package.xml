@@ -24,6 +24,7 @@
   <build_depend>geometry_msgs</build_depend>
   <build_depend>moveit_msgs</build_depend>
   <build_depend>control_msgs</build_depend>
+  <build_depend>tf</build_depend>
   
   <run_depend>rospy</run_depend>
   <run_depend>roscpp</run_depend>
@@ -34,6 +35,7 @@
   <run_depend>geometry_msgs</run_depend>
   <run_depend>moveit_msgs</run_depend>
   <run_depend>control_msgs</run_depend>
+  <run_depend>tf</run_depend>
 
   <export>
     <cpp cflags="-I${prefix}/msg/cpp"/>
