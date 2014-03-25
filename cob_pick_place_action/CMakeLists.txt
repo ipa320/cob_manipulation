@@ -71,11 +71,7 @@ install(DIRECTORY ros/include/${PROJECT_NAME}/
 )
 
 install(PROGRAMS scripts/cob_multi_pick_place_client.py scripts/cob_pick_action_client.py scripts/cob_place_action_client.py
-   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
-install(DIRECTORY action
-   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+   DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION}/scripts
 )
 
 install(DIRECTORY launch

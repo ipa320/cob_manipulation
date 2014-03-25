@@ -8,6 +8,6 @@ catkin_python_setup()
 catkin_package()
 
 install(PROGRAMS scripts/load_scene_example.py scripts/move_group_example.py scripts/reactive_planning_example.py
-    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/scripts
 )
 
