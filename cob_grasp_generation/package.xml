@@ -4,7 +4,8 @@
   <description>
      Grasp generation for Care-O-bot based on OpenRAVE
   </description>
-  <author>Witalij Siebert and Felix Messmer</author>
+  <author>Witalij Siebert</author>
+  <author>Felix Messmer</author>
   <maintainer email="fxm@ipa.fhg.de">Felix Messmer</maintainer>
 
   <license>BSD</license>
