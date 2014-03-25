@@ -10,5 +10,5 @@ install(DIRECTORY launch
 )
 
 install(PROGRAMS nodes/tactile_data_gui.py nodes/tactile_filters.py
-   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+   DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION}/nodes
 )
