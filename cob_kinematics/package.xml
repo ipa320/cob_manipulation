@@ -4,8 +4,9 @@
   <description>
      IK solvers and utilities for Care-O-bot
   </description>
-  <author email="fxm@ipa.fhg.de">Mathias Lüdtke, Felix Messmer</author>
-  <maintainer email="fxm@ipa.fhg.de">Mathias Lüdtke, Felix Messmer</maintainer>
+  <author email="mdl@ipa.fhg.de">Mathias Luedtke</author>
+  <maintainer email="mdl@ipa.fhg.de">Mathias Luedtke</maintainer>
+  <maintainer email="fxm@ipa.fhg.de">Felix Messmer</maintainer>
 
   <license>LGPL</license>
 
