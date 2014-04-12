@@ -90,7 +90,7 @@ def cob_place_action_client(object_class, object_name, destinations):
 	goal.object_class = object_class
 	goal.object_name = object_name
 	goal.destinations = destinations
-    goal.support_surface = "bookcase"
+	goal.support_surface = "bookcase"
 	
 	#print goal
 	# Sends the goal to the action server.
