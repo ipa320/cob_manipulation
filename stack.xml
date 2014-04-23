@@ -26,6 +26,7 @@
   <depend stack="moveit_ros_planning_interface"/>
   <depend stack="moveit_ros_manipulation"/>
   <depend stack="moveit_commander"/>
+  <depend stack="moveit_resources"/>
   
   <depend stack="cob_common" /> <!-- cob_srvs, brics_actuator -->
   <depend stack="schunk_modular_robotics" /> <!-- schunk_sdh -->
