@@ -12,6 +12,7 @@
   <depend package="sensor_msgs"/>
   <depend package="geometry_msgs"/>
   <depend package="moveit_msgs"/>
+  <depend package="moveit_resources"/>
   <depend package="kdl"/>
   <depend package="kdl_parser"/>
   <depend package="kdl_conversions"/>
