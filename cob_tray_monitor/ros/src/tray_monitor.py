@@ -11,10 +11,10 @@ class Monitor():
     
     def __init__(self):        
         self.pub = rospy.Publisher("occupied", Bool)
-        rospy.Subscriber("/tray_sensors/range_0", Range, self.range1_callback)
-        rospy.Subscriber("/tray_sensors/range_1", Range, self.range2_callback)
-        rospy.Subscriber("/tray_sensors/range_2", Range, self.range3_callback)
-        rospy.Subscriber("/tray_sensors/range_3", Range, self.range4_callback)
+        rospy.Subscriber("range_0", Range, self.range1_callback)
+        rospy.Subscriber("range_1", Range, self.range2_callback)
+        rospy.Subscriber("range_2", Range, self.range3_callback)
+        rospy.Subscriber("range_3", Range, self.range4_callback)
         rospy.Service('occupied', Trigger, self.srv_callback)
         self.range1 = Range()
         self.queue1 = deque([1]) # init with arbitrary high value

@@ -3,7 +3,12 @@
 
 	<rosparam ns="tray_monitor" file="$(find cob_tray_monitor)/config/monitor_params.yaml" command="load" />
 
-	<node ns="tray_monitor" pkg="cob_tray_monitor" type="tray_monitor.py" name="tray_monitor" respawn="false" output="screen"/>
+	<node ns="tray_monitor" pkg="cob_tray_monitor" type="tray_monitor.py" name="tray_monitor" respawn="false" output="screen">
+		<remap from="range_0" to="/tray_sensors/range_4"/>
+		<remap from="range_1" to="/tray_sensors/range_5"/>
+		<remap from="range_2" to="/tray_sensors/range_6"/>
+		<remap from="range_3" to="/tray_sensors/range_7"/>
+	</node>
 
 </launch>
 
