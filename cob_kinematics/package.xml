@@ -42,7 +42,7 @@
 
 
   <export>
-      <moveit_core plugin="${prefix}/ikfast/plugins.xml" /> 
+      <!--moveit_core plugin="${prefix}/ikfast/plugins.xml" /--> 
   </export>
 
 </package>
