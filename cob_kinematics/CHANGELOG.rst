@@ -1,0 +1,94 @@
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Changelog for package cob_kinematics
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Forthcoming
+-----------
+* update cob_moveit_config package for all robots
+* Contributors: Felix Messmer
+
+0.5.1 (2014-03-26)
+------------------
+* Merge branch 'hydro_dev' into hydro_release_candidate
+* update package maintainer
+* Merge branch 'hydro_dev' into hydro_release_candidate
+* catkin_lint and install tags
+* add changelogs
+* removed a lot of code related to packages not available in hydro anymore
+* added lapack to deps
+* move cob_mmcontroller + groovy_updates
+* fix ikfast + cleanup
+* reduce solver_iterations for faster IK calculation
+* update package.xml
+* catkinize cob_kinematics + use kdl instead of lookat-IK + update moveit_configs
+* update CMakeLists
+* faster lookat_ik solver
+* speedup ik by reducing solver_iterations
+* lookat_ik_plugin
+* NO BUILD of kinematics
+* tweaked harmonization
+* added bound checking to harmonization
+* IK solver based on GT code
+* fixed linker problems
+* added ik10 ikfast plugin
+* added lock_redundant_joints argument to api functions
+* merge with mdl
+* ikfast plugin works now
+* added missing return statement
+  fixed return value
+* fixed init
+* merge with ipa-mdl
+* removed outdated components that have moveit substitutes
+* export to moveit_core
+* adapted ikfast_plugin to moveit interface
+* switched to moveit dependencies
+* cob_kinematics: remove everything from CMakeLists that won't build properly (TODOs)
+* ikfast pluging are now included in cob_kinematics again
+  Conflicts:
+  cob_kinematics/manifest.xml
+* cob_kinematics: fixed plugin path
+* ikfast pluging are now included in cob_kinematics again
+* cob_kinematics: fixed plugin path
+* disabled IKfast plugins
+* added rosdep on liblapack-dev
+* temporarily not using ik-fast plugins - ToBeFixed
+* disabled kinematics_node, must be upated for fuerte
+* Merge remote-tracking branch 'origin-ipa-fxm/fuerte_dev' into fuerte_dev
+  Conflicts: (solved)
+  cob_manipulator/CMakeLists.txt
+  cob_manipulator/manifest.xml
+  lwa_arm_navigation/manifest.xml
+* moved kinematics_node from cob_manipulator to cob_kinematics
+* moved KDL plugin overlay from cob_manipulator to cob_kinematics
+* ikfast: debug options
+* ikfast: bug fixes
+* small changes
+* implemented generic searchPositionIK
+* introduced auto-magic IkSolutionListFiltered..
+* added JointSpaceStepper
+* support for consistency limits
+* desired_pose_callback checks
+* implemented getPositionFK
+* added URDF parsing, included IK header/ properties
+* auto-format
+* added license headers
+* lwa solver name fixed
+* fixed ikfast CMake chain
+* simplified electric to fuerte wrapper
+* added missing file
+* little parsing bug fix
+* adapted skeleton to work on electric and fuerte (hopefully)
+* added skeleton for the IKfast solver plugins
+* changed ur5 tip link to arm_wrist_3_link, since arm_ee_link is fixed
+* added configurations and soures for lbr,lwa and ur5
+* added ikfast build pipeline
+* added simple urdf to openrave xml converter
+* cob_ik_wapper now uses robot_state from planning_scene if available
+* prepared ik_wrapper for multiple joint state sources
+* enhanced IK wrapper
+* FK/IK/FK test for solving to tip link at pregrasp
+* fixed names parsing
+* fixed IK handling
+* added IK wrapper
+* new kinematics package
+* Contributors: Florian Weisshardt, Mathias Lüdtke, Witalij Siebert, ipa-fxm
