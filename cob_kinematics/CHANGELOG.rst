@@ -2,8 +2,8 @@
 Changelog for package cob_kinematics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.2 (2014-08-28)
+------------------
 * update cob_moveit_config package for all robots
 * Contributors: Felix Messmer
 

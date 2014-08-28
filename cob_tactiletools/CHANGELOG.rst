@@ -2,8 +2,8 @@
 Changelog for package cob_tactiletools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.2 (2014-08-28)
+------------------
 * changes due to renaming from sdh to gripper
 * Contributors: ipa-fxm
 

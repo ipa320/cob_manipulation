@@ -2,8 +2,8 @@
 Changelog for package cob_pick_place_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.2 (2014-08-28)
+------------------
 * python indentation fix
 * Contributors: ipa-fxm
 

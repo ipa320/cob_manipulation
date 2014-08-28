@@ -1,6 +1,6 @@
 <package>
   <name>cob_grasp_generation</name>
-  <version>0.5.1</version>
+  <version>0.5.2</version>
   <description>
      Grasp generation for Care-O-bot based on OpenRAVE
   </description>
