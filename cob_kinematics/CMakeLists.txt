@@ -33,7 +33,10 @@ catkin_package(
 ## Build ##
 ###########
 
-#include_directories(${PROJECT_SOURCE_DIR}/ros/include)
+include_directories(
+  ${catkin_INCLUDE_DIRS}
+  #${PROJECT_SOURCE_DIR}/ros/include
+)
 
 #add_executable(urdf_openrave ros/src/urdf_openrave.cpp)
 add_subdirectory(ikfast)
