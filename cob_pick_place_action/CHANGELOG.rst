@@ -2,8 +2,8 @@
 Changelog for package cob_pick_place_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.0 (2014-09-18)
+------------------
 * 0.5.1
 * add changelogs
 * Contributors: Florian Weisshardt

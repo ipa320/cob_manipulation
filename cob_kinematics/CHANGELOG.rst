@@ -2,8 +2,8 @@
 Changelog for package cob_kinematics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.0 (2014-09-18)
+------------------
 * add catkin_INCLUDE_DIRS to cob_kinematics
 * Merge pull request `#43 <https://github.com/ipa320/cob_manipulation/issues/43>`_ from ipa320/hydro_dev
   bringin updates from hydro_dev

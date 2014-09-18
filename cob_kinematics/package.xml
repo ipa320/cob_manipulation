@@ -1,6 +1,6 @@
 <package>
   <name>cob_kinematics</name>
-  <version>0.5.2</version>
+  <version>0.6.0</version>
   <description>
      IK solvers and utilities for Care-O-bot
   </description>
