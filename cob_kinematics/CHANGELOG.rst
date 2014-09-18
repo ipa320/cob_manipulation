@@ -2,6 +2,17 @@
 Changelog for package cob_kinematics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* add catkin_INCLUDE_DIRS to cob_kinematics
+* Merge pull request `#43 <https://github.com/ipa320/cob_manipulation/issues/43>`_ from ipa320/hydro_dev
+  bringin updates from hydro_dev
+* Merge branch 'hydro_dev' into hydro_release_candidate
+* Merge branch 'hydro_dev' into hydro_release_candidate
+* 0.5.1
+* add changelogs
+* Contributors: Florian Weisshardt, Scott K Logan, ipa-fxm
+
 0.5.2 (2014-08-28)
 ------------------
 * update cob_moveit_config package for all robots
