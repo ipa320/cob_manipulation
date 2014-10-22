@@ -156,7 +156,7 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 		ROS_ERROR("Grasp_Database %s not supported! Please use \"KIT\" or \"OpenRAVE\" instead", goal->grasp_database.c_str());
 
 	
-	ROS_INFO("PickGoalCB: Found %d grasps for this object", grasps.size());
+	ROS_INFO("PickGoalCB: Found %lu grasps for this object", grasps.size());
 	for(unsigned int i=0; i<grasps.size(); i++)
 	{
 		ROS_DEBUG_STREAM("Grasp "<< i << ": " << grasps[i]);
@@ -546,7 +546,7 @@ void CobPickPlaceActionServer::fillGraspsOR(unsigned int objectClassId, unsigned
 	{
 		ROS_INFO("Action finished: %s",state_grasps_or.toString().c_str());
 		
-		ROS_INFO("Found %d grasps for this object", result_query_grasps.get()->grasp_list.size());
+		ROS_INFO("Found %lu grasps for this object", result_query_grasps.get()->grasp_list.size());
 		for(unsigned int i=0; i<result_query_grasps.get()->grasp_list.size(); i++)
 		{
 			ROS_DEBUG_STREAM("Grasp "<< i << ": " << result_query_grasps.get()->grasp_list[i]);
