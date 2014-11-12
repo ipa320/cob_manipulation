@@ -1,34 +1,56 @@
-cmake_minimum_required(VERSION 2.4.6)
-include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
+cmake_minimum_required(VERSION 2.8.3)
+project(cob_kinematics)
 
-# Set the build type.  Options are:
-#  Coverage       : w/ debug symbols, w/o optimization, w/ code-coverage
-#  Debug          : w/ debug symbols, w/o optimization
-#  Release        : w/o debug symbols, w/ optimization
-#  RelWithDebInfo : w/ debug symbols, w/ optimization
-#  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
-#set(ROS_BUILD_TYPE RelWithDebInfo)
+find_package(catkin REQUIRED COMPONENTS roscpp message_generation std_msgs geometry_msgs moveit_msgs moveit_core pluginlib urdf tf_conversions)
 
-rosbuild_init()
+#######################################
+## Declare ROS messages and services ##
+#######################################
 
-#set the default path for built executables to the "bin" directory
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/ros/bin)
-#set the default path for built libraries to the "lib" directory
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/ros/lib)
-include_directories(${PROJECT_SOURCE_DIR}/ros/include)
+add_service_files(
+  FILES
+  GetPositionIKExtended.srv 
+)
 
-#uncomment if you have defined messages
-#rosbuild_genmsg()
-#uncomment if you have defined services
-rosbuild_gensrv()
+generate_messages(
+  DEPENDENCIES std_msgs geometry_msgs moveit_msgs
+)
 
-#common commands for building c++ executables and libraries
-#rosbuild_add_library(${PROJECT_NAME} src/example.cpp)
-#target_link_libraries(${PROJECT_NAME} another_library)
-#rosbuild_add_boost_directories()
-#rosbuild_link_boost(${PROJECT_NAME} thread)
-#rosbuild_add_executable(example examples/example.cpp)
-#target_link_libraries(example ${PROJECT_NAME})
 
-rosbuild_add_executable(ik_wrapper_node ros/nodes/ik_wrapper_node.cpp ros/src/ik_wrapper.cpp)
-target_link_libraries(ik_wrapper_node planning_environment)
+###################################
+## catkin specific configuration ##
+###################################
+catkin_package(
+    CATKIN_DEPENDS roscpp message_runtime std_msgs geometry_msgs moveit_msgs
+    DEPENDS # TODO
+    INCLUDE_DIRS # TODO
+    LIBRARIES # TODO
+)
+
+
+
+###########
+## Build ##
+###########
+
+include_directories(
+  ${catkin_INCLUDE_DIRS}
+  #${PROJECT_SOURCE_DIR}/ros/include
+)
+
+#add_executable(urdf_openrave ros/src/urdf_openrave.cpp)
+add_subdirectory(ikfast)
+
+
+
+#############
+## Install ##
+#############
+## Mark executables and/or libraries for installation
+#install(TARGETS cob_pick_place_action
+  #ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  #LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  #RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+#)
+
+
