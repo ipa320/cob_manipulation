@@ -1,0 +1,22 @@
+<package>
+  <name>cob_tactiletools</name>
+  <version>0.5.1</version>
+  <description>
+     cob_tactiletools
+  </description>
+  <author email="aub@ipa.fhg.de">Alexander Bubeck</author>
+  <maintainer email="aub@ipa.fhg.de">Alexander Bubeck</maintainer>
+
+  <license>LGPL</license>
+
+  <url type="website">http://ros.org/wiki/cob_manipulation/</url>
+  <url type="bugtracker">https://github.com/ipa320/cob_manipulation/issues</url>
+  <url type="repository">https://github.com/ipa320/cob_manipulation</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <run_depend>rospy</run_depend>
+  <run_depend>cob_srvs</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>schunk_sdh</run_depend>
+
+</package>
