@@ -2,8 +2,27 @@
 Changelog for package cob_grasp_generation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.5.1 (2014-03-21)
+0.6.0 (2014-09-18)
 ------------------
+* Merge branch 'hydro_dev' into hydro_release_candidate
+* Merge branch 'hydro_dev' into hydro_release_candidate
+* 0.5.1
+* add changelogs
+* Contributors: Florian Weisshardt, ipa-fxm
+
+0.5.2 (2014-08-28)
+------------------
+
+0.5.1 (2014-03-26)
+------------------
+* Merge branch 'hydro_dev' into hydro_release_candidate
+* use BIN_DESTINATION
+* beautify install tags and correct PYTHON_DESTINATION
+* update package maintainer
+* Merge branch 'hydro_dev' into hydro_release_candidate
+* install tags
+* catkin_lint and install tags
+* add changelogs
 * move cob_mmcontroller + groovy_updates
 * fix deps
 * pick_place now works with released version of moveit
@@ -90,4 +109,4 @@ Changelog for package cob_grasp_generation
 * README file added
 * changed serice files from src to scripts
 * new package for grasp_generation action
-* Contributors: Jan Fischer, Witalij Siebert, ipa-fxm
+* Contributors: Florian Weisshardt, Jan Fischer, Witalij Siebert, ipa-fxm

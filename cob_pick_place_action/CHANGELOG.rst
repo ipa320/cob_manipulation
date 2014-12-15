@@ -2,8 +2,24 @@
 Changelog for package cob_pick_place_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.5.1 (2014-03-21)
+0.6.0 (2014-09-18)
 ------------------
+* 0.5.1
+* add changelogs
+* Contributors: Florian Weisshardt
+
+0.5.2 (2014-08-28)
+------------------
+* python indentation fix
+* Contributors: ipa-fxm
+
+0.5.1 (2014-03-26)
+------------------
+* use BIN_DESTINATION
+* beautify install tags and correct PYTHON_DESTINATION
+* install tags
+* catkin_lint and install tags
+* add changelogs
 * Merge pull request `#11 <https://github.com/ipa320/cob_manipulation/issues/11>`_ from ipa-fxm/groovy_dev
   bring groovy updates to hydro
 * use object_class to determine mesh_file in insertObject
@@ -87,4 +103,4 @@ Changelog for package cob_pick_place_action
 * added pick action_server
 * define action
 * initial commit of cob_pick_place_action
-* Contributors: Jan Fischer, Witalij Siebert, ipa-fxm, rohit chandra
+* Contributors: Florian Weisshardt, Jan Fischer, Witalij Siebert, ipa-fxm, rohit chandra

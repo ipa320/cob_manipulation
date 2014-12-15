@@ -2,11 +2,29 @@
 Changelog for package cob_tactiletools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.5.1 (2014-03-21)
+0.6.0 (2014-09-18)
 ------------------
+* Merge branch 'hydro_dev' into hydro_release_candidate
+* 0.5.1
+* add changelogs
+* Contributors: Florian Weisshardt
+
+0.5.2 (2014-08-28)
+------------------
+* changes due to renaming from sdh to gripper
+* Contributors: ipa-fxm
+
+0.5.1 (2014-03-26)
+------------------
+* use BIN_DESTINATION
+* beautify install tags and correct PYTHON_DESTINATION
+* Merge branch 'hydro_dev' into hydro_release_candidate
+* install tags
+* catkin_lint and install tags
+* add changelogs
 * update package.xml
 * catkinized
 * fixed tactile filters due to message movement to schunk repository
 * changed to schunk_sdh
 * moved to new stack
-* Contributors: LucaLattanzi, ipa-fmw, ipa-fxm
+* Contributors: Florian Weisshardt, LucaLattanzi, ipa-fmw, ipa-fxm
