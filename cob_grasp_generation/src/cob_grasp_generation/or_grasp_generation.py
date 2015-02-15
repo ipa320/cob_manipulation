@@ -379,13 +379,14 @@ class ORGraspGeneration:
 		#joint_config.header.frame_id = ""
 		joint_config.joint_names = ['sdh_knuckle_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint']
 		print "Optimize grasp_configuration"
+		point = JointTrajectoryPoint()
 		for joint_name in joint_config.joint_names:
-			point = JointTrajectoryPoint()
 			point.positions.append(float(grasp[joint_name]))
 			point.velocities.append(0.0)
 			point.accelerations.append(0.0)
+			point.effort.append(0.0)
 			point.time_from_start = rospy.Duration(3.0)
-			joint_config.points.append(point)
+		joint_config.points.append(point)
 		## WARNING: in hydro the message format has changed, thus the following does not work anymore
 		##joint_config.position = [float(grasp['sdh_knuckle_joint']), float(grasp['sdh_finger_12_joint']), float(grasp['sdh_finger_13_joint']), float(grasp['sdh_finger_22_joint']), float(grasp['sdh_finger_23_joint']), float(grasp['sdh_thumb_2_joint']), float(grasp['sdh_thumb_3_joint'])]
 		##print joint_config.position
@@ -398,13 +399,14 @@ class ORGraspGeneration:
 		pre_joint_config.joint_names = ['sdh_knuckle_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint']
 		cyl_open = [0.0, -0.9854, 0.9472, -0.9854, 0.9472, -0.9854, 0.9472]
 		#pre_joint_config.header.frame_id = ""
+		point = JointTrajectoryPoint()
 		for i in range(len(pre_joint_config.joint_names)):
-			point = JointTrajectoryPoint()
 			point.positions.append(cyl_open[i])
 			point.velocities.append(0.0)
 			point.accelerations.append(0.0)
+			point.effort.append(0.0)
 			point.time_from_start = rospy.Duration(3.0)
-			pre_joint_config.points.append(point)
+		pre_joint_config.points.append(point)
 		print pre_joint_config
 
 		#grasp pose
@@ -427,7 +429,7 @@ class ORGraspGeneration:
 		grasp_out.grasp_pose = grasp_pose
 		grasp_out.grasp_quality = float(grasp['eps_l1'])
 		grasp_out.max_contact_force = 0
-
+		
 		return grasp_out
 	
 	
@@ -436,12 +438,11 @@ class ORGraspGeneration:
 		
 		self.get_grasp_list(object_name, sort_by_quality)
 		
-		
 		#robot
 		robot = self.env.GetRobots()[0]
 		manip = robot.GetManipulator('arm')
 		gmodel = databases.grasping.GraspingModel(robot,self.target)
-
+		
 		#TCP - transformed to hand wrist
 		tool_trafo = manip.GetLocalToolTransform()
 		tool_trafo[2,3] = 0.0
