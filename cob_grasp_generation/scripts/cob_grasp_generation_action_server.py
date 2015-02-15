@@ -11,14 +11,16 @@ from cob_grasp_generation import or_grasp_generation
 class CobGraspGenerationActionServer(object):
 
   def __init__(self, name):
-    self._as_generate = actionlib.SimpleActionServer('generate_grasps', cob_grasp_generation.msg.GenerateGraspsAction, execute_cb=self.generate_cb)
+    self.orgg = or_grasp_generation.ORGraspGeneration()
+    
+    self._as_generate = actionlib.SimpleActionServer('generate_grasps', cob_grasp_generation.msg.GenerateGraspsAction, execute_cb=self.generate_cb, auto_start = False)
     self._as_generate.start()
-    self._as_query = actionlib.SimpleActionServer('query_grasps', cob_grasp_generation.msg.QueryGraspsAction, execute_cb=self.query_cb)
+    self._as_query = actionlib.SimpleActionServer('query_grasps', cob_grasp_generation.msg.QueryGraspsAction, execute_cb=self.query_cb, auto_start = False)
     self._as_query.start()
-    self._as_show = actionlib.SimpleActionServer('show_grasps', cob_grasp_generation.msg.ShowGraspsAction, execute_cb=self.show_cb)
+    self._as_show = actionlib.SimpleActionServer('show_grasps', cob_grasp_generation.msg.ShowGraspsAction, execute_cb=self.show_cb, auto_start = False)
     self._as_show.start()
     
-    self.orgg = or_grasp_generation.ORGraspGeneration()
+    print("CobGraspGenerationActionServer: actions started...")
 
   def generate_cb(self, goal):
     success = False
