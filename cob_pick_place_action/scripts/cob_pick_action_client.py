@@ -64,11 +64,10 @@ def cob_pick_action_client():
 	goal.object_pose.pose.position.z = 0.85
 	goal.object_pose.pose.orientation.x, goal.object_pose.pose.orientation.y, goal.object_pose.pose.orientation.z, goal.object_pose.pose.orientation.w = quaternion_from_euler(0,0,0) 
 	
-	goal.manipulator = "arm" #i.e. moveit group to be used for planning
 	goal.gripper = "sdh"
 	
-	goal.grasp_database = "KIT"
-	#goal.grasp_database = "OpenRAVE"
+	#goal.grasp_database = "KIT"
+	goal.grasp_database = "OpenRAVE"
 	#goal.grasp_database = "ALL"
 	#goal.grasp_id = 2
 	goal.support_surface = "bookcase"

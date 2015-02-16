@@ -57,7 +57,6 @@ def cob_pick_action_client(object_class, object_name, object_pose):
 	goal.object_name = object_name
 	goal.object_pose = object_pose
 	
-	goal.manipulator = "arm" #i.e. moveit group to be used for planning
 	goal.gripper = "sdh"
 	
 	#goal.grasp_id = 21
