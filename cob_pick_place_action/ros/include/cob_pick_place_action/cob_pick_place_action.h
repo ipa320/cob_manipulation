@@ -75,6 +75,7 @@ private:
 	bool last_grasp_valid;
 	std::string last_object_name;
 	tf::TransformListener tf_listener_;
+	tf::TransformBroadcaster tf_broadcaster_;
 	
 	std::map<unsigned int,std::string> map_classid_to_classname;
 	

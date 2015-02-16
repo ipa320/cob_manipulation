@@ -25,7 +25,8 @@ def setup_environment():
 	psi = smi_.get_planning_scene_interface()
 	rospy.sleep(1.0)
 	
-	smi_.clear_objects()
+	#smi_.clear_objects("arm_7_link")
+	smi_.clear_objects("arm_left_7_link")
 	
 	### Add a floor
 	smi_.add_ground()

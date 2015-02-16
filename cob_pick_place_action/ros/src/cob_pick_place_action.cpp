@@ -75,6 +75,9 @@ void CobPickPlaceActionServer::initialize()
 	map_classid_to_classname[126]="herbsalt";
 	map_classid_to_classname[128]="bathdetergent";
 	
+	//non-KIT objects
+	map_classid_to_classname[5001]="pringles";
+	
 	
 	static const std::string COB_PICKUP_ACTION_NAME = "cob_pick_action";
 	as_pick.reset(new actionlib::SimpleActionServer<cob_pick_place_action::CobPickAction>(nh_, COB_PICKUP_ACTION_NAME, boost::bind(&CobPickPlaceActionServer::pick_goal_cb, this, _1), false));
@@ -169,7 +172,7 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 		ROS_INFO("PickGoalCB: Found %lu grasps for this object", grasps.size());
 		for(unsigned int i=0; i<grasps.size(); i++)
 		{
-			ROS_DEBUG_STREAM("Grasp "<< i << ": " << grasps[i]);
+			ROS_INFO_STREAM("Grasp "<< i << ": " << grasps[i]);
 		}
 	}
 	else
@@ -347,6 +350,13 @@ void CobPickPlaceActionServer::insertObject(std::string object_name, unsigned in
 	co.meshes.push_back(boost::get<shape_msgs::Mesh>(shape_msg));
 	co.mesh_poses.push_back(object_pose.pose);
 	pub_co.publish(co);
+	
+	
+	tf::Transform transform;
+	transform.setOrigin( tf::Vector3(object_pose.pose.position.x, object_pose.pose.position.y, object_pose.pose.position.z) );
+	transform.setRotation( tf::Quaternion(object_pose.pose.orientation.x, object_pose.pose.orientation.y, object_pose.pose.orientation.z, object_pose.pose.orientation.w) );
+	tf_broadcaster_.sendTransform(tf::StampedTransform(transform, ros::Time::now(), object_pose.header.frame_id, object_name));
+	
 	
 	ros::Duration(1.0).sleep();
 }
@@ -591,11 +601,11 @@ void CobPickPlaceActionServer::fillGraspsOR(unsigned int objectClassId, std::str
 			moveit_msgs::Grasp current_grasp;
 			//~~~ HandGraspConfig ~~~
 			current_grasp.grasp_posture = result_query_grasps.get()->grasp_list[i].grasp_posture;
-			for(unsigned int k=0; k<current_grasp.grasp_posture.points[0].positions.size(); k++)
-			{
-				if(current_grasp.grasp_posture.points[0].positions[k] < -1.5707) current_grasp.grasp_posture.points[0].positions[k] = -1.5707;
-				if(current_grasp.grasp_posture.points[0].positions[k] >  1.5707) current_grasp.grasp_posture.points[0].positions[k] =  1.5707;
-			}
+			//for(unsigned int k=0; k<current_grasp.grasp_posture.points[0].positions.size(); k++)
+			//{
+				//if(current_grasp.grasp_posture.points[0].positions[k] < -1.5707) current_grasp.grasp_posture.points[0].positions[k] = -1.5707;
+				//if(current_grasp.grasp_posture.points[0].positions[k] >  1.5707) current_grasp.grasp_posture.points[0].positions[k] =  1.5707;
+			//}
 			//~~~ HandPreGraspConfig ~~~
 			current_grasp.pre_grasp_posture = result_query_grasps.get()->grasp_list[i].pre_grasp_posture;
 			
@@ -651,7 +661,8 @@ void CobPickPlaceActionServer::fillGraspsOR(unsigned int objectClassId, std::str
 			//current_grasp.pre_grasp_approach.min_distance = 0.18;
 			//current_grasp.pre_grasp_approach.desired_distance = 0.28;
 			
-			current_grasp.pre_grasp_approach.direction.header.frame_id = "/arm_7_link";
+			//current_grasp.pre_grasp_approach.direction.header.frame_id = "/arm_7_link";
+			current_grasp.pre_grasp_approach.direction.header.frame_id = "/arm_left_7_link";
 			current_grasp.pre_grasp_approach.direction.vector.x = 0.0;
 			current_grasp.pre_grasp_approach.direction.vector.y = 0.0;
 			current_grasp.pre_grasp_approach.direction.vector.z = 1.0;
@@ -739,16 +750,21 @@ tf::Transform CobPickPlaceActionServer::transformPose(tf::Transform transform_O_
 	
 	// SDH_from_ARM7
 	tf::StampedTransform transform_SDH_from_ARM7;
-	try
+	
+	bool transform_available = false;
+	while(!transform_available)
 	{
-		ros::Time now = ros::Time::now();
-		tf_listener_.waitForTransform("/sdh_palm_link", "/arm_7_link", now, ros::Duration(10.0));
-		tf_listener_.lookupTransform("/sdh_palm_link", "/arm_7_link", now, transform_SDH_from_ARM7);
+		try{
+			//tf_listener_.lookupTransform("/sdh_palm_link", "/arm_7_link", ros::Time(0), transform_SDH_from_ARM7);
+			tf_listener_.lookupTransform("/gripper_left_palm_link", "/arm_left_7_link", ros::Time(0), transform_SDH_from_ARM7);
+			transform_available = true;
+		}
+		catch (tf::TransformException ex){
+			//ROS_WARN("Waiting for transform...(%s)",ex.what());
+			ros::Duration(0.1).sleep();
+		}
 	}
-	catch (tf::TransformException ex)
-	{
-		ROS_ERROR("%s",ex.what());
-	}
+	
 	//debug
 	geometry_msgs::TransformStamped msg_SDH_from_ARM7;
 	tf::transformStampedTFToMsg(transform_SDH_from_ARM7, msg_SDH_from_ARM7);
