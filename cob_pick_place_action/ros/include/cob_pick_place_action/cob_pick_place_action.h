@@ -79,7 +79,7 @@ private:
 	std::map<unsigned int,std::string> map_classid_to_classname;
 	
 public:
-	CobPickPlaceActionServer() : group("arm") {}
+	CobPickPlaceActionServer(std::string group_name) : group(group_name) {}
 	~CobPickPlaceActionServer();
 	
 	void initialize();
@@ -90,11 +90,11 @@ public:
 
 	void insertObject(std::string object_name, unsigned int object_class, geometry_msgs::PoseStamped object_pose);
 	
-	void fillAllGraspsKIT(unsigned int objectClassId, geometry_msgs::PoseStamped object_pose, std::vector<moveit_msgs::Grasp> &grasps);
-	void fillSingleGraspKIT(unsigned int objectClassId, unsigned int grasp_id, geometry_msgs::PoseStamped object_pose, std::vector<moveit_msgs::Grasp> &grasps);
+	void fillAllGraspsKIT(unsigned int objectClassId, std::string gripper, geometry_msgs::PoseStamped object_pose, std::vector<moveit_msgs::Grasp> &grasps);
+	void fillSingleGraspKIT(unsigned int objectClassId, std::string gripper, unsigned int grasp_id, geometry_msgs::PoseStamped object_pose, std::vector<moveit_msgs::Grasp> &grasps);
 	void convertGraspKIT(Grasp* current_grasp, geometry_msgs::PoseStamped object_pose, std::vector<moveit_msgs::Grasp> &grasps);
 	
-	void fillGraspsOR(unsigned int objectClassId, unsigned int grasp_id, geometry_msgs::PoseStamped object_pose, std::vector<moveit_msgs::Grasp> &grasps);
+	void fillGraspsOR(unsigned int objectClassId, std::string gripper, unsigned int grasp_id, geometry_msgs::PoseStamped object_pose, std::vector<moveit_msgs::Grasp> &grasps);
 	
 	trajectory_msgs::JointTrajectory MapHandConfiguration(sensor_msgs::JointState table_config);
 	tf::Transform transformPose(tf::Transform transform_O_from_SDH, tf::Transform transform_HEADER_from_OBJECT, std::string object_frame_id);

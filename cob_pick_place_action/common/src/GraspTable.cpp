@@ -158,13 +158,11 @@ int GraspTable::Init(char* object_table_file,unsigned int table_size)
     int objectClassId = 0;
     fscanf(f,"%d, %s\n",&objectClassId,GraspTableFileName);
 //~ #####################################################################################################################
-    std::string str ("/GraspTable.txt");
     std::string object_table_file_str=object_table_file;
-    std::string::iterator end= object_table_file_str.end();
-    std::string::iterator begin= object_table_file_str.end()-str.size();
-    object_table_file_str.erase(begin, end);
-    object_table_file_str+=GraspTableFileName;
-    strncpy(GraspTableFileName, object_table_file_str.c_str(), sizeof(GraspTableFileName));
+    unsigned found = object_table_file_str.find_last_of("/");
+    std::string filepath = object_table_file_str.substr(0, found);
+    std::string grasp_table_file_str = filepath + '/' + GraspTableFileName;
+    strncpy(GraspTableFileName, grasp_table_file_str.c_str(), sizeof(GraspTableFileName));
     GraspTableFileName[sizeof(GraspTableFileName) - 1] = 0;
 //~ #####################################################################################################################
     printf("GraspTable::Init: Trying to read grasp table for object %d from file %s ...\n",objectClassId,GraspTableFileName);

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
-   <!--node name="cob_grasp_generation_OR" pkg="cob_grasp_generation" type="cob_grasp_generation_action_server.py" respawn="false" output="screen"/-->
-   <include file="$(find cob_grasp_generation)/launch/grasp_generation.launch"/>
+   <arg name="group"/>
    
-   <node name="cob_pick_place_action" pkg="cob_pick_place_action" type="cob_pick_place_action" respawn="false" output="screen"/>
+   <include file="$(find cob_grasp_generation)/launch/grasp_generation.launch"/>
+   <node name="cob_pick_place_action" pkg="cob_pick_place_action" type="cob_pick_place_action" args="$(arg group)" respawn="false" output="screen"/>
 </launch>
