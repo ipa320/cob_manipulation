@@ -80,14 +80,14 @@ def add_ground():
     pose.header.frame_id = "base_link"
     psi.attach_box("base_link", "ground", pose, (3, 3, 0.1))
 
-def clear_objects():
+def clear_objects(attach_link):
     psi = get_planning_scene_interface()
-    psi.remove_attached_object("arm_7_link")
+    psi.remove_attached_object(attach_link)
     psi.remove_world_object("")
     
-def clear_attached_object(object_name):
+def clear_attached_object(attach_link, object_name):
     psi = get_planning_scene_interface()
-    psi.remove_attached_object(link="arm_7_link", name = object_name)
+    psi.remove_attached_object(link = attach_link, name = object_name)
     psi.remove_world_object(object_name)
     
 
