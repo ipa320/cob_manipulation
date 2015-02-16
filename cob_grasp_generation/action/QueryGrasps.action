@@ -2,7 +2,7 @@
 string object_name
 
 #gripper used on the robot
-string gripper
+string gripper_type
 
 #only return grasp with given id
 #note: cannot be used to return first grasp (id = 0)

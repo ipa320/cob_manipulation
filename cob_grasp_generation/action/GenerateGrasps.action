@@ -2,7 +2,7 @@
 string object_name
 
 #gripper used on the robot
-string gripper
+string gripper_type
 
 #grasp generation parameters for OpenRAVE
 

@@ -57,7 +57,7 @@ def cob_pick_action_client(object_class, object_name, object_pose):
 	goal.object_name = object_name
 	goal.object_pose = object_pose
 	
-	goal.gripper = "sdh"
+	goal.gripper_type = "sdh"
 	
 	#goal.grasp_id = 21
 	#goal.grasp_database = "KIT"

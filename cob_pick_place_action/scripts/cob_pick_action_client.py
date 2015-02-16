@@ -64,7 +64,7 @@ def cob_pick_action_client():
 	goal.object_pose.pose.position.z = 0.85
 	goal.object_pose.pose.orientation.x, goal.object_pose.pose.orientation.y, goal.object_pose.pose.orientation.z, goal.object_pose.pose.orientation.w = quaternion_from_euler(0,0,0) 
 	
-	goal.gripper = "sdh"
+	goal.gripper_type = "sdh"
 	
 	#goal.grasp_database = "KIT"
 	goal.grasp_database = "OpenRAVE"

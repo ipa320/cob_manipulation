@@ -12,8 +12,10 @@ def query_grasps_client():
 
     goal = cob_grasp_generation.msg.QueryGraspsGoal()
     goal.object_name="peanuts"
-    goal.gripper = "sdh"
-    goal.grasp_id = 2
+    goal.gripper_type = "sdh"
+    #goal.object_name="pringles"
+    #goal.gripper_type = "sdhx"
+    #goal.grasp_id = 2
     goal.num_grasps = 0
     goal.threshold = 0
     

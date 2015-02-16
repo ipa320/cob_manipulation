@@ -15,13 +15,13 @@ def show_grasps_client():
     object_name = "yellowsaltcube"
     grasp_id = 0
     
-    gripper = "sdh"
+    gripper_type = "sdh"
     
     while not rospy.is_shutdown():
         print grasp_id
         
         # Set the goal here: object_name, grasp_id, sort-by-quality
-        goal = cob_grasp_generation.msg.ShowGraspsGoal(object_name, gripper, grasp_id, True)
+        goal = cob_grasp_generation.msg.ShowGraspsGoal(object_name, gripper_type, grasp_id, True)
 
         client.send_goal(goal)
         client.wait_for_result()

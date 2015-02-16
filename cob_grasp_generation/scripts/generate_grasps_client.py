@@ -17,7 +17,7 @@ def generate_grasps_client():
     #goal.object_name="instanttomatosoup"
     goal.object_name="cokeplasticsmall"
     
-    goal.gripper = "sdh"
+    goal.gripper_type = "sdh"
     
     #ToDo: set the other OpenRAVE parameters for grasp_generation
     goal.viewer = True

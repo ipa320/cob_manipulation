@@ -110,11 +110,11 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 	
 	ROS_DEBUG_STREAM(*(goal.get()));
 	
-	if(goal->gripper.empty())
+	if(goal->gripper_type.empty())
 	{
-		ROS_ERROR("Pick failed: No gripper specified!");
+		ROS_ERROR("Pick failed: No gripper_type specified!");
 		result.success.data=false;
-		response="Pick failed: No gripper specified!";
+		response="Pick failed: No gripper_type specified!";
 		as_pick->setAborted(result, response);
 		last_grasp_valid = false;
 		last_object_name.clear();
@@ -129,25 +129,25 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 		if(goal->grasp_id!=0)
 		{
 			ROS_INFO("Using specific grasp_id: %d", goal->grasp_id);
-			fillSingleGraspKIT(goal->object_class, goal->gripper, goal->grasp_id, goal->object_pose, grasps);
+			fillSingleGraspKIT(goal->object_class, goal->gripper_type, goal->grasp_id, goal->object_pose, grasps);
 		}
 		else
 		{
 			ROS_INFO("Using all grasps");
-			fillAllGraspsKIT(goal->object_class, goal->gripper, goal->object_pose, grasps);
+			fillAllGraspsKIT(goal->object_class, goal->gripper_type, goal->object_pose, grasps);
 		}
 	}
 	else if(goal->grasp_database=="OpenRAVE")
 	{
 		ROS_INFO("Using OpenRAVE grasp table");
-		fillGraspsOR(goal->object_class, goal->gripper, goal->grasp_id, goal->object_pose, grasps);
+		fillGraspsOR(goal->object_class, goal->gripper_type, goal->grasp_id, goal->object_pose, grasps);
 	}
 	else if(goal->grasp_database=="ALL")
 	{
 		ROS_INFO("Using all available databases");
 		std::vector<moveit_msgs::Grasp> grasps_OR, grasps_KIT;
-		fillAllGraspsKIT(goal->object_class, goal->gripper, goal->object_pose, grasps_KIT);
-		fillGraspsOR(goal->object_class, goal->gripper, goal->grasp_id, goal->object_pose, grasps_OR);
+		fillAllGraspsKIT(goal->object_class, goal->gripper_type, goal->object_pose, grasps_KIT);
+		fillGraspsOR(goal->object_class, goal->gripper_type, goal->grasp_id, goal->object_pose, grasps_OR);
 		
 		grasps = grasps_KIT;
 		std::vector<moveit_msgs::Grasp>::iterator it = grasps.end();
@@ -174,7 +174,7 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 	}
 	else
 	{
-		ROS_ERROR("No grasps found for object %s in database %s using gripper %s", goal->object_name.c_str(), goal->grasp_database.c_str(), goal->gripper.c_str());
+		ROS_ERROR("No grasps found for object %s in database %s using gripper_type %s", goal->object_name.c_str(), goal->grasp_database.c_str(), goal->gripper_type.c_str());
 		result.success.data=false;
 		response="Pick failed: No grasps found!";
 		as_pick->setAborted(result, response);
@@ -353,13 +353,13 @@ void CobPickPlaceActionServer::insertObject(std::string object_name, unsigned in
 
 
 
-void CobPickPlaceActionServer::fillAllGraspsKIT(unsigned int objectClassId, std::string gripper, geometry_msgs::PoseStamped object_pose, std::vector<moveit_msgs::Grasp> &grasps)
+void CobPickPlaceActionServer::fillAllGraspsKIT(unsigned int objectClassId, std::string gripper_type, geometry_msgs::PoseStamped object_pose, std::vector<moveit_msgs::Grasp> &grasps)
 {  
 	grasps.clear(); 
 	Grasp *current_grasp = NULL;
 	
 	///Initialize GraspTable
-	std::string path = ros::package::getPath("cob_pick_place_action")+std::string("/files/")+gripper+std::string("_grasptable.txt");
+	std::string path = ros::package::getPath("cob_pick_place_action")+std::string("/files/")+gripper_type+std::string("_grasptable.txt");
 	GraspTableIniFile = const_cast<char*>(path.c_str());
 	m_GraspTable = new GraspTable();
 	int error = m_GraspTable->Init(GraspTableIniFile);
@@ -383,13 +383,13 @@ void CobPickPlaceActionServer::fillAllGraspsKIT(unsigned int objectClassId, std:
 	}
 }
 
-void CobPickPlaceActionServer::fillSingleGraspKIT(unsigned int objectClassId, std::string gripper, unsigned int grasp_id, geometry_msgs::PoseStamped object_pose, std::vector<moveit_msgs::Grasp> &grasps)
+void CobPickPlaceActionServer::fillSingleGraspKIT(unsigned int objectClassId, std::string gripper_type, unsigned int grasp_id, geometry_msgs::PoseStamped object_pose, std::vector<moveit_msgs::Grasp> &grasps)
 {
 	grasps.clear();
 	Grasp *current_grasp = NULL;
 	
 	///Initialize GraspTable
-	std::string path = ros::package::getPath("cob_pick_place_action")+std::string("/files/")+gripper+std::string("_grasptable.txt");
+	std::string path = ros::package::getPath("cob_pick_place_action")+std::string("/files/")+gripper_type+std::string("_grasptable.txt");
 	GraspTableIniFile = const_cast<char*>(path.c_str());  
 	m_GraspTable = new GraspTable();
 	int error = m_GraspTable->Init(GraspTableIniFile);
@@ -550,7 +550,7 @@ void CobPickPlaceActionServer::convertGraspKIT(Grasp* current_grasp, geometry_ms
 
 
 
-void CobPickPlaceActionServer::fillGraspsOR(unsigned int objectClassId, std::string gripper, unsigned int grasp_id, geometry_msgs::PoseStamped object_pose, std::vector<moveit_msgs::Grasp> &grasps)
+void CobPickPlaceActionServer::fillGraspsOR(unsigned int objectClassId, std::string gripper_type, unsigned int grasp_id, geometry_msgs::PoseStamped object_pose, std::vector<moveit_msgs::Grasp> &grasps)
 {
 	bool finished_before_timeout;
 	grasps.clear();
@@ -565,7 +565,7 @@ void CobPickPlaceActionServer::fillGraspsOR(unsigned int objectClassId, std::str
 	
 	cob_grasp_generation::QueryGraspsGoal goal_query_grasps;
 	goal_query_grasps.object_name = map_classid_to_classname.find(objectClassId)->second;
-	goal_query_grasps.gripper = gripper;
+	goal_query_grasps.gripper_type = gripper_type;
 	goal_query_grasps.grasp_id = grasp_id;
 	goal_query_grasps.num_grasps = 0;
 	goal_query_grasps.threshold = 0;//0.012;

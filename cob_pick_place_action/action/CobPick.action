@@ -6,7 +6,7 @@ string object_name
 
 geometry_msgs/PoseStamped object_pose
 
-string gripper
+string gripper_type
 
 string grasp_database
 uint32 grasp_id
