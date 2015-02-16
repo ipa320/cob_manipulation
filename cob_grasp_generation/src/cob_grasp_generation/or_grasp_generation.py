@@ -372,8 +372,9 @@ class ORGraspGeneration:
 		joint_config = JointTrajectory()
 		#joint_config.header.stamp = rospy.Time.now()
 		#joint_config.header.frame_id = ""
-		joint_config.joint_names = ['sdh_knuckle_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint']
-		print "Optimize grasp_configuration"
+		#joint_config.joint_names = ['sdh_knuckle_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint']
+		joint_config.joint_names = ['gripper_left_finger_1_joint', 'gripper_left_finger_2_joint']
+		#print "Optimize grasp_configuration"
 		point = JointTrajectoryPoint()
 		for joint_name in joint_config.joint_names:
 			point.positions.append(float(grasp[joint_name]))
@@ -391,18 +392,20 @@ class ORGraspGeneration:
 		#pregrasp posture
 		pre_joint_config = JointTrajectory()
 		pre_joint_config.header.stamp = rospy.Time.now()
-		pre_joint_config.joint_names = ['sdh_knuckle_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint']
-		cyl_open = [0.0, -0.9854, 0.9472, -0.9854, 0.9472, -0.9854, 0.9472]
+		#pre_joint_config.joint_names = ['sdh_knuckle_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint']
+		#open_config = [0.0, -0.9854, 0.9472, -0.9854, 0.9472, -0.9854, 0.9472]
+		pre_joint_config.joint_names = ['gripper_left_finger_1_joint', 'gripper_left_finger_2_joint']
+		open_config = [0.85, -1.4]
 		#pre_joint_config.header.frame_id = ""
 		point = JointTrajectoryPoint()
 		for i in range(len(pre_joint_config.joint_names)):
-			point.positions.append(cyl_open[i])
+			point.positions.append(open_config[i])
 			point.velocities.append(0.0)
 			point.accelerations.append(0.0)
 			point.effort.append(0.0)
 			point.time_from_start = rospy.Duration(3.0)
 		pre_joint_config.points.append(point)
-		print pre_joint_config
+		#print pre_joint_config
 
 		#grasp pose
 		grasp_pose = PoseStamped()

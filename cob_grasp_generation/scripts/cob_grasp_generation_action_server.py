@@ -58,7 +58,6 @@ class CobGraspGenerationActionServer(object):
     rospy.loginfo('Querying grasps for object %s using gripper_type %s' % (goal.object_name, goal.gripper_type))
 
     if self.orgg.check_database(goal.object_name, goal.gripper_type):
-        self.orgg.setup_environment(goal.object_name, goal.gripper_type, viewer=False)
         rospy.loginfo('GraspTable for object %s exist in the database.', goal.object_name)
         rospy.loginfo('Returning grasp list for selected object.')
         grasp_list = self.orgg.get_grasps(goal.object_name, goal.gripper_type, goal.grasp_id, goal.num_grasps, goal.threshold)

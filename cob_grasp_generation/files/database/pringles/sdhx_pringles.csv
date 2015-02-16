@@ -1,4 +1,4 @@
-id,object,sdhx_finger_1_joint,sdhx_finger_2_joint,direction,qw,qx,qy,qz,pos-x,pos-y,pos-z,eps_l1,vol_l1,
+id,object,gripper_left_finger_1_joint,gripper_left_finger_2_joint,direction,qw,qx,qy,qz,pos-x,pos-y,pos-z,eps_l1,vol_l1,
 0,pringles,0.1,-0.9,SIDE,0.5,-0.5,-0.5,-0.5,0,-14,6,0.01,0.0005,0
 1,pringles,0.1,-0.9,SIDE,0.653,-0.271,-0.653,-0.271,9.956,-9.842,6,0.01,0.0005,1
 2,pringles,0.1,-0.9,SIDE,0.707,0,-0.707,0,14,0,6,0.01,0.0005,2
