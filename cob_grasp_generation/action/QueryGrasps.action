@@ -1,6 +1,9 @@
 #goal definition
 string object_name
 
+#gripper used on the robot
+string gripper
+
 #only return grasp with given id
 #note: cannot be used to return first grasp (id = 0)
 uint32 grasp_id
