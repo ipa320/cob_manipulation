@@ -20,10 +20,10 @@ class ORGraspGeneration:
 		self.target = None
 		self.grasp_list = None
 	
-	def setup_environment(self, object_name, viewer=False):
+	def setup_environment(self, object_name, gripper, viewer=False):
 		if self.env == None:
 			self.env = Environment()
-			self.env.Load(roslib.packages.get_pkg_dir('cob_grasp_generation')+'/files/env/target_scene.env.xml')
+			self.env.Load(roslib.packages.get_pkg_dir('cob_grasp_generation')+'/files/env/'+str(gripper)+'.env.xml')
 		
 		if viewer:
 			if self.env.GetViewer() == None:
@@ -46,18 +46,17 @@ class ORGraspGeneration:
 		print "Environment set up!"
 	
 	
-	def generate_grasps(self, object_name, replan=False):
+	def generate_grasps(self, object_name, gripper, replan=False):
 		#robot
 		robot = self.env.GetRobots()[0]
-		manip = robot.GetManipulator('arm')
+		manip = robot.GetManipulator(gripper) #make sure the manipulator in the collada file is named accordingly
 		gmodel = databases.grasping.GraspingModel(robot,self.target)
-
+		
 		#TCP - transformed to hand wrist
 		tool_trafo = manip.GetLocalToolTransform()
 		tool_trafo[2,3] = 0.0
 		manip.SetLocalToolTransform(tool_trafo)
-
-
+		
 		### Options for GraspGeneration
 		#~ friction = None
 		#~ preshapes = None
@@ -74,10 +73,7 @@ class ORGraspGeneration:
 		#~ finestep=None
 		####
 		
-		
 		options = self.configure_grasp_generation()
-		
-		
 		
 		
 		now_plan = time.time()
@@ -98,8 +94,6 @@ class ORGraspGeneration:
 		end_plan = time.time()
 		time_difference = int(end_plan - now_plan)
 		print "GraspGeneration took: ", time_difference
-		
-		
 		
 		
 		### GetValidGrasps now
@@ -148,6 +142,7 @@ class ORGraspGeneration:
 		grasps_to_file = []
 		meta_info = []
 		meta_info.append(object_name)
+		meta_info.append(gripper)
 		meta_info.append(time)
 		grasps_to_file.append(meta_info)
 		
@@ -216,7 +211,7 @@ class ORGraspGeneration:
 			gmodel.getGlobalApproachDir(validgrasps[graspnmb])
 		
 		#Create a csv file if needed
-		analyzegrasp3d.or_to_csv(grasps_to_file) 
+		analyzegrasp3d.or_to_csv(grasps_to_file)
 		
 		print('Finished.')
 		databases.grasping.RaveDestroy()
@@ -301,9 +296,9 @@ class ORGraspGeneration:
 	
 	
 	#check if a database with the object_id exists
-	def check_database(self, object_name):
+	def check_database(self, object_name, gripper):
 		#Begins here to read the grasp .csv-Files
-		path_in = roslib.packages.get_pkg_dir('cob_grasp_generation')+'/files/database/'+object_name+'/'+object_name+'.csv'
+		path_in = roslib.packages.get_pkg_dir('cob_grasp_generation')+'/files/database/'+object_name+'/'+gripper+'_'+object_name+'.csv'
 
 		#Check if path exists
 		if os.path.exists(path_in):
@@ -313,9 +308,9 @@ class ORGraspGeneration:
 	
 	
 	
-	def get_grasp_list(self, object_name, sort_by_quality=False):
+	def get_grasp_list(self, object_name, gripper, sort_by_quality=False):
 		#Begins here to read the grasp .csv-Files
-		path_in = roslib.packages.get_pkg_dir('cob_grasp_generation')+'/files/database/'+object_name+'/'+object_name+'.csv'
+		path_in = roslib.packages.get_pkg_dir('cob_grasp_generation')+'/files/database/'+object_name+'/'+gripper+'_'+object_name+'.csv'
 
 		#Check if path exists
 		try:
@@ -334,9 +329,9 @@ class ORGraspGeneration:
 	
 	
 	#get the grasps
-	def get_grasps(self, object_name, grasp_id=0, num_grasps=0, threshold=0):
+	def get_grasps(self, object_name, gripper, grasp_id=0, num_grasps=0, threshold=0):
 		#open database
-		self.get_grasp_list(object_name)
+		self.get_grasp_list(object_name, gripper)
 		
 		#check for grasp_id and return 
 		if grasp_id > 0:
@@ -433,14 +428,14 @@ class ORGraspGeneration:
 		return grasp_out
 	
 	
-	def show_grasp(self, object_name, grasp_id, sort_by_quality=False):
-		self.setup_environment(object_name, viewer=True)
+	def show_grasp(self, object_name, gripper, grasp_id, sort_by_quality=False):
+		self.setup_environment(object_name, gripper, viewer=True)
 		
-		self.get_grasp_list(object_name, sort_by_quality)
+		self.get_grasp_list(object_name, gripper, sort_by_quality)
 		
 		#robot
 		robot = self.env.GetRobots()[0]
-		manip = robot.GetManipulator('arm')
+		manip = robot.GetManipulator(gripper) #make sure the manipulator in the collada file is named accordingly
 		gmodel = databases.grasping.GraspingModel(robot,self.target)
 		
 		#TCP - transformed to hand wrist

@@ -14,11 +14,14 @@ def generate_grasps_client():
     #goal.object_name="yellowsaltcube"
     #goal.object_name="hotpot"
     #goal.object_name="hotpot2"
-    goal.object_name="instanttomatosoup"
-    goal.viewer = True
-    goal.replan = True
-    #ToDo: set the other OpenRAVE parameters for grasp_generation
+    #goal.object_name="instanttomatosoup"
+    goal.object_name="cokeplasticsmall"
     
+    goal.gripper = "sdh"
+    
+    #ToDo: set the other OpenRAVE parameters for grasp_generation
+    goal.viewer = True
+    goal.replan = True    
     
     client.send_goal(goal)
     client.wait_for_result()
