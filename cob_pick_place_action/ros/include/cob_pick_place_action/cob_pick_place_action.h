@@ -39,6 +39,7 @@
 #include <actionlib/client/terminal_state.h>
 
 #include <tf/tf.h>
+#include <tf/transform_broadcaster.h>
 #include <tf/transform_datatypes.h>
 //#include <geometry_msgs/Quaternion.h>
 
@@ -103,4 +104,5 @@ public:
 
 };
 #endif
+
 
