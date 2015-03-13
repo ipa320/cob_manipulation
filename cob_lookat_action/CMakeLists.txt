@@ -23,9 +23,6 @@ generate_messages(
 ###################################
 catkin_package(
     CATKIN_DEPENDS rospy message_runtime actionlib actionlib_msgs std_msgs geometry_msgs moveit_msgs control_msgs tf
-    DEPENDS # TODO
-    INCLUDE_DIRS # TODO
-    LIBRARIES # TODO
 )
 
 
@@ -57,4 +54,3 @@ install(TARGETS cob_lookat_action_server
 install(PROGRAMS src/cob_lookat_action_client.py src/cob_monitor_arm_client.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/src
 )
-
