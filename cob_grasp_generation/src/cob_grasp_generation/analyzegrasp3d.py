@@ -5,27 +5,30 @@ import numpy, time, scipy, csv, os
 import roslib.packages
 
 #converts all openrave grasps to csv format for scripting
-#input-first-line (meta-info): name, time (@todo: add planner infos)
+#input-first-line (meta-info): object_name, gripper_type, time (@todo: add planner infos)
 #input-struct: number, jointconf, trafo, epsilon, volume, forceclosure, validindicees, direction
 def or_to_csv(validgrasps):
 	meta_info = validgrasps[0]
-	name = meta_info[0]
-
+	object_name = meta_info[0]
+	gripper_type = meta_info[1]
+	
 	#create directories
-	directory = roslib.packages.get_pkg_dir('cob_grasp_generation')+'/files/database/'+name
+	directory = roslib.packages.get_pkg_dir('cob_grasp_generation')+'/files/database/'+object_name
 	if not os.path.exists(directory):
     		os.makedirs(directory)
-	pathname_out = directory+'/'+name+'.csv'
+	pathname_out = directory+'/'+gripper_type+'_'+object_name+'.csv'
 	f_out = open(pathname_out, 'w+')
-
+	
 	wr = csv.writer(f_out, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL) 
 	wr.writerow(['id', 'object', 'sdh_knuckle_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint', 'direction', 'qw', 'qx', 'qy', 'qz','pos-x', 'pos-y', 'pos-z', 'eps_l1', 'vol_l1'])
-
+	# ToDo: This will not work for grippers other than SDH
+	
+	
 	for i in range (1,len(validgrasps)): #because line 0 is meta-info
 		row = [] #create/empty row for new grasp
 		actual_grasp = validgrasps[i]
 		row.append(str(actual_grasp[0])) #ID
-		row.append(name) #Object-name
+		row.append(object_name)
 		
 		##SOLL
 		#SDH Joint Values - Beginnend mit Daumen(1) und die Zwei Finger GUZS nummeriert(2)(3)

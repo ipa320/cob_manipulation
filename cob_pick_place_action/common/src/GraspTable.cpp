@@ -81,12 +81,12 @@ int GraspTable::ReadFromFile(const char * filename, GraspTableObject* graspTable
   TiXmlDocument doc(filename);
   if (graspTableObject == NULL)
   {
-  	printf("GraspTable::ReadFromFile:Error,  argument error%s\n",filename);
-  	return -3;
+    printf("GraspTable::ReadFromFile:Error,  argument error%s\n",filename);
+    return -3;
   }
   if (!doc.LoadFile())
   {
-  	printf("GraspTable::ReadFromFile:Error, could not read %s\n",filename);
+    printf("GraspTable::ReadFromFile:Error, could not read %s\n",filename);
     return -1;
   }
   //printf ("Readig file %s\n",filename);
@@ -99,150 +99,131 @@ int GraspTable::ReadFromFile(const char * filename, GraspTableObject* graspTable
 
   if (graspTableObject->Init(number) != 0)
   {
-  	printf("GraspTable::ReadFromFile:Error, could not allocate GraspTableObject\n");
-  	return -2;
+    printf("GraspTable::ReadFromFile:Error, could not allocate GraspTableObject\n");
+    return -2;
   }
   for (int i=0; i<number; i++)
-    {
-      TiXmlHandle grasp_handle=grasp_list_handle.ChildElement("Grasp", i);
-      TiXmlElement* grasp_element=grasp_handle.Element();
-      double quality;
-      grasp_element->QueryDoubleAttribute("Quality", &quality);
-      
-	  Grasp * newGrasp = new Grasp();
-	  newGrasp->SetGraspId(i);
-	
-      std::vector<double> values;
+  {
+    TiXmlHandle grasp_handle=grasp_list_handle.ChildElement("Grasp", i);
+    TiXmlElement* grasp_element=grasp_handle.Element();
+    double quality;
+    grasp_element->QueryDoubleAttribute("Quality", &quality);
+    
+    Grasp * newGrasp = new Grasp();
+    newGrasp->SetGraspId(i);
+    
+    std::vector<double> values;
+    
+    ReadPose(grasp_element, "ApproachPose", values);
+    newGrasp->SetTCPPreGraspPose(values);
+    
+    ReadPose(grasp_element, "GraspPose", values);
+    newGrasp->SetTCPGraspPose(values);
 
-      ReadPose(grasp_element, "ApproachPose", values);
-	  newGrasp->SetTCPPreGraspPose(values);
-      
-	  ReadPose(grasp_element, "GraspPose", values);
-	  newGrasp->SetTCPGraspPose(values);
+    ReadJoint(grasp_element, "ApproachJoint", values);
+    newGrasp->SetHandPreGraspConfig(values);
+    
+    ReadJoint(grasp_element, "GraspJoint", values);
+    newGrasp->SetHandGraspConfig(values);
+    
+    ReadJoint(grasp_element, "GraspOptimalJoint", values);
+    newGrasp->SetHandOptimalGraspConfig(values);
 
-      ReadJoint(grasp_element, "ApproachJoint", values);
-	  newGrasp->SetHandPreGraspConfig(values);
-      
-	  ReadJoint(grasp_element, "GraspJoint", values);
-	  newGrasp->SetHandGraspConfig(values);
-      
-	  ReadJoint(grasp_element, "GraspOptimalJoint", values);
-	  newGrasp->SetHandOptimalGraspConfig(values);
+    graspTableObject->AddGrasp(newGrasp);
+  }
 
-	  graspTableObject->AddGrasp(newGrasp);
-    }
-
-	return 0;
+  return 0;
 }
 
 
 int GraspTable::Init(char* object_table_file,unsigned int table_size)
 {
-	FILE* f = fopen(object_table_file,"r");
-	int numberOfObjects = 0;
-
-	if (f==NULL)
-	{
-		printf("GraspTable::Error, Object Table File not found :%s\n",object_table_file);
-		return -1;
-
-	}
-	fscanf(f,"%d\n",&numberOfObjects);
-	m_GraspTable.resize(table_size); //range of DESIRE class ids
-	for (unsigned int i=0;i < table_size;i++)
-	{
-		m_GraspTable[i] = NULL;
-	}
-	for (int obj=0; obj <numberOfObjects; obj++)
-	{
-		char GraspTableFileName[500];
-		int objectClassId = 0;
-		fscanf(f,"%d, %s\n",&objectClassId,GraspTableFileName);
+  FILE* f = fopen(object_table_file,"r");
+  int numberOfObjects = 0;
+  
+  if (f==NULL)
+  {
+    printf("GraspTable::Error, Object Table File not found :%s\n",object_table_file);
+    return -1;
+  }
+  fscanf(f,"%d\n",&numberOfObjects);
+  m_GraspTable.resize(table_size); //range of DESIRE class ids
+  for (unsigned int i=0;i < table_size;i++)
+  {
+    m_GraspTable[i] = NULL;
+  }
+  for (int obj=0; obj <numberOfObjects; obj++)
+  {
+    char GraspTableFileName[500];
+    int objectClassId = 0;
+    fscanf(f,"%d, %s\n",&objectClassId,GraspTableFileName);
 //~ #####################################################################################################################
-		std::string str ("/GraspTable.txt");
-		std::string object_table_file_str=object_table_file;
-		std::string::iterator end= object_table_file_str.end();
-		std::string::iterator begin= object_table_file_str.end()-str.size();
-		object_table_file_str.erase(begin, end);
-		object_table_file_str+=GraspTableFileName;
-		strncpy(GraspTableFileName, object_table_file_str.c_str(), sizeof(GraspTableFileName));
-		GraspTableFileName[sizeof(GraspTableFileName) - 1] = 0;
+    std::string object_table_file_str=object_table_file;
+    unsigned found = object_table_file_str.find_last_of("/");
+    std::string filepath = object_table_file_str.substr(0, found);
+    std::string grasp_table_file_str = filepath + '/' + GraspTableFileName;
+    strncpy(GraspTableFileName, grasp_table_file_str.c_str(), sizeof(GraspTableFileName));
+    GraspTableFileName[sizeof(GraspTableFileName) - 1] = 0;
 //~ #####################################################################################################################
-		printf("GraspTable::Init: Trying to read grasp table for object %d from file %s ...\n",objectClassId,GraspTableFileName);
-		GraspTableObject * graspTableObject = new GraspTableObject();
-		graspTableObject->SetObjectClassId(objectClassId);
-		if (ReadFromFile(GraspTableFileName,graspTableObject)==0)
-		{
-			printf("successful\n");
-			AddGraspTableObject(graspTableObject);
-		}
-		else
-		{
-			printf("failed\n");
-		}
-	}
-	return 5;
+    printf("GraspTable::Init: Trying to read grasp table for object %d from file %s ...\n",objectClassId,GraspTableFileName);
+    GraspTableObject * graspTableObject = new GraspTableObject();
+    graspTableObject->SetObjectClassId(objectClassId);
+    if (ReadFromFile(GraspTableFileName,graspTableObject)==0)
+    {
+      printf("successful\n");
+      AddGraspTableObject(graspTableObject);
+    }
+    else
+    {
+      printf("failed\n");
+    }
+  }
+  return 5;
 }
 
 void GraspTable::AddGraspTableObject(GraspTableObject* object)
 {
-	unsigned int objectClassId = object->GetObjectClassId();
-	if (objectClassId < m_GraspTable.size())
-	{
-		m_GraspTable[objectClassId]=object;
-	}
-	else
-	{
-		printf("GraspTable::AddGraspTableObject: Error, class id larger than table size!\n");
-	}
+  unsigned int objectClassId = object->GetObjectClassId();
+  if (objectClassId < m_GraspTable.size())
+  {
+    m_GraspTable[objectClassId]=object;
+  }
+  else
+  {
+    printf("GraspTable::AddGraspTableObject: Error, class id larger than table size!\n");
+  }
 }
 
 
 Grasp* GraspTable::GetNextGrasp(unsigned int objectClassId)
 {
-	Grasp* retVal = NULL;
-	if (objectClassId < m_GraspTable.size() && m_GraspTable[objectClassId] != NULL)
-	{
-			if ((objectClassId != m_lastObjectClassId))
-			{
-					m_lastObjectClassId=objectClassId;
-					m_GraspTable[objectClassId]->ResetGraspReadPtr();
-			}
-			retVal =  m_GraspTable[objectClassId]->GetNextGrasp();
-	}
-	return retVal;
+  Grasp* retVal = NULL;
+  if (objectClassId < m_GraspTable.size() && m_GraspTable[objectClassId] != NULL)
+  {
+    if ((objectClassId != m_lastObjectClassId))
+    {
+      m_lastObjectClassId=objectClassId;
+      m_GraspTable[objectClassId]->ResetGraspReadPtr();
+    }
+    retVal =  m_GraspTable[objectClassId]->GetNextGrasp();
+  }
+  return retVal;
 }
 
 void GraspTable::ResetReadPtr(unsigned int object_class_id)
 {
-
-	if (object_class_id < m_GraspTable.size())
-	{
-		m_GraspTable[object_class_id]->ResetGraspReadPtr();
-	} 
+  if (object_class_id < m_GraspTable.size())
+  {
+    m_GraspTable[object_class_id]->ResetGraspReadPtr();
+  }
 }
 
 Grasp * GraspTable::GetGrasp(unsigned int objectClassId, unsigned int & grasp_id)
 {
-	Grasp* retVal = NULL;
-	if (objectClassId < m_GraspTable.size() && m_GraspTable[objectClassId] != NULL)
-	{
-		retVal=m_GraspTable[objectClassId]->GetGrasp(grasp_id);
-	}
-	return retVal;
+  Grasp* retVal = NULL;
+  if (objectClassId < m_GraspTable.size() && m_GraspTable[objectClassId] != NULL)
+  {
+    retVal=m_GraspTable[objectClassId]->GetGrasp(grasp_id);
+  }
+  return retVal;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

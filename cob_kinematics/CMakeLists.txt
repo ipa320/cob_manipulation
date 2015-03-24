@@ -22,9 +22,6 @@ generate_messages(
 ###################################
 catkin_package(
     CATKIN_DEPENDS roscpp message_runtime std_msgs geometry_msgs moveit_msgs
-    DEPENDS # TODO
-    INCLUDE_DIRS # TODO
-    LIBRARIES # TODO
 )
 
 
@@ -52,5 +49,3 @@ add_subdirectory(ikfast)
   #LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   #RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 #)
-
-

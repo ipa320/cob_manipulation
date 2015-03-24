@@ -1,0 +1,9 @@
+id,object,gripper_left_finger_1_joint,gripper_left_finger_2_joint,direction,qw,qx,qy,qz,pos-x,pos-y,pos-z,eps_l1,vol_l1,
+0,yellowsaltcube,0.1,-0.9,SIDE,0.707,0,0.707,0,-22,0,10,0.01,0.0005,0
+1,yellowsaltcube,0.1,-0.9,SIDE,0.653,-0.271,0.653,0.271,-14,-17,10,0.01,0.0005,1
+2,yellowsaltcube,0.1,-0.9,SIDE,0.5,-0.5,0.5,0.5,3.5,-21,10,0.01,0.0005,2
+3,yellowsaltcube,0.1,-0.9,SIDE,0.271,-0.653,0.271,0.653,19,-11,10,0.01,0.0005,3
+4,yellowsaltcube,0.1,-0.9,SIDE,0,-0.707,0,0.707,21.2,5.6,10,0.01,0.0005,4
+5,yellowsaltcube,0.1,-0.9,SIDE,0.271,0.653,0.271,-0.653,11,19,10,0.01,0.0005,5
+6,yellowsaltcube,0.1,-0.9,SIDE,0.5,0.5,0.5,-0.5,-5.6,21,10,0.01,0.0005,6
+7,yellowsaltcube,0.1,-0.9,SIDE,0.653,0.271,0.653,-0.271,-18.4,12,10,0.01,0.0005,7

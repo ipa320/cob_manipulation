@@ -25,7 +25,8 @@ def setup_environment():
 	psi = smi_.get_planning_scene_interface()
 	rospy.sleep(1.0)
 	
-	smi_.clear_objects()
+	#smi_.clear_objects("arm_7_link")
+	smi_.clear_objects("arm_left_7_link")
 	
 	### Add a floor
 	smi_.add_ground()
@@ -56,6 +57,8 @@ def cob_pick_action_client(object_class, object_name, object_pose):
 	goal.object_class = object_class
 	goal.object_name = object_name
 	goal.object_pose = object_pose
+	
+	goal.gripper_type = "sdh"
 	
 	#goal.grasp_id = 21
 	#goal.grasp_database = "KIT"

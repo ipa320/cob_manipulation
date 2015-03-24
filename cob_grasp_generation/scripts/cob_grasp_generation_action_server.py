@@ -10,29 +10,31 @@ from cob_grasp_generation import or_grasp_generation
 
 class CobGraspGenerationActionServer(object):
 
-  def __init__(self, name):
-    self._as_generate = actionlib.SimpleActionServer('generate_grasps', cob_grasp_generation.msg.GenerateGraspsAction, execute_cb=self.generate_cb)
+  def __init__(self):
+    self.orgg = or_grasp_generation.ORGraspGeneration()
+    
+    self._as_generate = actionlib.SimpleActionServer('generate_grasps', cob_grasp_generation.msg.GenerateGraspsAction, execute_cb=self.generate_cb, auto_start = False)
     self._as_generate.start()
-    self._as_query = actionlib.SimpleActionServer('query_grasps', cob_grasp_generation.msg.QueryGraspsAction, execute_cb=self.query_cb)
+    self._as_query = actionlib.SimpleActionServer('query_grasps', cob_grasp_generation.msg.QueryGraspsAction, execute_cb=self.query_cb, auto_start = False)
     self._as_query.start()
-    self._as_show = actionlib.SimpleActionServer('show_grasps', cob_grasp_generation.msg.ShowGraspsAction, execute_cb=self.show_cb)
+    self._as_show = actionlib.SimpleActionServer('show_grasps', cob_grasp_generation.msg.ShowGraspsAction, execute_cb=self.show_cb, auto_start = False)
     self._as_show.start()
     
-    self.orgg = or_grasp_generation.ORGraspGeneration()
+    print("CobGraspGenerationActionServer: actions started...")
 
   def generate_cb(self, goal):
     success = False
     num_grasps = 0
 
-    rospy.loginfo('Generating grasps for object: >> %s <<' % (goal.object_name))
+    rospy.loginfo('Generating grasps for object %s using gripper_type %s' % (goal.object_name, goal.gripper_type))
 
-    if self.orgg.check_database(goal.object_name):
+    if self.orgg.check_database(goal.object_name, goal.gripper_type):
         rospy.logwarn('Grasps for object %s exist in the database.', goal.object_name)
-        success = False
+        success = False 
     else:
-        self.orgg.setup_environment(goal.object_name, goal.viewer)
+        self.orgg.setup_environment(goal.object_name, goal.gripper_type, goal.viewer) 
         rospy.loginfo('GraspTable for object %s does not exist. Now planning Grasps for the object',goal.object_name)
-        num_grasps = self.orgg.generate_grasps(goal.object_name, goal.replan)
+        num_grasps = self.orgg.generate_grasps(goal.object_name, goal.gripper_type, goal.replan) 
         if (num_grasps > 0):
             success = True
     
@@ -53,13 +55,12 @@ class CobGraspGenerationActionServer(object):
     success = False
     grasp_list = []
 
-    rospy.loginfo('Querying grasps for object: >> %s <<' % (goal.object_name))
+    rospy.loginfo('Querying grasps for object %s using gripper_type %s' % (goal.object_name, goal.gripper_type))
 
-    if self.orgg.check_database(goal.object_name):
-        self.orgg.setup_environment(goal.object_name, viewer=False)
+    if self.orgg.check_database(goal.object_name, goal.gripper_type):
         rospy.loginfo('GraspTable for object %s exist in the database.', goal.object_name)
         rospy.loginfo('Returning grasp list for selected object.')
-        grasp_list = self.orgg.get_grasps(goal.object_name, goal.grasp_id, goal.num_grasps, goal.threshold)
+        grasp_list = self.orgg.get_grasps(goal.object_name, goal.gripper_type, goal.grasp_id, goal.num_grasps, goal.threshold)
     else:
         rospy.logwarn('GraspTable for object %s does not exist!',goal.object_name)
 
@@ -81,12 +82,12 @@ class CobGraspGenerationActionServer(object):
   def show_cb(self, goal):
     success = False
     
-    rospy.loginfo('Show grasp %i for object %s.' % (goal.grasp_id, goal.object_name))
+    rospy.loginfo('Show grasp %i for object %s using gripper_type %s' % (goal.grasp_id, goal.object_name, goal.gripper_type))
 
-    if self.orgg.check_database(goal.object_name):
-      self.orgg.setup_environment(goal.object_name, viewer=True)
+    if self.orgg.check_database(goal.object_name, goal.gripper_type):
+      self.orgg.setup_environment(goal.object_name, goal.gripper_type, viewer=True)
       rospy.loginfo('Display Grasp. Object: %s | ID: %i' % (goal.object_name, goal.grasp_id))
-      self.orgg.show_grasp(goal.object_name, goal.grasp_id, goal.sort_by_quality)
+      self.orgg.show_grasp(goal.object_name, goal.gripper_type, goal.grasp_id, goal.sort_by_quality)
       success = True
     else:
       rospy.logerr('GraspTable for Object %s does not exist!' % (goal.object_name))
@@ -104,5 +105,5 @@ class CobGraspGenerationActionServer(object):
       
 if __name__ == '__main__':
   rospy.init_node('generate_grasps')
-  CobGraspGenerationActionServer('generate_grasps_server')
+  CobGraspGenerationActionServer()
   rospy.spin()

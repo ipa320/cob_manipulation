@@ -21,10 +21,10 @@ def cob_place_action_client():
 	
 	# Creates a goal to send to the action server.
 	goal = cob_pick_place_action.msg.CobPlaceGoal()
-	goal.object_class = 18
-	goal.object_name = "yellowsaltcube"
-	#goal.object_class = 50
-	#goal.object_name = "instantsoup"
+	#goal.object_class = 18
+	#goal.object_name = "yellowsaltcube"
+	goal.object_class = 50
+	goal.object_name = "instantsoup"
 	
 	pose = PoseStamped()
 	
@@ -34,9 +34,9 @@ def cob_place_action_client():
 	#pose.pose.position.y = random.uniform(-0.3,  0.3)
 	#pose.pose.position.z = random.uniform( 0.8,  1.1)
 	#pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w = quaternion_from_euler(random.uniform(-pi/2, pi/2),random.uniform(-pi/2, pi/2),random.uniform(-pi/2, pi/2)) 
-	pose.pose.position.x = -0.7 
-	pose.pose.position.y = 0.0  
-	pose.pose.position.z = 0.85
+	pose.pose.position.x = -0.7
+	pose.pose.position.y = -0.5  
+	pose.pose.position.z = 0.9
 	pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w = quaternion_from_euler(0,0,0) 
 	goal.destinations.append(pose)
 	

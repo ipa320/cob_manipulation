@@ -1,6 +1,9 @@
 #goal definition
 string object_name
 
+#gripper used on the robot
+string gripper_type
+
 #grasp generation parameters for OpenRAVE
 
 
