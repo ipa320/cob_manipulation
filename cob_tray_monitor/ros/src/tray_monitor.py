@@ -4,7 +4,7 @@ import rospy
 import math
 from std_msgs.msg import *
 from sensor_msgs.msg import *
-from cob_srvs.srv import *
+from std_srvs.srv import *
 from collections import deque
 
 class Monitor():
@@ -40,9 +40,9 @@ class Monitor():
     
     def srv_callback(self,req):
         res = TriggerResponse()
-        # res.success.data = self.occupied
+        # res.success = self.occupied
         averages = [self.avg1, self.avg2, self.avg3, self.avg4]
-        res.success.data = any(map(lambda x: x <= self.limit, averages))
+        res.success = any(map(lambda x: x <= self.limit, averages))
         return res
 
     def range1_callback(self,msg):
