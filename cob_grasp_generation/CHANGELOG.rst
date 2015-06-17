@@ -2,6 +2,24 @@
 Changelog for package cob_grasp_generation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* beautify CMakeLists
+* fixes, hacks and helpers for cob4-pick-place
+* gripper -> gripper_type
+* consider different grippers in cob_grasp_generation
+* rename manipulator in collada description
+* add gripper to action
+* rename environment file
+* renamed grasptables
+* no timestamp
+* new launch file exporting env variable OPENRAVE_DATA
+* add model - and fixes for latest openRAVE and collada compatibility
+* fix trajectory message
+* minor restructuring
+* missing dependency
+* Contributors: ipa-fxm
+
 0.6.0 (2014-09-18)
 ------------------
 * Merge branch 'hydro_dev' into hydro_release_candidate

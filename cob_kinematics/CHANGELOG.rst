@@ -2,6 +2,11 @@
 Changelog for package cob_kinematics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* beautify CMakeLists
+* Contributors: ipa-fxm
+
 0.6.0 (2014-09-18)
 ------------------
 * add catkin_INCLUDE_DIRS to cob_kinematics

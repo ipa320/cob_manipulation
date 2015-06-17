@@ -2,6 +2,23 @@
 Changelog for package cob_pick_place_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* missing header
+* fixes, hacks and helpers for cob4-pick-place
+* mesh for pringles
+* gripper -> gripper_type
+* remove obsolete message field
+* consider different manipulator group and different gripper, restructure, better error handling
+* add gripper to action
+* new grasptable files
+* update launch file
+* fix trajectory message
+* beautify indentation
+* new mesh
+* fix minor compiler warning
+* Contributors: ipa-fxm
+
 0.6.0 (2014-09-18)
 ------------------
 * 0.5.1

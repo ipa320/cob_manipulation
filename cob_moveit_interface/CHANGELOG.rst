@@ -2,6 +2,11 @@
 Changelog for package cob_moveit_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fixes, hacks and helpers for cob4-pick-place
+* Contributors: ipa-fxm
+
 0.6.0 (2014-09-18)
 ------------------
 * 0.5.1
