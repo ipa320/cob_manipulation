@@ -2,8 +2,8 @@
 Changelog for package cob_tactiletools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.1 (2015-06-17)
+------------------
 * use new Trigger from std_srvs
 * Contributors: ipa-fxm
 

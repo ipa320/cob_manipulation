@@ -2,8 +2,8 @@
 Changelog for package cob_pick_place_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.1 (2015-06-17)
+------------------
 * missing header
 * fixes, hacks and helpers for cob4-pick-place
 * mesh for pringles
