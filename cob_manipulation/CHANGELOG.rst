@@ -2,6 +2,9 @@
 Changelog for package cob_manipulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.1 (2015-06-17)
+------------------
+
 0.6.0 (2014-09-18)
 ------------------
 * Merge branch 'hydro_dev' into hydro_release_candidate

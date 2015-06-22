@@ -2,6 +2,11 @@
 Changelog for package cob_lookat_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.1 (2015-06-17)
+------------------
+* beautify CMakeLists
+* Contributors: ipa-fxm
+
 0.6.0 (2014-09-18)
 ------------------
 * Merge branch 'hydro_dev' into hydro_release_candidate

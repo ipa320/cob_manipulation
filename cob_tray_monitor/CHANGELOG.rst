@@ -2,6 +2,11 @@
 Changelog for package cob_tray_monitor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.1 (2015-06-17)
+------------------
+* use new Trigger from std_srvs
+* Contributors: ipa-fxm
+
 0.6.0 (2014-09-18)
 ------------------
 * 0.5.1
