@@ -1,0 +1,6 @@
+<library path="lib/libcob_collision_monitor_capabilty">
+  <class type="cob_collision_monitor::CollisionMonitor" base_class_type="move_group::MoveGroupCapability">
+    <description>
+    </description>
+  </class>
+</library>
