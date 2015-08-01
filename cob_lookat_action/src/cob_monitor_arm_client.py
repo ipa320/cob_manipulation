@@ -1,16 +1,14 @@
 #! /usr/bin/env python
 
-import roslib; roslib.load_manifest('cob_lookat_action')
-import rospy
 import random
 
-# Brings in the SimpleActionClient
+import rospy
 import actionlib
 
-import cob_lookat_action.msg
 from geometry_msgs.msg import PoseStamped
 from moveit_msgs.srv import *
 from moveit_msgs.msg import *
+import cob_lookat_action.msg
 
 def cob_lookat_action_client():
     # Creates the SimpleActionClient, passing the type of the action

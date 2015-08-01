@@ -2,37 +2,28 @@
   <name>cob_manipulation</name>
   <version>0.6.1</version>
   <description>The cob_manipulation stack includes packages that provide manipulation capabilities for Care-O-bot.</description>
+  
+  <author email="fxm@ipa.fhg.de">Felix Messmer</author>
+  <author email="mdl@ipa.fhg.de">Mathias Luedtke</author>
   <maintainer email="fxm@ipa.fhg.de">Felix Messmer</maintainer>
-
-  <license>BSD</license>
+  
   <license>LGPL</license>
 
   <url type="website">http://ros.org/wiki/cob_manipulation/</url>
   <url type="bugtracker">https://github.com/ipa320/cob_manipulation/issues</url>
   <url type="repository">https://github.com/ipa320/cob_manipulation</url>
 
-  <author>Maintained by Mathias Luedtke and Felix Messmer</author>
-
-  <!-- Dependencies which this package needs to build itself. -->
   <buildtool_depend>catkin</buildtool_depend>
-
-  <!-- Dependencies needed to compile this package. -->
-
-
-  <!-- Dependencies needed after this package is compiled. -->
-  <run_depend>cob_moveit_config</run_depend>
-  <run_depend>cob_tray_monitor</run_depend>
-  <run_depend>cob_tactiletools</run_depend>
-  <run_depend>cob_moveit_interface</run_depend>
   <run_depend>cob_grasp_generation</run_depend>
-  <run_depend>cob_pick_place_action</run_depend>
-  <run_depend>cob_lookat_action</run_depend>
   <run_depend>cob_kinematics</run_depend>
-
-  <!-- Dependencies needed only for running tests. -->
+  <run_depend>cob_lookat_action</run_depend>
+  <run_depend>cob_moveit_config</run_depend>
+  <run_depend>cob_moveit_interface</run_depend>
+  <run_depend>cob_pick_place_action</run_depend>
+  <run_depend>cob_tactiletools</run_depend>
+  <run_depend>cob_tray_monitor</run_depend>
 
  <export>
   <metapackage/>
  </export>
-
 </package>
