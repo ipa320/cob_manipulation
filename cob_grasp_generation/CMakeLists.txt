@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_grasp_generation)
 
-find_package(catkin REQUIRED COMPONENTS message_generation moveit_msgs actionlib_msgs)
+find_package(catkin REQUIRED COMPONENTS actionlib_msgs message_generation moveit_msgs)
 
 catkin_python_setup()
 
@@ -17,9 +17,11 @@ generate_messages(
 )
 
 catkin_package(
-  CATKIN_DEPENDS rospy roslib message_runtime geometry_msgs trajectory_msgs moveit_msgs actionlib actionlib_msgs tf
+  CATKIN_DEPENDS actionlib_msgs actionlib geometry_msgs message_runtime moveit_msgs roslib rospy tf trajectory_msgs
 )
 
+
+### INSTALL ###
 install(DIRECTORY files
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )

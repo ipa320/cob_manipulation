@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_pick_place_action)
 
-find_package(catkin REQUIRED COMPONENTS roscpp message_generation std_msgs geometry_msgs moveit_msgs actionlib actionlib_msgs tf geometric_shapes shape_tools moveit_ros_planning_interface moveit_ros_move_group cob_moveit_interface cob_grasp_generation)
+find_package(catkin REQUIRED COMPONENTS actionlib_msgs actionlib cob_grasp_generation cob_moveit_interface geometric_shapes geometry_msgs message_generation moveit_msgs moveit_ros_move_group moveit_ros_planning_interface roscpp shape_tools std_msgs tf)
 find_package(Boost REQUIRED COMPONENTS thread signals)
 
 
@@ -17,7 +17,7 @@ generate_messages(
 )
 
 catkin_package(
-  CATKIN_DEPENDS roscpp rospy message_runtime std_msgs geometry_msgs moveit_msgs actionlib actionlib_msgs tf geometric_shapes shape_tools moveit_ros_planning_interface moveit_ros_move_group cob_moveit_interface cob_grasp_generation
+  CATKIN_DEPENDS actionlib_msgs actionlib cob_grasp_generation cob_moveit_interface geometric_shapes geometry_msgs message_runtime moveit_msgs moveit_ros_move_group moveit_ros_planning_interface roscpp rospy shape_tools std_msgs tf
   INCLUDE_DIRS ros/include common/include
 )
 
@@ -26,10 +26,7 @@ include_directories(${PROJECT_SOURCE_DIR}/ros/include ${PROJECT_SOURCE_DIR}/comm
 
 add_executable(cob_pick_place_action ros/src/cob_pick_place_action.cpp common/src/GraspTable.cpp)
 add_dependencies(cob_pick_place_action ${PROJECT_NAME}_generate_messages_cpp)
-
-target_link_libraries(cob_pick_place_action ${Boost_LIBRARIES})
-target_link_libraries(cob_pick_place_action ${catkin_LIBRARIES})
-
+target_link_libraries(cob_pick_place_action ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 ### INSTALL ###
 install(TARGETS cob_pick_place_action

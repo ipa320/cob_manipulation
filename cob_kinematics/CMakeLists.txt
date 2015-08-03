@@ -1,11 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_kinematics)
 
-find_package(catkin REQUIRED COMPONENTS roscpp message_generation std_msgs geometry_msgs moveit_msgs moveit_core pluginlib urdf tf_conversions)
-
-#######################################
-## Declare ROS messages and services ##
-#######################################
+find_package(catkin REQUIRED COMPONENTS geometry_msgs message_generation moveit_core moveit_msgs pluginlib roscpp std_msgs urdf)
 
 add_service_files(
   FILES
@@ -16,36 +12,14 @@ generate_messages(
   DEPENDENCIES std_msgs geometry_msgs moveit_msgs
 )
 
-
-###################################
-## catkin specific configuration ##
-###################################
 catkin_package(
-    CATKIN_DEPENDS roscpp message_runtime std_msgs geometry_msgs moveit_msgs
+    CATKIN_DEPENDS geometry_msgs message_runtime moveit_core moveit_msgs pluginlib roscpp std_msgs urdf
 )
 
-
-
-###########
-## Build ##
-###########
-
-include_directories(
-  ${catkin_INCLUDE_DIRS}
-  #${PROJECT_SOURCE_DIR}/ros/include
-)
+### BUILD ###
+include_directories( ${catkin_INCLUDE_DIRS})
 
 #add_executable(urdf_openrave ros/src/urdf_openrave.cpp)
 add_subdirectory(ikfast)
 
-
-
-#############
-## Install ##
-#############
-## Mark executables and/or libraries for installation
-#install(TARGETS cob_pick_place_action
-  #ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  #LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  #RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-#)
+### INSTALL ###

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_lookat_action)
 
-find_package(catkin REQUIRED COMPONENTS roscpp message_generation actionlib actionlib_msgs geometry_msgs moveit_msgs control_msgs trajectory_msgs tf)
+find_package(catkin REQUIRED COMPONENTS actionlib_msgs actionlib control_msgs geometry_msgs message_generation moveit_msgs roscpp tf trajectory_msgs)
 find_package(Boost REQUIRED COMPONENTS thread)
 
 ### Message Generation ###
@@ -15,7 +15,7 @@ generate_messages(
 )
 
 catkin_package(
-    CATKIN_DEPENDS roscpp rospy message_runtime actionlib actionlib_msgs geometry_msgs moveit_msgs control_msgs trajectory_msgs tf
+    CATKIN_DEPENDS actionlib_msgs actionlib control_msgs geometry_msgs message_runtime moveit_msgs roscpp rospy tf trajectory_msgs
 )
 
 ### BUILD ###

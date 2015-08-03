@@ -14,10 +14,11 @@
   <url type="repository">https://github.com/ipa320/cob_manipulation</url>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <run_depend>rospy</run_depend>
-  <run_depend>geometry_msgs</run_depend>
-  <run_depend>tf</run_depend>
-  <run_depend>moveit_commander</run_depend>
+
   <run_depend>cob_script_server</run_depend>
+  <run_depend>geometry_msgs</run_depend>
+  <run_depend>moveit_commander</run_depend>
+  <run_depend>rospy</run_depend>
+  <run_depend>tf</run_depend>
 
 </package>

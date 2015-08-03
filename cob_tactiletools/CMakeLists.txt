@@ -4,7 +4,7 @@ project(cob_tactiletools)
 find_package(catkin REQUIRED COMPONENTS)
 
 catkin_package(
-  CATKIN_DEPENDS rospy std_msgs std_srvs schunk_sdh
+  CATKIN_DEPENDS rospy schunk_sdh std_msgs std_srvs
 )
 
 install(DIRECTORY launch

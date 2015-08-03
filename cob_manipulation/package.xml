@@ -14,6 +14,7 @@
   <url type="repository">https://github.com/ipa320/cob_manipulation</url>
 
   <buildtool_depend>catkin</buildtool_depend>
+
   <run_depend>cob_grasp_generation</run_depend>
   <run_depend>cob_kinematics</run_depend>
   <run_depend>cob_lookat_action</run_depend>

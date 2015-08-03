@@ -4,7 +4,7 @@ project(cob_tray_monitor)
 find_package(catkin REQUIRED COMPONENTS)
 
 catkin_package(
-  CATKIN_DEPENDS rospy std_msgs std_srvs sensor_msgs
+  CATKIN_DEPENDS rospy sensor_msgs std_msgs std_srvs
 )
 
 install(DIRECTORY config ros/launch
@@ -14,4 +14,3 @@ install(DIRECTORY config ros/launch
 install(PROGRAMS ros/src/tray_monitor.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/ros/src
 )
-
