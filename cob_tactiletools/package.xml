@@ -14,9 +14,10 @@
   <url type="repository">https://github.com/ipa320/cob_manipulation</url>
 
   <buildtool_depend>catkin</buildtool_depend>
+
   <run_depend>rospy</run_depend>
-  <run_depend>std_srvs</run_depend>
-  <run_depend>std_msgs</run_depend>
   <run_depend>schunk_sdh</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>std_srvs</run_depend>
 
 </package>

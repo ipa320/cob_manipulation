@@ -1,6 +1,5 @@
 #! /usr/bin/env python
 
-import roslib; roslib.load_manifest('cob_grasp_generation')
 import rospy
 
 import actionlib

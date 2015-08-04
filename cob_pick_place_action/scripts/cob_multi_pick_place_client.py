@@ -1,14 +1,13 @@
 #! /usr/bin/env python
 
-import roslib; roslib.load_manifest('cob_pick_place_action')
-import rospy
-import actionlib
 import random
 import numpy
 from math import pi
-from tf.transformations import *
 
+import rospy
+import actionlib
 from geometry_msgs.msg import PoseStamped
+from tf.transformations import *
 import simple_moveit_interface as smi_
 import cob_pick_place_action.msg 
 

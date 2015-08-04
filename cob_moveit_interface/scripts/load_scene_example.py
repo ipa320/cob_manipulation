@@ -1,7 +1,6 @@
 #!/usr/bin/env python
-import roslib; roslib.load_manifest('cob_moveit_interface')
-import rospy
 
+import rospy
 from tf.transformations import *
 from simple_moveit_interface import *
 

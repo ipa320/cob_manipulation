@@ -1,7 +1,6 @@
 #!/usr/bin/env python
-import roslib; roslib.load_manifest('cob_moveit_interface')
-import rospy
 
+import rospy
 import simple_moveit_interface as smi
 
 #Requirements:

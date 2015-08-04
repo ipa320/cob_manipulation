@@ -1,11 +1,11 @@
 #!/usr/bin/python
-import roslib; roslib.load_manifest('cob_tray_monitor')
-import rospy
-import math
-from std_msgs.msg import *
-from sensor_msgs.msg import *
-from std_srvs.srv import *
+
 from collections import deque
+
+import rospy
+from std_msgs.msg import *
+from std_srvs.srv import *
+from sensor_msgs.msg import *
 
 class Monitor():
     

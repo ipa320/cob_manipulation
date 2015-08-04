@@ -1,14 +1,16 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_tactiletools)
 
-find_package(catkin REQUIRED)
+find_package(catkin REQUIRED COMPONENTS)
 
-catkin_package()
+catkin_package(
+  CATKIN_DEPENDS rospy schunk_sdh std_msgs std_srvs
+)
 
 install(DIRECTORY launch
-   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
 install(PROGRAMS nodes/tactile_data_gui.py nodes/tactile_filters.py
-   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/nodes
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/nodes
 )
