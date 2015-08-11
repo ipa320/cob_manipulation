@@ -24,7 +24,7 @@
  * \brief
  *   This package implements an integrated grasp planner.
  *   It computes a suitable grasp from a GraspTable, a platform position from where the object is reachable and a collision-free trajectory for the manipulator.
- * 
+ *
  *   This file manages the access to the GraspTable.
  *
  ****************************************************************/
@@ -43,13 +43,13 @@ class Grasp
 {
   public:
     Grasp(){;}
-    
+
     std::vector<double> GetTCPPreGraspPose(){return m_TCPPreGraspPose;}
     void SetTCPPreGraspPose(std::vector<double> TCPPreGraspPose){m_TCPPreGraspPose = TCPPreGraspPose;}
-    
+
     std::vector<double> GetTCPGraspPose(){return m_TCPGraspPose;}
     void SetTCPGraspPose(std::vector<double> TCPGraspPose){m_TCPGraspPose = TCPGraspPose;}
-    
+
     /////Set and Get Hand Configurations
     std::vector<double>  GetHandPreGraspConfig(){return m_HandPreGraspConfig;}
     void SetHandPreGraspConfig(std::vector<double>  HandPreGraspConfig){m_HandPreGraspConfig=HandPreGraspConfig;}
@@ -62,7 +62,7 @@ class Grasp
 
     void SetGraspId(int graspId){m_GraspId = graspId;}
     int GetGraspId(){return m_GraspId;}
-  
+
   private:
     std::vector<double> m_TCPGraspPose;
     std::vector<double> m_TCPPreGraspPose;
@@ -91,10 +91,10 @@ class GraspTableObject
     {
       if (m_GraspReadPtr <m_GraspWritePtr)
         return m_GraspTableObject[m_GraspReadPtr++];
-      else 
+      else
         return NULL;
     }
-    
+
     Grasp * GetGrasp(unsigned int graspId)
     {
       if (graspId < m_GraspTableObject.size())
@@ -102,13 +102,13 @@ class GraspTableObject
       else
         return NULL;
     }
-    
+
     void AddGrasp(Grasp *  grasp)
       {  if (m_GraspWritePtr < m_GraspTableObject.size()) m_GraspTableObject[m_GraspWritePtr++]=grasp;  }
-    
+
     unsigned int GetObjectClassId(){  return m_ObjectClassId;  }
     void SetObjectClassId(unsigned int ObjectClassId){  m_ObjectClassId = ObjectClassId;  }
-    
+
     void ResetGraspReadPtr(){  m_GraspReadPtr=0;  }
 
   private:
@@ -123,7 +123,7 @@ class GraspTable
 {
   public:
     GraspTable(){;}
-    
+
     int Init(char * iniFile, unsigned int table_size=MAX_NO_OF_OBJECTS);
     void AddGraspTableObject(GraspTableObject * graspTableObject);
 
@@ -136,7 +136,7 @@ class GraspTable
     void ReadJoint(TiXmlElement* xml, const char * tag, std::vector<double> & values);
     void ReadPose(TiXmlElement* xml, const char * tag, std::vector<double> & values);
     int ReadFromFile(const char * filename, GraspTableObject * tableObject);
-      
+
     std::vector<GraspTableObject*> m_GraspTable;
     unsigned int m_lastObjectClassId;
 };

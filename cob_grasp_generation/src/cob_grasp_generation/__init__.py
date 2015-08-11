@@ -1,1 +1,1 @@
-from cob_grasp_generation import * 
+from cob_grasp_generation import *

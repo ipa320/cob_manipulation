@@ -8,8 +8,8 @@ from std_srvs.srv import *
 from sensor_msgs.msg import *
 
 class Monitor():
-    
-    def __init__(self):        
+
+    def __init__(self):
         self.pub = rospy.Publisher("occupied", Bool)
         rospy.Subscriber("/tray_sensors/range_0", Range, self.range1_callback)
         rospy.Subscriber("/tray_sensors/range_1", Range, self.range2_callback)
@@ -30,14 +30,14 @@ class Monitor():
         self.avg4 = sum(self.queue4)/len(self.queue4)
         self.occupied = False
         self.queueLen = 5 # lower: higher sensitivity, but also higher noise
-        
+
         if not rospy.has_param('distance_limit'):
             rospy.logerr("no distance_limit specified")
             exit(1)
 
         self.limit = rospy.get_param('distance_limit')
         print self.limit
-    
+
     def srv_callback(self,req):
         res = TriggerResponse()
         # res.success = self.occupied
@@ -51,21 +51,21 @@ class Monitor():
         if len(self.queue1)>=self.queueLen:
             self.queue1.popleft()
         self.avg1 = sum(self.queue1)/len(self.queue1)
-    
+
     def range2_callback(self,msg):
         self.range2 = msg
         self.queue2.append(msg.range)
         if len(self.queue2)>=self.queueLen:
             self.queue2.popleft()
         self.avg2 = sum(self.queue2)/len(self.queue2)
-    
+
     def range3_callback(self,msg):
         self.range3 = msg
         self.queue3.append(msg.range)
         if len(self.queue3)>=self.queueLen:
             self.queue3.popleft()
         self.avg3 = sum(self.queue3)/len(self.queue3)
-    
+
     def range4_callback(self,msg):
         self.range4 = msg
         self.queue4.append(msg.range)
@@ -93,10 +93,10 @@ class Monitor():
 if __name__ == "__main__":
     rospy.init_node('tactile_sensors')
     rospy.sleep(0.5)
-    
+
     m = Monitor()
     rospy.loginfo("tray monitor running")
-    
+
     r = rospy.Rate(10)
     while not rospy.is_shutdown():
         m.publish_state()

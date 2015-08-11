@@ -24,7 +24,7 @@
  * \brief
  *   This package implements an integrated grasp planner.
  *   It computes a suitable grasp from a GraspTable, a platform position from where the object is reachable and a collision-free trajectory for the manipulator.
- * 
+ *
  *   This file manages the access to the GraspTable.
  *
  ****************************************************************/
@@ -108,24 +108,24 @@ int GraspTable::ReadFromFile(const char * filename, GraspTableObject* graspTable
     TiXmlElement* grasp_element=grasp_handle.Element();
     double quality;
     grasp_element->QueryDoubleAttribute("Quality", &quality);
-    
+
     Grasp * newGrasp = new Grasp();
     newGrasp->SetGraspId(i);
-    
+
     std::vector<double> values;
-    
+
     ReadPose(grasp_element, "ApproachPose", values);
     newGrasp->SetTCPPreGraspPose(values);
-    
+
     ReadPose(grasp_element, "GraspPose", values);
     newGrasp->SetTCPGraspPose(values);
 
     ReadJoint(grasp_element, "ApproachJoint", values);
     newGrasp->SetHandPreGraspConfig(values);
-    
+
     ReadJoint(grasp_element, "GraspJoint", values);
     newGrasp->SetHandGraspConfig(values);
-    
+
     ReadJoint(grasp_element, "GraspOptimalJoint", values);
     newGrasp->SetHandOptimalGraspConfig(values);
 
@@ -140,7 +140,7 @@ int GraspTable::Init(char* object_table_file,unsigned int table_size)
 {
   FILE* f = fopen(object_table_file,"r");
   int numberOfObjects = 0;
-  
+
   if (f==NULL)
   {
     printf("GraspTable::Error, Object Table File not found :%s\n",object_table_file);

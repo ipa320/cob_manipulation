@@ -16,7 +16,7 @@ foreach(fname ${yamls})
     OUTPUT ${cppout}
     COMMAND python ${EXECUTABLE_OUTPUT_PATH}/genikfast.py ${fname} ${cppout}
     DEPENDS ${fname}
-    )    
+    )
 
     add_library(${tname} MODULE ${cppout} ../ros/src/ikfast_plugin.cpp)
     set_target_properties(${tname} PROPERTIES COMPILE_DEFINITIONS IKFAST_NAMESPACE=${bname} )

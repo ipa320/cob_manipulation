@@ -12,7 +12,7 @@
   <url type="website">http://ros.org/wiki/cob_manipulation/</url>
   <url type="bugtracker">https://github.com/ipa320/cob_manipulation/issues</url>
   <url type="repository">https://github.com/ipa320/cob_manipulation</url>
-  
+
   <buildtool_depend>catkin</buildtool_depend>
 
   <build_depend>actionlib_msgs</build_depend>
@@ -29,7 +29,7 @@
   <build_depend>shape_tools</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_depend>tf</build_depend>
-  
+
   <run_depend>actionlib_msgs</run_depend>
   <run_depend>actionlib</run_depend>
   <run_depend>cob_grasp_generation</run_depend>

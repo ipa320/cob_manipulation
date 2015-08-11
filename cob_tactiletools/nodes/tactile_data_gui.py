@@ -85,8 +85,6 @@ class Screen(gtk.DrawingArea):
         self.tactile_array = array
         self.queue_draw()
 
-
-            
 def roscb(data):
     global sc1
     global sc2

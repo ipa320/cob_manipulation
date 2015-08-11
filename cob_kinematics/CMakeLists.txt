@@ -5,7 +5,7 @@ find_package(catkin REQUIRED COMPONENTS geometry_msgs message_generation moveit_
 
 add_service_files(
   FILES
-  GetPositionIKExtended.srv 
+  GetPositionIKExtended.srv
 )
 
 generate_messages(

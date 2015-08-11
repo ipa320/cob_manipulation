@@ -87,7 +87,7 @@ struct joint_data{
     urdf::Vector3 axis;
 };
 int main(int argc, char **argv){
-    
+
     srand(time(NULL));
     ros::init(argc, argv, "urdf_openrave",ros::init_options::AnonymousName);
 
@@ -96,7 +96,7 @@ int main(int argc, char **argv){
     // parse params
 
     string file_urdf, file_out;
-    
+
     list<body_data> bodies;
     list<joint_data> joints;
 
@@ -124,7 +124,7 @@ int main(int argc, char **argv){
         ROS_ERROR("No kinematic chains specified!");
         return -1;
     }
-    
+
     // load model
 
     string xml;
@@ -137,7 +137,7 @@ int main(int argc, char **argv){
 		}
 		xml = sstream.str();
     } else xml = exec((string("rosrun xacro xacro.py ")+file_urdf).c_str());
-    
+
     if(!urdf_->initString(xml))
     {
 		ROS_ERROR_STREAM("Parsing URDF failed!");
@@ -146,7 +146,7 @@ int main(int argc, char **argv){
 
     for(map<string,pair<string,string> >::iterator it=arms.begin(); it != arms.end(); ++it){
                 string link_name = it->second.second;
-                
+
                 while( link_name != it->second.first ){
                     boost::shared_ptr<urdf::Joint >  joint = urdf_->getLink(link_name)->parent_joint;
 		    body_data bd;
@@ -170,14 +170,14 @@ int main(int argc, char **argv){
 
 		    link_name = joint->parent_link_name;
                 }
-                
+
     }
-    
-    
+
+
     stringstream sout;
     sout << "<Robot name=\"" << urdf_->getName() << "\">" << endl;
     sout << "\t" << "<KinBody>" << endl;
-    
+
 /*        <Body name="arm_7_link" type="dynamic">
             <offsetfrom>arm_6_link</offsetfrom>
             <Translation>0 0.057 0.0455</Translation>
@@ -194,7 +194,7 @@ int main(int argc, char **argv){
         sout << "\t" << "\t" << "\t" << "<quat>" << it->pose.rotation.w << " " << it->pose.rotation.x << " "<< it->pose.rotation.y << " " << it->pose.rotation.z  << "</quat>" << endl;
         sout << "\t" << "\t" << "</Body>" << endl;
     }
-        
+
 /*        <Joint name="arm_1_joint" type="hinge">
             <offsetfrom>arm_0_link</offsetfrom>
             <Body>arm_0_link</Body>
@@ -202,7 +202,7 @@ int main(int argc, char **argv){
             <Axis>0 0 1</Axis>
             <limitsrad>-2.9670 2.9670</limitsrad>
         </Joint>
-*/        
+*/
     for(list<joint_data>::iterator it=joints.begin(); it != joints.end(); ++it){
 	if( it->lower == 0 && it->upper == 0){
 	    sout << "\t" << "\t" << "<Joint type=\"hinge\" enable=\"false\" name=\"" << it->name << "\">" << endl;
@@ -225,14 +225,14 @@ int main(int argc, char **argv){
     }
 
     sout << "</Robot>" << endl;
-      
+
     if(file_out.empty())
     	cout << sout.str();
     else{
         ofstream of(file_out.c_str());
     	of <<  sout.str();
     }
-    
+
     return 0;
 }
 

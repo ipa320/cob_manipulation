@@ -15,12 +15,12 @@ import simple_moveit_interface as smi
 
 if __name__ == '__main__':
 	rospy.init_node('move_example')
-	
+
 	smi.add_ground()
 	rospy.sleep(1.0)
 
 	#while rospy.get_time() == 0.0: pass
-	rospy.logerr('Are you using cob3-3? Did you make sure all requirements are met? Read the code file!') 
+	rospy.logerr('Are you using cob3-3? Did you make sure all requirements are met? Read the code file!')
 	ans = raw_input('[y/n] ')
 	if ans == 'y':
 		while not rospy.is_shutdown():
@@ -32,5 +32,5 @@ if __name__ == '__main__':
 			#success = smi.moveit_joint_goal("arm", [-0.2875421191578158, -1.8672004116184473, 0.5368099709961187, -0.07435202034076506, -0.523647727633693, 0.43781158053874125, -0.709280142446791], True)
 	elif ans == 'n':
 		rospy.logerr('Please activate it!')
-	
+
 
