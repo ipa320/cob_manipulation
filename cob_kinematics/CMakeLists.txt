@@ -12,9 +12,7 @@ generate_messages(
   DEPENDENCIES std_msgs geometry_msgs moveit_msgs
 )
 
-catkin_package(
-    CATKIN_DEPENDS geometry_msgs message_runtime moveit_core moveit_msgs pluginlib roscpp std_msgs urdf
-)
+catkin_package()
 
 ### BUILD ###
 include_directories( ${catkin_INCLUDE_DIRS})

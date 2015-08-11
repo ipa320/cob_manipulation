@@ -14,18 +14,14 @@ generate_messages(
   DEPENDENCIES actionlib_msgs geometry_msgs
 )
 
-catkin_package(
-    CATKIN_DEPENDS actionlib_msgs actionlib control_msgs geometry_msgs message_runtime moveit_msgs roscpp rospy tf trajectory_msgs
-)
+catkin_package()
 
 ### BUILD ###
 include_directories(${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 
 add_executable(cob_lookat_action_server src/cob_lookat_action_server.cpp)
-add_dependencies(cob_lookat_action_server ${PROJECT_NAME}_generate_messages_cpp)
-
-target_link_libraries(cob_lookat_action_server ${Boost_LIBRARIES})
-target_link_libraries(cob_lookat_action_server ${catkin_LIBRARIES})
+add_dependencies(cob_lookat_action_server ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(cob_lookat_action_server ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 ### INSTALL ###
 install(TARGETS cob_lookat_action_server
