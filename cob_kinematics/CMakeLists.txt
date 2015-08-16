@@ -9,10 +9,12 @@ add_service_files(
 )
 
 generate_messages(
-  DEPENDENCIES std_msgs geometry_msgs moveit_msgs
+  DEPENDENCIES geometry_msgs moveit_msgs std_msgs
 )
 
-catkin_package()
+catkin_package(
+  CATKIN_DEPENDS geometry_msgs message_runtime moveit_msgs std_msgs
+)
 
 ### BUILD ###
 include_directories( ${catkin_INCLUDE_DIRS})

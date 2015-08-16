@@ -13,10 +13,12 @@ add_action_files(
 )
 
 generate_messages(
-  DEPENDENCIES moveit_msgs actionlib_msgs
+  DEPENDENCIES actionlib_msgs moveit_msgs
 )
 
-catkin_package()
+catkin_package(
+  CATKIN_DEPENDS actionlib_msgs message_runtime moveit_msgs
+)
 
 
 ### INSTALL ###
