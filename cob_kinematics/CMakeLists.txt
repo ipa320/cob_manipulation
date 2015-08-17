@@ -5,15 +5,15 @@ find_package(catkin REQUIRED COMPONENTS geometry_msgs message_generation moveit_
 
 add_service_files(
   FILES
-  GetPositionIKExtended.srv 
+  GetPositionIKExtended.srv
 )
 
 generate_messages(
-  DEPENDENCIES std_msgs geometry_msgs moveit_msgs
+  DEPENDENCIES geometry_msgs moveit_msgs std_msgs
 )
 
 catkin_package(
-    CATKIN_DEPENDS geometry_msgs message_runtime moveit_core moveit_msgs pluginlib roscpp std_msgs urdf
+  CATKIN_DEPENDS geometry_msgs message_runtime moveit_msgs std_msgs
 )
 
 ### BUILD ###

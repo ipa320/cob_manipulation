@@ -15,7 +15,7 @@ if __name__ == '__main__':
 	handler.setFormatter(format)
 	log.addHandler(handler)
 	log.setLevel(logging.INFO)
-	
+
 	convpath = os.path.join(os.path.dirname(sys.argv[0]),'urdf_openrave')
 	xml = subprocess.check_output(convpath+" --urdf %s %s %s %s "% (settings['urdf_path'],settings['name'],settings['base_link'],settings['tip_link']),shell=True)
 	try:

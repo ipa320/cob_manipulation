@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <launch>
-  
+
   <!-- OPENRAVE ENV VARIABLE -->
   <env name="OPENRAVE_DATA" value="$(find cob_grasp_generation)/files:$(optenv OPENRAVE_DATA)"/>
-  
+
   <node name="cob_grasp_generation_OR" pkg="cob_grasp_generation" type="cob_grasp_generation_action_server.py" respawn="false" output="screen"/>
 
 </launch>

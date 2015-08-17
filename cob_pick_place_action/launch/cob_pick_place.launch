@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
    <arg name="manipulator_group"/>
-   
+
    <include file="$(find cob_grasp_generation)/launch/grasp_generation.launch"/>
    <node name="cob_pick_place_action" pkg="cob_pick_place_action" type="cob_pick_place_action" args="$(arg manipulator_group)" respawn="false" output="screen"/>
 </launch>

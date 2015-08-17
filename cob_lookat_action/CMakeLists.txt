@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 2.8.3)
 project(cob_lookat_action)
 
 find_package(catkin REQUIRED COMPONENTS actionlib_msgs actionlib control_msgs geometry_msgs message_generation moveit_msgs roscpp tf trajectory_msgs)
-find_package(Boost REQUIRED COMPONENTS thread)
 
 ### Message Generation ###
 add_action_files(
@@ -15,16 +14,14 @@ generate_messages(
 )
 
 catkin_package(
-    CATKIN_DEPENDS actionlib_msgs actionlib control_msgs geometry_msgs message_runtime moveit_msgs roscpp rospy tf trajectory_msgs
+  CATKIN_DEPENDS actionlib_msgs geometry_msgs message_runtime
 )
 
 ### BUILD ###
-include_directories(${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
+include_directories(${catkin_INCLUDE_DIRS})
 
 add_executable(cob_lookat_action_server src/cob_lookat_action_server.cpp)
-add_dependencies(cob_lookat_action_server ${PROJECT_NAME}_generate_messages_cpp)
-
-target_link_libraries(cob_lookat_action_server ${Boost_LIBRARIES})
+add_dependencies(cob_lookat_action_server ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(cob_lookat_action_server ${catkin_LIBRARIES})
 
 ### INSTALL ###

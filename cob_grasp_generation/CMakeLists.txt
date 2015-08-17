@@ -13,16 +13,16 @@ add_action_files(
 )
 
 generate_messages(
-  DEPENDENCIES moveit_msgs actionlib_msgs
+  DEPENDENCIES actionlib_msgs moveit_msgs
 )
 
 catkin_package(
-  CATKIN_DEPENDS actionlib_msgs actionlib geometry_msgs message_runtime moveit_msgs roslib rospy tf trajectory_msgs
+  CATKIN_DEPENDS actionlib_msgs message_runtime moveit_msgs
 )
 
 
 ### INSTALL ###
-install(DIRECTORY files
+install(DIRECTORY files launch
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 

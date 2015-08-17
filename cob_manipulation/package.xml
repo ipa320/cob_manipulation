@@ -1,12 +1,12 @@
-<package>
+<package format="2">
   <name>cob_manipulation</name>
   <version>0.6.1</version>
   <description>The cob_manipulation stack includes packages that provide manipulation capabilities for Care-O-bot.</description>
-  
+
   <author email="fxm@ipa.fhg.de">Felix Messmer</author>
   <author email="mdl@ipa.fhg.de">Mathias Luedtke</author>
   <maintainer email="fxm@ipa.fhg.de">Felix Messmer</maintainer>
-  
+
   <license>LGPL</license>
 
   <url type="website">http://ros.org/wiki/cob_manipulation/</url>
@@ -15,14 +15,14 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <run_depend>cob_grasp_generation</run_depend>
-  <run_depend>cob_kinematics</run_depend>
-  <run_depend>cob_lookat_action</run_depend>
-  <run_depend>cob_moveit_config</run_depend>
-  <run_depend>cob_moveit_interface</run_depend>
-  <run_depend>cob_pick_place_action</run_depend>
-  <run_depend>cob_tactiletools</run_depend>
-  <run_depend>cob_tray_monitor</run_depend>
+  <exec_depend>cob_grasp_generation</exec_depend>
+  <exec_depend>cob_kinematics</exec_depend>
+  <exec_depend>cob_lookat_action</exec_depend>
+  <exec_depend>cob_moveit_config</exec_depend>
+  <exec_depend>cob_moveit_interface</exec_depend>
+  <exec_depend>cob_pick_place_action</exec_depend>
+  <exec_depend>cob_tactiletools</exec_depend>
+  <exec_depend>cob_tray_monitor</exec_depend>
 
  <export>
   <metapackage/>

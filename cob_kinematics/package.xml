@@ -1,4 +1,4 @@
-<package>
+<package format="2">
   <name>cob_kinematics</name>
   <version>0.6.1</version>
   <description>
@@ -13,31 +13,23 @@
   <url type="website">http://ros.org/wiki/cob_manipulation/</url>
   <url type="bugtracker">https://github.com/ipa320/cob_manipulation/issues</url>
   <url type="repository">https://github.com/ipa320/cob_manipulation</url>
-  
+
   <buildtool_depend>catkin</buildtool_depend>
-  
-  <build_depend>geometry_msgs</build_depend>
-  <build_depend>liblapack-dev</build_depend>
+
   <build_depend>message_generation</build_depend>
-  <build_depend>moveit_core</build_depend>
-  <build_depend>moveit_msgs</build_depend>
-  <build_depend>pluginlib</build_depend>
-  <build_depend>roscpp</build_depend>
-  <build_depend>std_msgs</build_depend>
-  <build_depend>urdf</build_depend>
-  
-  <run_depend>geometry_msgs</run_depend>
-  <run_depend>liblapack-dev</run_depend>
-  <run_depend>message_runtime</run_depend>
-  <run_depend>moveit_core</run_depend>
-  <run_depend>moveit_msgs</run_depend>
-  <run_depend>pluginlib</run_depend>
-  <run_depend>roscpp</run_depend>
-  <run_depend>std_msgs</run_depend>
-  <run_depend>urdf</run_depend>
+  <exec_depend>message_runtime</exec_depend>
+
+  <depend>geometry_msgs</depend>
+  <depend>liblapack-dev</depend>
+  <depend>moveit_core</depend>
+  <depend>moveit_msgs</depend>
+  <depend>pluginlib</depend>
+  <depend>roscpp</depend>
+  <depend>std_msgs</depend>
+  <depend>urdf</depend>
 
   <export>
-      <!--moveit_core plugin="${prefix}/ikfast/plugins.xml" /--> 
+      <!--moveit_core plugin="${prefix}/ikfast/plugins.xml" /-->
   </export>
 </package>
 

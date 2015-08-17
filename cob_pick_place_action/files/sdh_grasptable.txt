@@ -11,7 +11,7 @@
 50, /grasptables/InstantSoup_SDH.xml
 52, /grasptables/HotPot2_SDH.xml
 57, /grasptables/MuesliBars_SDH.xml
-65, /grasptables/FruitDrink_SDH.xml 
+65, /grasptables/FruitDrink_SDH.xml
 99, /grasptables/RuskWholemeal_SDH.xml
 101, /grasptables/KoalaCandy_SDH.xml
 103, /grasptables/InstantTomatoSoup_SDH.xml

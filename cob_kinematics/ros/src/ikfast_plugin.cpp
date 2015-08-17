@@ -69,7 +69,7 @@ void print_frame(const char * str, const double* trans, const double* rot) {
 void setConsistencyLimit(std::vector<std::pair<double, double> > &min_max,
         const std::vector<double> &seed, const std::vector<double> &consistency_limits) {
     if(min_max.size() != seed.size() || min_max.size() != consistency_limits.size()) return;
-    
+
     for(unsigned int i=0; i <min_max.size(); ++i){
 	min_max[i].first = fmax(min_max[i].first, seed[i] - consistency_limits[i]);
 	min_max[i].second = fmin(min_max[i].second, seed[i] + consistency_limits[i]);
@@ -315,7 +315,7 @@ public:
                                    const IKCallbackFn &solution_callback,
                                    moveit_msgs::MoveItErrorCodes &error_code,
                                    const kinematics::KinematicsQueryOptions &options) const {
-                                    
+
         return searchPositionIK(ik_pose, ik_seed_state, solution, min_max_,
                 error_code, timeout, solution_callback);
     }
@@ -338,7 +338,7 @@ public:
                                    const IKCallbackFn &solution_callback,
                                    moveit_msgs::MoveItErrorCodes &error_code,
                                    const kinematics::KinematicsQueryOptions &options) const {
-                                       
+
         std::vector<std::pair<double, double> > min_max = min_max_;
         setConsistencyLimit(min_max, ik_seed_state, consistency_limits);
         return searchPositionIK(ik_pose, ik_seed_state, solution, min_max,
@@ -352,7 +352,7 @@ public:
      * @return True if a valid solution was found, false otherwise
      */
 	virtual bool getPositionFK(const std::vector<std::string> &link_names,
-                             const std::vector<double> &joint_angles, 
+                             const std::vector<double> &joint_angles,
                              std::vector<geometry_msgs::Pose> &poses) const {
         KDL::Frame p_out;
 
@@ -438,7 +438,7 @@ protected:
         KDL::Frame frame;
         tf::poseMsgToKDL(ik_pose, frame);
         error_code.val = error_code.NO_IK_SOLUTION;
-	
+
 		if(ik_seed_state.size() < GetNumJoints()){
             ROS_ERROR_STREAM("Needs " << GetNumJoints() << "joint values. but only " << ik_seed_state.size() << "were given.");
 	    	return false;
