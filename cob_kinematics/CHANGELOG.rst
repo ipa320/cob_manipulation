@@ -2,8 +2,8 @@
 Changelog for package cob_kinematics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.2 (2015-08-29)
+------------------
 * boost revision
 * migration to package format 2
 * remove trailing whitespaces
