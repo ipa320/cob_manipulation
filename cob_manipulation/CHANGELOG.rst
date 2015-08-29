@@ -2,6 +2,14 @@
 Changelog for package cob_manipulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* migration to package format 2
+* remove trailing whitespaces
+* sort dependencies
+* review dependencies
+* Contributors: ipa-fxm
+
 0.6.1 (2015-06-17)
 ------------------
 
