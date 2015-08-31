@@ -26,6 +26,7 @@
   <depend>pluginlib</depend>
   <depend>roscpp</depend>
   <depend>std_msgs</depend>
+  <depend>tf_conversions</depend>
   <depend>urdf</depend>
 
   <export>
