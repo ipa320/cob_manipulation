@@ -2,8 +2,8 @@
 Changelog for package cob_kinematics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.3 (2015-08-31)
+------------------
 * fix dependencies
 * Contributors: ipa-fxm
 
