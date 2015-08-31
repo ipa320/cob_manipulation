@@ -2,6 +2,9 @@
 Changelog for package cob_grasp_generation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.6.2 (2015-08-29)
 ------------------
 * boost revision
