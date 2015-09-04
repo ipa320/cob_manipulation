@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_kinematics)
 
-find_package(catkin REQUIRED COMPONENTS geometry_msgs message_generation moveit_core moveit_msgs pluginlib roscpp std_msgs urdf)
+find_package(catkin REQUIRED COMPONENTS geometry_msgs message_generation moveit_core moveit_msgs pluginlib roscpp std_msgs tf_conversions urdf)
 
 add_service_files(
   FILES
