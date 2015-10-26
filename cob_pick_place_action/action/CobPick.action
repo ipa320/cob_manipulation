@@ -1,0 +1,31 @@
+##########################################################
+##########     Object Information(goal)   ######################
+
+uint32 object_class
+string object_name
+
+geometry_msgs/PoseStamped object_pose
+
+string gripper_type
+
+string grasp_database
+uint32 grasp_id
+
+string support_surface
+
+---
+##########################################################
+##########     Pickup Result (result)   ######################
+
+std_msgs/Bool success
+
+string cob_pick_error_string
+
+---
+
+##########################################################
+##########     Pickup Feedback (feedback)   ######################
+
+std_msgs/Bool success
+
+string cob_pick_error_string

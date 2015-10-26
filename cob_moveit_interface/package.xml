@@ -1,0 +1,24 @@
+<package format="2">
+  <name>cob_moveit_interface</name>
+  <version>0.6.3</version>
+  <description>
+     cob_moveit_interface
+  </description>
+  <author email="fxm@ipa.fhg.de">Felix Messmer</author>
+  <maintainer email="fxm@ipa.fhg.de">Felix Messmer</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://ros.org/wiki/cob_manipulation/</url>
+  <url type="bugtracker">https://github.com/ipa320/cob_manipulation/issues</url>
+  <url type="repository">https://github.com/ipa320/cob_manipulation</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <exec_depend>cob_script_server</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>moveit_commander</exec_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>tf</exec_depend>
+
+</package>

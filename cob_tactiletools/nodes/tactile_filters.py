@@ -1,11 +1,9 @@
 #!/usr/bin/python
-import roslib; roslib.load_manifest('cob_tactiletools')
+
 import rospy
-from schunk_sdh.msg import TactileMatrix, TactileSensor
-from cob_srvs.srv import *
+from std_srvs.srv import *
 from std_msgs.msg import Bool, Float32MultiArray
-
-
+from schunk_sdh.msg import TactileMatrix, TactileSensor
 
 class TactileFilters():
     def __init__(self):
@@ -16,13 +14,13 @@ class TactileFilters():
         self.is_grasped = False
         self.is_cylindric_grasped = False
         self.one_pad_contact = False
-    
+
     def getMean(self, tarray):
         sum = 0
         for i in tarray:
             sum += i
         return sum/len(tarray)
-            
+
 
     def roscb(self, data):
         matrices = data.tactile_matrix
@@ -58,48 +56,48 @@ class TactileFilters():
         else:
         	self.one_pad_contact = False
         	self.one_pad_contact_publisher.publish(Bool(False))
-        
+
     def handle_is_grasped(self, req):
         res = TriggerResponse()
         if self.is_grasped == True:
-            res.success.data = True
-            res.error_message.data = "grasped object"
+            res.success = True
+            res.message = "grasped object"
         else:
-            res.success.data = False
-            res.error_message.data= "object not grasped"
+            res.success = False
+            res.message = "object not grasped"
         # print "status: is_grasped = ",self.is_grasped,", success = ",res.success
         return res
 
     def handle_is_cylindric_grasped(self, req):
         res = TriggerResponse()
         if self.is_cylindric_grasped == True:
-            res.success.data = True
-            res.error_message.data = "grasped object"
+            res.success = True
+            res.message = "grasped object"
         else:
-            res.success.data = False
-            res.error_message.data= "object not grasped"
+            res.success = False
+            res.message = "object not grasped"
         # print "status: is_cylindric_grasped = ",self.is_cylindric_grasped,", success = ",res.success
         return res
-        
+
     def handle_one_pad_contact(self, req):
         res = TriggerResponse()
-        res.success.data = self.one_pad_contact
+        res.success = self.one_pad_contact
         return res
 
 if (__name__ == "__main__"):
     TF = TactileFilters()
     rospy.init_node('TactileSensorView', anonymous=True)
-    rospy.Subscriber("/sdh_controller/tactile_data", TactileSensor, TF.roscb)
-    TF.mean_value_publisher = rospy.Publisher("/sdh_controller/mean_values", Float32MultiArray)
-    TF.one_pad_contact_publisher = rospy.Publisher("/sdh_controller/one_pad_contact", Bool)
-    TF.grabbed_publisher = rospy.Publisher("/sdh_controller/grabbed", Bool)
-    service_is_grasped = rospy.Service('/sdh_controller/is_grasped', Trigger, TF.handle_is_grasped)
-    TF.cylindric_grabbed_publisher = rospy.Publisher("/sdh_controller/cylindric_grabbed", Bool)
-    service_is_cylindric_grasped = rospy.Service('/sdh_controller/is_cylindric_grasped', Trigger, TF.handle_is_cylindric_grasped)
-    service_one_pad_contact = rospy.Service('/sdh_controller/one_pad_contact', Trigger, TF.handle_one_pad_contact)
+    rospy.Subscriber("/gripper_controller/tactile_data", TactileSensor, TF.roscb)
+    TF.mean_value_publisher = rospy.Publisher("/gripper_controller/mean_values", Float32MultiArray)
+    TF.one_pad_contact_publisher = rospy.Publisher("/gripper_controller/one_pad_contact", Bool)
+    TF.grabbed_publisher = rospy.Publisher("/gripper_controller/grabbed", Bool)
+    service_is_grasped = rospy.Service('/gripper_controller/is_grasped', Trigger, TF.handle_is_grasped)
+    TF.cylindric_grabbed_publisher = rospy.Publisher("/gripper_controller/cylindric_grabbed", Bool)
+    service_is_cylindric_grasped = rospy.Service('/gripper_controller/is_cylindric_grasped', Trigger, TF.handle_is_cylindric_grasped)
+    service_one_pad_contact = rospy.Service('/gripper_controller/one_pad_contact', Trigger, TF.handle_one_pad_contact)
     treshold = rospy.get_param('TouchedTreshold', '10')
     TF.touched_treshold = treshold
     print "Setting touched treshold to ", treshold
     while not rospy.is_shutdown():
         rospy.sleep(1.0)
-    
+

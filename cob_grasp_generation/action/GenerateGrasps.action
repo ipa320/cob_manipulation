@@ -1,0 +1,22 @@
+#goal definition
+string object_name
+
+#gripper used on the robot
+string gripper_type
+
+#grasp generation parameters for OpenRAVE
+
+
+
+#replan grasps
+bool replan
+
+#show Viewer
+bool viewer
+---
+#result definition
+bool success
+uint32 num_grasps
+---
+#feedback
+bool status

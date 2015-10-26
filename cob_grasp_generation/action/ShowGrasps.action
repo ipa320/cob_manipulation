@@ -1,0 +1,14 @@
+#goal definition
+string object_name
+
+#gripper used on the robot
+string gripper_type
+
+int32 grasp_id
+bool sort_by_quality
+---
+#result definition
+bool success
+---
+#feedback
+bool status

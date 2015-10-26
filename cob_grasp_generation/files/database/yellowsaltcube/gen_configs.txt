@@ -1,0 +1,32 @@
+opt1:
+preshape = '0.0 -0.9854 0.9472 -0.9854 0.9472 -0.9854 0.9472' # cylindric_open
+preshape = '0.0 -0.9854 0.0 -0.9854 0.0 -0.9854 0.0' # fingers_straight_open
+options.boxdelta = 0.05
+standoff_array = [0.025, 0.075]
+options.friction = 1.0
+options.normalanglerange = 0.0
+options.directiondelta = 0.4
+--> 165 grasps
+
+
+opt2:
+preshape = '0.0 -0.9854 0.9472 -0.9854 0.9472 -0.9854 0.9472' # cylindric_open
+preshape = '0.0 -0.9854 0.47 -0.9854 0.47 -0.9854 0.47' # fingers_half_straight_open
+options.boxdelta = 0.05
+standoff_array = [0.025, 0.075]
+options.friction = 1.0
+options.normalanglerange = 0.0
+options.directiondelta = 1.0
+--> 162 grasps
+
+
+opt3:
+preshape = '0.0 -0.9854 0.9472 -0.9854 0.9472 -0.9854 0.9472' # cylindric_open
+preshape = '0.0 -0.9854 0.47 -0.9854 0.47 -0.9854 0.47' # fingers_half_straight_open
+options.boxdelta = 0.05
+standoff_array = [0.025, 0.075]
+options.friction = 1.0
+options.normalanglerange = 15
+options.directiondelta = 5
+--> 1490
+

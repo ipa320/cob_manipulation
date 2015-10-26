@@ -1,0 +1,37 @@
+<package format="2">
+  <name>cob_pick_place_action</name>
+  <version>0.6.3</version>
+  <description>
+     An action interface to MoveIt!'s pick-and-place for Care-O-bot
+  </description>
+  <author email="fxm@ipa.fhg.de">Felix Messmer</author>
+  <maintainer email="fxm@ipa.fhg.de">Felix Messmer</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://ros.org/wiki/cob_manipulation/</url>
+  <url type="bugtracker">https://github.com/ipa320/cob_manipulation/issues</url>
+  <url type="repository">https://github.com/ipa320/cob_manipulation</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend>
+
+  <depend>actionlib_msgs</depend>
+  <depend>actionlib</depend>
+  <depend>cob_grasp_generation</depend>
+  <depend>cob_moveit_interface</depend>
+  <depend>geometric_shapes</depend>
+  <depend>geometry_msgs</depend>
+  <depend>moveit_msgs</depend>
+  <depend>moveit_ros_move_group</depend>
+  <depend>moveit_ros_planning_interface</depend>
+  <depend>roscpp</depend>
+  <depend>shape_tools</depend>
+  <depend>std_msgs</depend>
+  <depend>tf</depend>
+
+  <exec_depend>rospy</exec_depend>
+
+</package>

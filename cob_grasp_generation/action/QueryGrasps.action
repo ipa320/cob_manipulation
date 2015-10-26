@@ -1,0 +1,25 @@
+#goal definition
+string object_name
+
+#gripper used on the robot
+string gripper_type
+
+#only return grasp with given id
+#note: cannot be used to return first grasp (id = 0)
+uint32 grasp_id
+
+#only return that many grasps
+#returns all grasps when set to 0
+uint32 num_grasps
+
+#only return graps that have quality >= threshold
+#returns all grasps when set to 0
+float64 threshold
+
+---
+#result definition
+bool success
+moveit_msgs/Grasp[] grasp_list
+---
+#feedback
+bool status

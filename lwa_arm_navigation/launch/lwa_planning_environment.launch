@@ -1,5 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-    <param name="robot_description" textfile="$(find cob_hardware_config)/lwa_ext_sdh/urdf/lwa_ext_sdh.urdf" />
-    <rosparam command="load" ns="robot_description_planning" file="$(find lwa_arm_navigation)/config/lwa_planning_description.yaml" />
-</launch>

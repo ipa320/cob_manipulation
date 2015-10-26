@@ -1,0 +1,32 @@
+<package format="2">
+  <name>cob_lookat_action</name>
+  <version>0.6.3</version>
+  <description>
+     cob_lookat_action
+  </description>
+  <author email="fxm@ipa.fhg.de">Felix Messmer</author>
+  <maintainer email="fxm@ipa.fhg.de">Felix Messmer</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://ros.org/wiki/cob_manipulation/</url>
+  <url type="bugtracker">https://github.com/ipa320/cob_manipulation/issues</url>
+  <url type="repository">https://github.com/ipa320/cob_manipulation</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend>
+
+  <depend>actionlib_msgs</depend>
+  <depend>actionlib</depend>
+  <depend>control_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>moveit_msgs</depend>
+  <depend>roscpp</depend>
+  <depend>tf</depend>
+  <depend>trajectory_msgs</depend>
+
+  <exec_depend>rospy</exec_depend>
+
+</package>
