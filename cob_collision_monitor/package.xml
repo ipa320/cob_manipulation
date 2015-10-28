@@ -4,29 +4,13 @@
   <version>0.0.0</version>
   <description>The collision monitor uses the planning scene monitor to read the state of the robot and check it for collision with itselt or the environment. It addition a ground plane is added in any case. Can be used as a stand-aloan node or a move_group capability.</description>
 
-  <!-- One maintainer tag required, multiple allowed, one person per tag --> 
-  <!-- Example:  -->
-  <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
   <maintainer email="mathias.luedtke@ipa.fraunhofer.de">Mathias Lüdtke</maintainer>
 
-
-  <!-- One license tag required, multiple allowed, one license per tag -->
-  <!-- Commonly used license strings: -->
-  <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
   <license>LGPLv3</license>
 
+  <url type="website">http://wiki.ros.org/cob_collision_monitor</url>
 
-  <!-- Url tags are optional, but mutiple are allowed, one per tag -->
-  <!-- Optional attribute type can be: website, bugtracker, or repository -->
-  <!-- Example: -->
-  <!-- <url type="website">http://wiki.ros.org/cob_collision_monitor</url> -->
-
-
-  <!-- Author tags are optional, mutiple are allowed, one per tag -->
-  <!-- Authors do not have to be maintianers, but could be -->
-  <!-- Example: -->
-  <!-- <author email="jane.doe@example.com">Jane Doe</author> -->
-
+  <author email="mathias.luedtke@ipa.fraunhofer.de">Mathias Lüdtke</author>
 
   <buildtool_depend>catkin</buildtool_depend>
   <depend>moveit_ros_move_group</depend>
@@ -35,7 +19,6 @@
   <depend>std_msgs</depend>
   <depend>tf</depend>
 
-  <!-- The export tag contains other, unspecified, tags -->
   <export>
     <moveit_ros_move_group plugin="${prefix}/move_group_capabilities.xml"/>
   </export>
