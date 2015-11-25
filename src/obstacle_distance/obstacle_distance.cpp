@@ -44,32 +44,85 @@ void ObstacleDistance::updatedScene(planning_scene_monitor::PlanningSceneMonitor
     collision_robot.getCollisionObject(robot_state, robot_obj);
     collision_world.getCollisionObject(world_obj);
 
-    atf_msgs::ObstacleDistance ob;
+    robot_links_list.clear();
+    collision_objects_list.clear();
+    kinematic_list.empty();
 
     for (int i = 0; i < robot_obj.size(); i++) {
         const collision_detection::CollisionGeometryData *robot_link =
                 static_cast<const collision_detection::CollisionGeometryData *>(robot_obj[i]->collisionGeometry()->getUserData());
-
-        atf_msgs::ObstacleDistanceLink ob_link;
-        ob_link.name = robot_link->getID();
-
-        for (int j = 0; j < world_obj.size(); j++) {
-            const collision_detection::CollisionGeometryData *collision_object =
-                    static_cast<const collision_detection::CollisionGeometryData *>(world_obj[j]->collisionGeometry()->getUserData());
-            fcl::DistanceResult res;
-            res.update(MAXIMAL_MINIMAL_DISTANCE, NULL, NULL, fcl::DistanceResult::NONE, fcl::DistanceResult::NONE);
-
-            double dist = fcl::distance(robot_obj[i].get(), world_obj[j].get(), fcl::DistanceRequest(), res);
-            if (dist < 0) {
-                dist = 0;
-            }
-
-            ob_link.objects.push_back(collision_object->getID());
-            ob_link.distances.push_back(dist);
-        }
-        ob.links.push_back(ob_link);
+        robot_links_list[robot_link->getID()] = robot_obj[i];
+        kinematic_list.push_back(robot_link->getID());
     }
-    obstacle_distance_publisher_.publish(ob);
+    for (int i = 0; i < world_obj.size(); i++) {
+        const collision_detection::CollisionGeometryData *collision_object =
+                static_cast<const collision_detection::CollisionGeometryData *>(world_obj[i]->collisionGeometry()->getUserData());
+        collision_objects_list[collision_object->getID()] = world_obj[i];
+    }
+}
+
+bool ObstacleDistance::calculateDistance(obstacle_distance::GetObstacleDistance::Request &req,
+                                         obstacle_distance::GetObstacleDistance::Response &resp) {
+    std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > robot_links_list = this->robot_links_list;
+    std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > collision_objects_list = this->collision_objects_list;
+    std::vector<std::string> kinematic_list = this->kinematic_list;
+    if (req.chain) {
+        bool start = false;
+        for (int i = 0; i < kinematic_list.size(); i++) {
+            if (!start && kinematic_list[i] == req.links[0]) start = true;
+            if (start) {
+                if (req.objects.size() == 0) {
+                    std::map<std::string, boost::shared_ptr<fcl::CollisionObject> >::iterator it;
+                    for (it = collision_objects_list.begin(); it != collision_objects_list.end(); ++it) {
+                        resp.link_to_object.push_back(kinematic_list[i] + "_to_" + it->first);
+                        resp.distances.push_back(ObstacleDistance::getMinimalDistance(kinematic_list[i], it->first, robot_links_list, collision_objects_list));
+                    }
+                } else {
+                    for (int y = 0; y < req.objects.size(); y++) {
+                        resp.link_to_object.push_back(kinematic_list[i] + " to " + req.objects[y]);
+                        resp.distances.push_back(ObstacleDistance::getMinimalDistance(kinematic_list[i], req.objects[y], robot_links_list, collision_objects_list));
+                    }
+                }
+                if (kinematic_list[i] == req.links[1]) break;
+            }
+        }
+    } else {
+        for (int x = 0; x < req.links.size(); x++) {
+            if (req.objects.size() == 0) {
+                ROS_INFO("ALL OBJECTS!");
+                std::map<std::string, boost::shared_ptr<fcl::CollisionObject> >::iterator it;
+                for (it = collision_objects_list.begin(); it != collision_objects_list.end(); ++it) {
+                    resp.link_to_object.push_back(req.links[x] + "_to_" + it->first);
+                    resp.distances.push_back(ObstacleDistance::getMinimalDistance(req.links[x], it->first, robot_links_list, collision_objects_list));
+                }
+            } else {
+                ROS_INFO("SELECTED OBJECTS");
+                for (int y = 0; y < req.objects.size(); y++) {
+                    resp.link_to_object.push_back(req.links[x] + " to " + req.objects[y]);
+                    resp.distances.push_back(ObstacleDistance::getMinimalDistance(req.links[x], req.objects[y], robot_links_list, collision_objects_list));
+                }
+            }
+        }
+    }
+    return true;
+}
+
+double ObstacleDistance::getMinimalDistance(std::string robot_link_name,
+                                            std::string collision_object_name,
+                                            std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > robot_links,
+                                            std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > collision_objects) {
+    ROS_INFO("CALCULATE DISTANCE");
+    fcl::DistanceResult res;
+    res.update(MAXIMAL_MINIMAL_DISTANCE, NULL, NULL, fcl::DistanceResult::NONE, fcl::DistanceResult::NONE);
+
+    double dist = fcl::distance(robot_links[robot_link_name].get(),
+                                collision_objects[collision_object_name].get(),
+                                fcl::DistanceRequest(),
+                                res);
+    if (dist < 0) {
+        dist = 0;
+    }
+    return dist;
 }
 
 ObstacleDistance::ObstacleDistance()
@@ -94,6 +147,7 @@ ObstacleDistance::ObstacleDistance()
     }
 
     obstacle_distance_publisher_ = advertise<atf_msgs::ObstacleDistance>(distance_topic[0], 1);
+    calculate_obstacle_distance_ = advertiseService("atf/get_obstacle_distance", &ObstacleDistance::calculateDistance, this);
 
     if (!error) {
         planning_scene_monitor_->setStateUpdateFrequency(update_frequency);

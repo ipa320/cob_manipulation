@@ -12,6 +12,7 @@
 #include <sensor_msgs/JointState.h>
 #include <atf_msgs/ObstacleDistance.h>
 #include <atf_msgs/ObstacleDistanceLink.h>
+#include <obstacle_distance/GetObstacleDistance.h>
 
 class ObstacleDistance : public ros::NodeHandle {
 public:
@@ -21,8 +22,19 @@ private:
     planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
     float MAXIMAL_MINIMAL_DISTANCE;
     ros::Publisher obstacle_distance_publisher_;
+    ros::ServiceServer calculate_obstacle_distance_;
+    std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > robot_links_list;
+    std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > collision_objects_list;
+    std::vector<std::string> kinematic_list;
 
     void updatedScene(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType type);
+    bool calculateDistance(obstacle_distance::GetObstacleDistance::Request &req,
+                           obstacle_distance::GetObstacleDistance::Response &res);
+
+    double getMinimalDistance(std::string robot_link_name,
+                              std::string collision_object_name,
+                              std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > robot_links,
+                              std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > collision_objects);
 
 };
 

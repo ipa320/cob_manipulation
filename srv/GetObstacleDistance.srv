@@ -1,0 +1,6 @@
+string[] links
+string[] objects
+bool chain
+---
+string[] link_to_object
+float64[] distances
