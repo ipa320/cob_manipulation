@@ -21,7 +21,6 @@ public:
 private:
     planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
     float MAXIMAL_MINIMAL_DISTANCE;
-    ros::Publisher obstacle_distance_publisher_;
     ros::ServiceServer calculate_obstacle_distance_;
     std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > robot_links_list;
     std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > collision_objects_list;

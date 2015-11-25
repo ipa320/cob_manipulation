@@ -89,14 +89,12 @@ bool ObstacleDistance::calculateDistance(obstacle_distance::GetObstacleDistance:
     } else {
         for (int x = 0; x < req.links.size(); x++) {
             if (req.objects.size() == 0) {
-                ROS_INFO("ALL OBJECTS!");
                 std::map<std::string, boost::shared_ptr<fcl::CollisionObject> >::iterator it;
                 for (it = collision_objects_list.begin(); it != collision_objects_list.end(); ++it) {
                     resp.link_to_object.push_back(req.links[x] + "_to_" + it->first);
                     resp.distances.push_back(ObstacleDistance::getMinimalDistance(req.links[x], it->first, robot_links_list, collision_objects_list));
                 }
             } else {
-                ROS_INFO("SELECTED OBJECTS");
                 for (int y = 0; y < req.objects.size(); y++) {
                     resp.link_to_object.push_back(req.links[x] + " to " + req.objects[y]);
                     resp.distances.push_back(ObstacleDistance::getMinimalDistance(req.links[x], req.objects[y], robot_links_list, collision_objects_list));
@@ -111,7 +109,6 @@ double ObstacleDistance::getMinimalDistance(std::string robot_link_name,
                                             std::string collision_object_name,
                                             std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > robot_links,
                                             std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > collision_objects) {
-    ROS_INFO("CALCULATE DISTANCE");
     fcl::DistanceResult res;
     res.update(MAXIMAL_MINIMAL_DISTANCE, NULL, NULL, fcl::DistanceResult::NONE, fcl::DistanceResult::NONE);
 
@@ -132,10 +129,10 @@ ObstacleDistance::ObstacleDistance()
     bool error = false;
 
     std::string robot_description;
-    std::vector<std::string> distance_topic;
+    std::vector<std::string> distance_service;
     getParam(ros::this_node::getName() + "/obstacle_distance/robot_description", robot_description);
-    getParam(ros::this_node::getName() + "/obstacle_distance/topics", distance_topic);
-    if (robot_description == "" || distance_topic[0] == "") error = true;
+    getParam(ros::this_node::getName() + "/obstacle_distance/services", distance_service);
+    if (robot_description == "" || distance_service[0] == "") error = true;
 
     //Initialize planning scene monitor
     boost::shared_ptr<tf::TransformListener> tf_listener_(new tf::TransformListener(ros::Duration(2.0)));
@@ -146,8 +143,7 @@ ObstacleDistance::ObstacleDistance()
         error = true;
     }
 
-    obstacle_distance_publisher_ = advertise<atf_msgs::ObstacleDistance>(distance_topic[0], 1);
-    calculate_obstacle_distance_ = advertiseService("atf/get_obstacle_distance", &ObstacleDistance::calculateDistance, this);
+    calculate_obstacle_distance_ = advertiseService(distance_service[0], &ObstacleDistance::calculateDistance, this);
 
     if (!error) {
         planning_scene_monitor_->setStateUpdateFrequency(update_frequency);
