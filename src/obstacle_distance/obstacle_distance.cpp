@@ -150,10 +150,10 @@ ObstacleDistance::ObstacleDistance()
         planning_scene_monitor_->startSceneMonitor();
         planning_scene_monitor_->startWorldGeometryMonitor();
         planning_scene_monitor_->startStateMonitor();
-
         planning_scene_monitor_->addUpdateCallback(boost::bind(&ObstacleDistance::updatedScene, this, _1));
-        ROS_INFO("Obstacle distance node started!");
-    }
+
+        ROS_INFO("obstacle_distance_node: Node started!");
+    } else ROS_ERROR("obstacle_distance_node: Node failed!");
 }
 
 int main(int argc, char **argv) {
