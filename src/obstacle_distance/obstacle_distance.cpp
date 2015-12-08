@@ -67,11 +67,13 @@ bool ObstacleDistance::calculateDistance(obstacle_distance::GetObstacleDistance:
     std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > collision_objects_list = this->collision_objects_list;
     std::vector<std::string> kinematic_list = this->kinematic_list;
     if (req.links.size() == 2) {
+        // Link chain to objects
         bool start = false;
         for (int i = 0; i < kinematic_list.size(); i++) {
             if (!start && kinematic_list[i] == req.links[0]) start = true;
             if (start) {
-                if (req.objects.size() == 0) {
+                if (req.objects[0] == "all") {
+                    // All objects
                     std::map<std::string, boost::shared_ptr<fcl::CollisionObject> >::iterator it;
                     for (it = collision_objects_list.begin(); it != collision_objects_list.end(); ++it) {
                         resp.link_to_object.push_back(kinematic_list[i] + "_to_" + it->first);
@@ -80,6 +82,7 @@ bool ObstacleDistance::calculateDistance(obstacle_distance::GetObstacleDistance:
                                                                      collision_objects_list));
                     }
                 } else {
+                    // Specific objects
                     for (int y = 0; y < req.objects.size(); y++) {
                         resp.link_to_object.push_back(kinematic_list[i] + " to " + req.objects[y]);
                         resp.distances.push_back(ObstacleDistance::getMinimalDistance(kinematic_list[i], req.objects[y],
@@ -91,7 +94,9 @@ bool ObstacleDistance::calculateDistance(obstacle_distance::GetObstacleDistance:
             }
         }
     } else {
-        if (req.objects.size() == 0) {
+        // Single link to objects
+        if (req.objects[0] == "all") {
+            // All objects
             std::map<std::string, boost::shared_ptr<fcl::CollisionObject> >::iterator it;
             for (it = collision_objects_list.begin(); it != collision_objects_list.end(); ++it) {
                 resp.link_to_object.push_back(req.links[0] + "_to_" + it->first);
@@ -99,6 +104,7 @@ bool ObstacleDistance::calculateDistance(obstacle_distance::GetObstacleDistance:
                                                                               collision_objects_list));
             }
         } else {
+            // Specific objects
             for (int y = 0; y < req.objects.size(); y++) {
                 resp.link_to_object.push_back(req.links[0] + " to " + req.objects[y]);
                 resp.distances.push_back(

@@ -4,14 +4,10 @@
 #include <ros/ros.h>
 
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-#include <moveit_msgs/GetPlanningScene.h>
 #include <moveit/collision_detection_fcl/collision_world_fcl.h>
 
 #include <boost/thread.hpp>
 
-#include <sensor_msgs/JointState.h>
-#include <atf_msgs/ObstacleDistance.h>
-#include <atf_msgs/ObstacleDistanceLink.h>
 #include <obstacle_distance/GetObstacleDistance.h>
 
 class ObstacleDistance : public ros::NodeHandle {
@@ -27,6 +23,7 @@ private:
     std::vector<std::string> kinematic_list;
 
     void updatedScene(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType type);
+
     bool calculateDistance(obstacle_distance::GetObstacleDistance::Request &req,
                            obstacle_distance::GetObstacleDistance::Response &res);
 
