@@ -72,7 +72,7 @@ bool ObstacleDistance::calculateDistance(obstacle_distance::GetObstacleDistance:
         for (int i = 0; i < kinematic_list.size(); i++) {
             if (!start && kinematic_list[i] == req.links[0]) start = true;
             if (start) {
-                if (req.objects[0] == "all") {
+                if (req.objects.size() == 0) {
                     // All objects
                     std::map<std::string, boost::shared_ptr<fcl::CollisionObject> >::iterator it;
                     for (it = collision_objects_list.begin(); it != collision_objects_list.end(); ++it) {
@@ -95,7 +95,7 @@ bool ObstacleDistance::calculateDistance(obstacle_distance::GetObstacleDistance:
         }
     } else {
         // Single link to objects
-        if (req.objects[0] == "all") {
+        if (req.objects.size() == 0) {
             // All objects
             std::map<std::string, boost::shared_ptr<fcl::CollisionObject> >::iterator it;
             for (it = collision_objects_list.begin(); it != collision_objects_list.end(); ++it) {
