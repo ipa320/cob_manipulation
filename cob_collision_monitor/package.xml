@@ -18,6 +18,8 @@
   <depend>pluginlib</depend>
   <depend>std_msgs</depend>
   <depend>tf</depend>
+  
+  <exec_depend>cob_moveit_config</exec_depend>
 
   <export>
     <moveit_ros_move_group plugin="${prefix}/move_group_capabilities.xml"/>
