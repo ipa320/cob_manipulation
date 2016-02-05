@@ -22,19 +22,20 @@ public:
       data_(),
       verbose_(nh.param("verbose", true))
     {
-        if(nh.param("add_ground",true)){
+        double ground_size = nh.param("ground_size", 10.0);
+         
+        if(ground_size != 0.0){
 
             moveit_msgs::CollisionObject co;
             co.header.frame_id = nh.param("ground_link",std::string("base_link"));
             co.id ="_ground_plane_";
 
-            double box_size;
-            if(nh.getParam("ground_box_size", box_size)){
+            if(ground_size > 0){
                 co.primitives.resize(1);
                 co.primitives.front().type = shape_msgs::SolidPrimitive::BOX;
                 co.primitives.front().dimensions.resize(3);
-                co.primitives.front().dimensions[0] = box_size;
-                co.primitives.front().dimensions[1] = box_size;
+                co.primitives.front().dimensions[0] = ground_size;
+                co.primitives.front().dimensions[1] = ground_size;
                 co.primitives.front().dimensions[2] = 0.01;
                 co.primitive_poses.resize(1);
                 co.primitive_poses.front().position.z = -0.005 + nh.param("ground_height",-0.001);
