@@ -9,12 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   tf
 )
-catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES cob_collision_monitor
-#  CATKIN_DEPENDS moveit_ros_move_group moveit_ros_planning pluginlib std_msgs
-#  DEPENDS system_lib
-)
+catkin_package()
 
 include_directories(
   ${catkin_INCLUDE_DIRS}
