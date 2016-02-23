@@ -3,7 +3,6 @@ project(obstacle_distance)
 
 find_package(catkin REQUIRED
     COMPONENTS
-        atf_msgs
         message_generation
         moveit_core
         moveit_ros_planning
@@ -28,11 +27,7 @@ add_service_files(
         GetObstacleDistance.srv
 )
 
-generate_messages(
-    DEPENDENCIES
-        std_msgs
-        atf_msgs
-)
+generate_messages()
 
 ###################################
 ## catkin specific configuration ##
@@ -48,7 +43,6 @@ catkin_package(
         moveit_core
         moveit_ros_planning_interface
         roscpp
-        atf_msgs
     DEPENDS
         Boost
         fcl

@@ -137,22 +137,21 @@ ObstacleDistance::ObstacleDistance()
     double update_frequency = 100.0; //Hz
     bool error = false;
 
-    std::string robot_description;
-    std::vector<std::string> distance_service;
-    getParam(ros::this_node::getName() + "/obstacle_distance/robot_description", robot_description);
-    getParam(ros::this_node::getName() + "/obstacle_distance/services", distance_service);
-    if (robot_description == "" || distance_service[0] == "") error = true;
+    std::string robot_description = "/robot_description";
+    std::string distance_service = "/calculate_distance";
+    // getParam(ros::this_node::getName() + "/obstacle_distance/robot_description", robot_description);
+    // getParam(ros::this_node::getName() + "/obstacle_distance/services", distance_service);
+    // if (robot_description == "" || distance_service[0] == "") error = true;
 
     //Initialize planning scene monitor
     boost::shared_ptr<tf::TransformListener> tf_listener_(new tf::TransformListener(ros::Duration(2.0)));
     try {
-        planning_scene_monitor_ = boost::make_shared<planning_scene_monitor::PlanningSceneMonitor>(robot_description,
-                                                                                                   tf_listener_);
+        planning_scene_monitor_ = boost::make_shared<planning_scene_monitor::PlanningSceneMonitor>(robot_description, tf_listener_);
     } catch (ros::InvalidNameException) {
         error = true;
     }
 
-    calculate_obstacle_distance_ = advertiseService(distance_service[0], &ObstacleDistance::calculateDistance, this);
+    calculate_obstacle_distance_ = advertiseService(distance_service, &ObstacleDistance::calculateDistance, this);
 
     if (!error) {
         planning_scene_monitor_->setStateUpdateFrequency(update_frequency);

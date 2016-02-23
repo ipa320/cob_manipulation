@@ -19,7 +19,6 @@
     <build_depend>message_generation</build_depend>
     <exec_depend>message_runtime</exec_depend>
 
-    <depend>atf_msgs</depend>
     <depend>boost</depend>
     <depend>roscpp</depend>
     <depend>moveit_core</depend>
@@ -27,4 +26,7 @@
     <depend>tf</depend>
     <depend>fcl</depend>
     <depend>pkg-config</depend>
+
+    <exec_depend>rospy</exec_depend>
+
 </package>
