@@ -3,6 +3,7 @@ project(obstacle_distance)
 
 find_package(catkin REQUIRED
     COMPONENTS
+        cob_srvs
         message_generation
         moveit_core
         moveit_ros_planning
@@ -26,8 +27,17 @@ add_service_files(
     FILES
         GetObstacleDistance.srv
 )
+ 
+add_message_files(
+  FILES
+  DistanceInfo.msg
+  DistanceInfos.msg
+)
 
-generate_messages()
+generate_messages(
+  DEPENDENCIES
+  geometry_msgs
+)
 
 ###################################
 ## catkin specific configuration ##
@@ -67,5 +77,5 @@ link_directories(
 )
 
 add_executable(obstacle_distance_node src/${PROJECT_NAME}/obstacle_distance.cpp include/${PROJECT_NAME}/obstacle_distance.h)
-add_dependencies(obstacle_distance_node ${catkin_EXPORTED_TARGETS})
+add_dependencies(obstacle_distance_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(obstacle_distance_node ${catkin_LIBRARIES} ${LIBFCL_LIBRARIES})

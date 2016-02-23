@@ -61,8 +61,42 @@ void ObstacleDistance::updatedScene(planning_scene_monitor::PlanningSceneMonitor
     }
 }
 
-bool ObstacleDistance::calculateDistance(obstacle_distance::GetObstacleDistance::Request &req,
-                                         obstacle_distance::GetObstacleDistance::Response &resp) {
+bool ObstacleDistance::registerLinkCallback(cob_srvs::SetString::Request &req,
+                                            cob_srvs::SetString::Response &res) {
+
+    boost::mutex::scoped_lock lock(registered_links_mutex_);
+    registered_links_.insert(req.data);
+}
+
+void ObstacleDistance::calculateDistances(const ros::TimerEvent& event) {
+
+    std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > robot_links_list = this->robot_links_list;
+    std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > collision_objects_list = this->collision_objects_list;
+
+    boost::mutex::scoped_lock lock(registered_links_mutex_);
+    obstacle_distance::DistanceInfos distance_infos;
+    
+    std::set<std::string>::iterator link_it;
+    for (link_it = registered_links_.begin(); link_it!=registered_links_.end(); ++link_it)
+    {
+        std::map<std::string, boost::shared_ptr<fcl::CollisionObject> >::iterator obj_it;
+        for (obj_it = collision_objects_list.begin(); obj_it != collision_objects_list.end(); ++obj_it) {
+            obstacle_distance::DistanceInfo info;
+            info.header.stamp = event.current_real;
+            info.link_of_interest = *link_it;
+            info.obstacle_id = obj_it->first;
+            info.distance = getMinimalDistance(*link_it, obj_it->first, robot_links_list, collision_objects_list);
+            distance_infos.infos.push_back(info);
+        }
+    }
+
+    distance_pub_.publish(distance_infos);
+}
+
+
+
+bool ObstacleDistance::calculateDistanceCallback(obstacle_distance::GetObstacleDistance::Request &req,
+                                                 obstacle_distance::GetObstacleDistance::Response &resp) {
     std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > robot_links_list = this->robot_links_list;
     std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > collision_objects_list = this->collision_objects_list;
     std::vector<std::string> kinematic_list = this->kinematic_list;
@@ -139,9 +173,8 @@ ObstacleDistance::ObstacleDistance()
 
     std::string robot_description = "/robot_description";
     std::string distance_service = "/calculate_distance";
-    // getParam(ros::this_node::getName() + "/obstacle_distance/robot_description", robot_description);
-    // getParam(ros::this_node::getName() + "/obstacle_distance/services", distance_service);
-    // if (robot_description == "" || distance_service[0] == "") error = true;
+    std::string registration_service = "/register_links";
+    std::string distance_topic = "/obstacle_distances";
 
     //Initialize planning scene monitor
     boost::shared_ptr<tf::TransformListener> tf_listener_(new tf::TransformListener(ros::Duration(2.0)));
@@ -151,7 +184,10 @@ ObstacleDistance::ObstacleDistance()
         error = true;
     }
 
-    calculate_obstacle_distance_ = advertiseService(distance_service, &ObstacleDistance::calculateDistance, this);
+    calculate_obstacle_distance_ = advertiseService(distance_service, &ObstacleDistance::calculateDistanceCallback, this);
+    register_links_ = advertiseService(registration_service, &ObstacleDistance::registerLinkCallback, this);
+    distance_timer_ = createTimer(ros::Duration(0.1), &ObstacleDistance::calculateDistances, this);
+    distance_pub_ = advertise<obstacle_distance::DistanceInfos>(distance_topic, 1);
 
     if (!error) {
         planning_scene_monitor_->setStateUpdateFrequency(update_frequency);
@@ -163,6 +199,9 @@ ObstacleDistance::ObstacleDistance()
         ROS_INFO("%s: Node started!", ros::this_node::getName().c_str());
     } else
         ROS_ERROR("%s: Node failed!", ros::this_node::getName().c_str());
+
+    registered_links_.clear();
+    distance_infos_ = obstacle_distance::DistanceInfos();
 }
 
 int main(int argc, char **argv) {

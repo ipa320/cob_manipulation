@@ -20,6 +20,7 @@
     <exec_depend>message_runtime</exec_depend>
 
     <depend>boost</depend>
+    <depend>cob_srvs</depend>
     <depend>roscpp</depend>
     <depend>moveit_core</depend>
     <depend>moveit_ros_planning_interface</depend>
