@@ -65,7 +65,11 @@ bool ObstacleDistance::registerLinkCallback(cob_srvs::SetString::Request &req,
                                             cob_srvs::SetString::Response &res) {
 
     boost::mutex::scoped_lock lock(registered_links_mutex_);
-    registered_links_.insert(req.data);
+    std::pair<std::set<std::string>::iterator, bool> ret = registered_links_.insert(req.data);
+
+    res.success = true;
+    res.message = (ret.second) ? (req.data + " successfully registered") : (req.data + " already registered");
+    return true;
 }
 
 void ObstacleDistance::calculateDistances(const ros::TimerEvent& event) {
