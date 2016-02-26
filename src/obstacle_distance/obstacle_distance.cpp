@@ -61,14 +61,36 @@ void ObstacleDistance::updatedScene(planning_scene_monitor::PlanningSceneMonitor
     }
 }
 
-bool ObstacleDistance::registerLinkCallback(cob_srvs::SetString::Request &req,
-                                            cob_srvs::SetString::Response &res) {
+bool ObstacleDistance::registerCallback(cob_srvs::SetString::Request &req,
+                                        cob_srvs::SetString::Response &res) {
 
     boost::mutex::scoped_lock lock(registered_links_mutex_);
     std::pair<std::set<std::string>::iterator, bool> ret = registered_links_.insert(req.data);
 
     res.success = true;
     res.message = (ret.second) ? (req.data + " successfully registered") : (req.data + " already registered");
+    return true;
+}
+
+bool ObstacleDistance::unregisterCallback(cob_srvs::SetString::Request &req,
+                                          cob_srvs::SetString::Response &res) {
+
+    boost::mutex::scoped_lock lock(registered_links_mutex_);
+    std::set<std::string>::iterator it = registered_links_.find(req.data);
+    
+    if (it != registered_links_.end())
+    {
+        registered_links_.erase(it);
+
+        res.success = true;
+        res.message = req.data + " successfully unregistered";
+    }
+    else
+    {
+        res.success = true;
+        res.message = req.data + " has not been registered before";
+    }
+
     return true;
 }
 
@@ -176,7 +198,8 @@ ObstacleDistance::ObstacleDistance() {
 
     std::string robot_description = "/robot_description";
     std::string distance_service = "/calculate_distance";
-    std::string registration_service = "/register_links";
+    std::string register_service = "/register_links";
+    std::string unregister_service = "/unregister_links";
     std::string distance_topic = "/obstacle_distances";
 
     //Initialize planning scene monitor
@@ -188,7 +211,8 @@ ObstacleDistance::ObstacleDistance() {
     }
 
     calculate_obstacle_distance_ = nh_.advertiseService(distance_service, &ObstacleDistance::calculateDistanceCallback, this);
-    register_links_ = nh_.advertiseService(registration_service, &ObstacleDistance::registerLinkCallback, this);
+    register_server_ = nh_.advertiseService(register_service, &ObstacleDistance::registerCallback, this);
+    unregister_server_ = nh_.advertiseService(unregister_service, &ObstacleDistance::unregisterCallback, this);
     distance_timer_ = nh_.createTimer(ros::Duration(0.1), &ObstacleDistance::calculateDistances, this);
     distance_pub_ = nh_.advertise<obstacle_distance::DistanceInfos>(distance_topic, 1);
 

@@ -24,7 +24,7 @@ private:
     float MAXIMAL_MINIMAL_DISTANCE;
     ros::ServiceServer calculate_obstacle_distance_;
 
-    ros::ServiceServer register_links_;
+    ros::ServiceServer register_server_, unregister_server_;
     obstacle_distance::DistanceInfos distance_infos_;
     std::set< std::string > registered_links_;
     boost::mutex registered_links_mutex_;
@@ -41,8 +41,8 @@ private:
     bool calculateDistanceCallback(obstacle_distance::GetObstacleDistance::Request &req,
                                    obstacle_distance::GetObstacleDistance::Response &res);
 
-    bool registerLinkCallback(cob_srvs::SetString::Request &req,
-                              cob_srvs::SetString::Response &res);
+    bool registerCallback(cob_srvs::SetString::Request &req, cob_srvs::SetString::Response &res);
+    bool unregisterCallback(cob_srvs::SetString::Request &req, cob_srvs::SetString::Response &res);
 
     void calculateDistances(const ros::TimerEvent& event);
 
