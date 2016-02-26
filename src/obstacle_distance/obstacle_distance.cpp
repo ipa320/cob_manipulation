@@ -35,14 +35,14 @@ void ObstacleDistance::updatedScene(planning_scene_monitor::PlanningSceneMonitor
     planning_scene_monitor::LockedPlanningSceneRO ps(planning_scene_monitor_);
     planning_scene::PlanningScenePtr planning_scene_ptr = ps->diff();
 
-    CreateCollisionWorld collision_world(planning_scene_ptr->getWorldNonConst());
+    std::vector<boost::shared_ptr<fcl::CollisionObject> > robot_obj, world_obj;
     robot_state::RobotState robot_state(planning_scene_ptr->getCurrentState());
 
-    CreateCollisionRobot collision_robot(robot_state.getRobotModel());
-    std::vector<boost::shared_ptr<fcl::CollisionObject> > robot_obj, world_obj;
-
-    collision_robot.getCollisionObject(robot_state, robot_obj);
+    CreateCollisionWorld collision_world(planning_scene_ptr->getWorldNonConst());
     collision_world.getCollisionObject(world_obj);
+
+    CreateCollisionRobot collision_robot(robot_state.getRobotModel());
+    collision_robot.getCollisionObject(robot_state, robot_obj);
 
     robot_links_list.clear();
     collision_objects_list.clear();
@@ -108,10 +108,9 @@ void ObstacleDistance::calculateDistances(const ros::TimerEvent& event) {
         std::map<std::string, boost::shared_ptr<fcl::CollisionObject> >::iterator obj_it;
         for (obj_it = collision_objects_list.begin(); obj_it != collision_objects_list.end(); ++obj_it) {
             obstacle_distance::DistanceInfo info;
+            info = getDistanceInfo(*link_it, obj_it->first, robot_links_list, collision_objects_list);
             info.header.stamp = event.current_real;
-            info.link_of_interest = *link_it;
-            info.obstacle_id = obj_it->first;
-            info.distance = getMinimalDistance(*link_it, obj_it->first, robot_links_list, collision_objects_list);
+
             distance_infos.infos.push_back(info);
         }
     }
@@ -139,15 +138,15 @@ bool ObstacleDistance::calculateDistanceCallback(obstacle_distance::GetObstacleD
                     std::map<std::string, boost::shared_ptr<fcl::CollisionObject> >::iterator it;
                     for (it = collision_objects_list.begin(); it != collision_objects_list.end(); ++it) {
                         resp.link_to_object.push_back(kinematic_list[i] + "_to_" + it->first);
-                        resp.distances.push_back(ObstacleDistance::getMinimalDistance(kinematic_list[i], it->first,
-                                                                                      robot_links_list, collision_objects_list));
+                        resp.distances.push_back(ObstacleDistance::getDistanceInfo(kinematic_list[i], it->first,
+                                                                                   robot_links_list, collision_objects_list).distance);
                     }
                 } else {
                     // Specific objects
                     for (int y = 0; y < req.objects.size(); y++) {
                         resp.link_to_object.push_back(kinematic_list[i] + " to " + req.objects[y]);
-                        resp.distances.push_back(ObstacleDistance::getMinimalDistance(kinematic_list[i], req.objects[y],
-                                                                                      robot_links_list, collision_objects_list));
+                        resp.distances.push_back(ObstacleDistance::getDistanceInfo(kinematic_list[i], req.objects[y],
+                                                                                   robot_links_list, collision_objects_list).distance);
                     }
                 }
                 if (kinematic_list[i] == req.chains[c].chain_tip) break;
@@ -162,25 +161,25 @@ bool ObstacleDistance::calculateDistanceCallback(obstacle_distance::GetObstacleD
             std::map<std::string, boost::shared_ptr<fcl::CollisionObject> >::iterator it;
             for (it = collision_objects_list.begin(); it != collision_objects_list.end(); ++it) {
                 resp.link_to_object.push_back(req.links[i] + "_to_" + it->first);
-                resp.distances.push_back(ObstacleDistance::getMinimalDistance(req.links[i], it->first,
-                                                                              robot_links_list, collision_objects_list));
+                resp.distances.push_back(ObstacleDistance::getDistanceInfo(req.links[i], it->first,
+                                                                           robot_links_list, collision_objects_list).distance);
             }
         } else {
             // Specific objects
             for (int y = 0; y < req.objects.size(); y++) {
                 resp.link_to_object.push_back(req.links[i] + " to " + req.objects[y]);
-                resp.distances.push_back(ObstacleDistance::getMinimalDistance(req.links[i], req.objects[y],
-                                                                              robot_links_list, collision_objects_list));
+                resp.distances.push_back(ObstacleDistance::getDistanceInfo(req.links[i], req.objects[y],
+                                                                           robot_links_list, collision_objects_list).distance);
             }
         }
     }
     return true;
 }
 
-double ObstacleDistance::getMinimalDistance(std::string robot_link_name,
-                                            std::string collision_object_name,
-                                            std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > robot_links,
-                                            std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > collision_objects) {
+obstacle_distance::DistanceInfo ObstacleDistance::getDistanceInfo(std::string robot_link_name,
+                                                                  std::string collision_object_name,
+                                                                  std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > robot_links,
+                                                                  std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > collision_objects) {
     fcl::DistanceResult res;
     res.update(MAXIMAL_MINIMAL_DISTANCE, NULL, NULL, fcl::DistanceResult::NONE, fcl::DistanceResult::NONE);
 
@@ -189,7 +188,13 @@ double ObstacleDistance::getMinimalDistance(std::string robot_link_name,
                                 fcl::DistanceRequest(),
                                 res);
     if (dist < 0) dist = 0;
-    return dist;
+
+    obstacle_distance::DistanceInfo info;
+    info.link_of_interest = robot_link_name;
+    info.obstacle_id = collision_object_name;
+    info.distance = dist;
+
+    return info;
 }
 
 ObstacleDistance::ObstacleDistance() {

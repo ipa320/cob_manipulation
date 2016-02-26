@@ -46,10 +46,10 @@ private:
 
     void calculateDistances(const ros::TimerEvent& event);
 
-    double getMinimalDistance(std::string robot_link_name,
-                              std::string collision_object_name,
-                              std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > robot_links,
-                              std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > collision_objects);
+    obstacle_distance::DistanceInfo getDistanceInfo(std::string robot_link_name,
+                                                    std::string collision_object_name,
+                                                    std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > robot_links,
+                                                    std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > collision_objects);
 
 };
 
