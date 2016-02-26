@@ -18,6 +18,8 @@ public:
     ObstacleDistance();
 
 private:
+    ros::NodeHandle nh_;
+    
     planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
     float MAXIMAL_MINIMAL_DISTANCE;
     ros::ServiceServer calculate_obstacle_distance_;

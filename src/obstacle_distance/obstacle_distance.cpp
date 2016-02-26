@@ -165,8 +165,7 @@ double ObstacleDistance::getMinimalDistance(std::string robot_link_name,
     return dist;
 }
 
-ObstacleDistance::ObstacleDistance()
-        : ros::NodeHandle() {
+ObstacleDistance::ObstacleDistance() {
     MAXIMAL_MINIMAL_DISTANCE = 5.0; //m
     double update_frequency = 100.0; //Hz
     bool error = false;
@@ -184,10 +183,10 @@ ObstacleDistance::ObstacleDistance()
         error = true;
     }
 
-    calculate_obstacle_distance_ = advertiseService(distance_service, &ObstacleDistance::calculateDistanceCallback, this);
-    register_links_ = advertiseService(registration_service, &ObstacleDistance::registerLinkCallback, this);
-    distance_timer_ = createTimer(ros::Duration(0.1), &ObstacleDistance::calculateDistances, this);
-    distance_pub_ = advertise<obstacle_distance::DistanceInfos>(distance_topic, 1);
+    calculate_obstacle_distance_ = nh_.advertiseService(distance_service, &ObstacleDistance::calculateDistanceCallback, this);
+    register_links_ = nh_.advertiseService(registration_service, &ObstacleDistance::registerLinkCallback, this);
+    distance_timer_ = nh_.createTimer(ros::Duration(0.1), &ObstacleDistance::calculateDistances, this);
+    distance_pub_ = nh_.advertise<obstacle_distance::DistanceInfos>(distance_topic, 1);
 
     if (!error) {
         planning_scene_monitor_->setStateUpdateFrequency(update_frequency);
