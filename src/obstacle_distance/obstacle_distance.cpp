@@ -126,50 +126,51 @@ bool ObstacleDistance::calculateDistanceCallback(obstacle_distance::GetObstacleD
     std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > robot_links_list = this->robot_links_list;
     std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > collision_objects_list = this->collision_objects_list;
     std::vector<std::string> kinematic_list = this->kinematic_list;
-    if (req.links.size() == 2) {
+
+    // Chains
+    for (unsigned int c=0; c< req.chains.size(); ++c) {
         // Link chain to objects
         bool start = false;
         for (int i = 0; i < kinematic_list.size(); i++) {
-            if (!start && kinematic_list[i] == req.links[0]) start = true;
+            if (!start && kinematic_list[i] == req.chains[c].chain_base) start = true;
             if (start) {
                 if (req.objects.size() == 0) {
                     // All objects
                     std::map<std::string, boost::shared_ptr<fcl::CollisionObject> >::iterator it;
                     for (it = collision_objects_list.begin(); it != collision_objects_list.end(); ++it) {
                         resp.link_to_object.push_back(kinematic_list[i] + "_to_" + it->first);
-                        resp.distances.push_back(
-                                ObstacleDistance::getMinimalDistance(kinematic_list[i], it->first, robot_links_list,
-                                                                     collision_objects_list));
+                        resp.distances.push_back(ObstacleDistance::getMinimalDistance(kinematic_list[i], it->first,
+                                                                                      robot_links_list, collision_objects_list));
                     }
                 } else {
                     // Specific objects
                     for (int y = 0; y < req.objects.size(); y++) {
                         resp.link_to_object.push_back(kinematic_list[i] + " to " + req.objects[y]);
                         resp.distances.push_back(ObstacleDistance::getMinimalDistance(kinematic_list[i], req.objects[y],
-                                                                                      robot_links_list,
-                                                                                      collision_objects_list));
+                                                                                      robot_links_list, collision_objects_list));
                     }
                 }
-                if (kinematic_list[i] == req.links[1]) break;
+                if (kinematic_list[i] == req.chains[c].chain_tip) break;
             }
         }
-    } else {
-        // Single link to objects
+    }
+    
+    // Links
+    for (unsigned int i=0; i< req.links.size(); ++i) {
         if (req.objects.size() == 0) {
             // All objects
             std::map<std::string, boost::shared_ptr<fcl::CollisionObject> >::iterator it;
             for (it = collision_objects_list.begin(); it != collision_objects_list.end(); ++it) {
-                resp.link_to_object.push_back(req.links[0] + "_to_" + it->first);
-                resp.distances.push_back(ObstacleDistance::getMinimalDistance(req.links[0], it->first, robot_links_list,
-                                                                              collision_objects_list));
+                resp.link_to_object.push_back(req.links[i] + "_to_" + it->first);
+                resp.distances.push_back(ObstacleDistance::getMinimalDistance(req.links[i], it->first,
+                                                                              robot_links_list, collision_objects_list));
             }
         } else {
             // Specific objects
             for (int y = 0; y < req.objects.size(); y++) {
-                resp.link_to_object.push_back(req.links[0] + " to " + req.objects[y]);
-                resp.distances.push_back(
-                        ObstacleDistance::getMinimalDistance(req.links[0], req.objects[y], robot_links_list,
-                                                             collision_objects_list));
+                resp.link_to_object.push_back(req.links[i] + " to " + req.objects[y]);
+                resp.distances.push_back(ObstacleDistance::getMinimalDistance(req.links[i], req.objects[y],
+                                                                              robot_links_list, collision_objects_list));
             }
         }
     }

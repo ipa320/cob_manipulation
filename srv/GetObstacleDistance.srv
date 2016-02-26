@@ -1,4 +1,5 @@
 string[] links
+Chain[] chains
 string[] objects
 ---
 string[] link_to_object
