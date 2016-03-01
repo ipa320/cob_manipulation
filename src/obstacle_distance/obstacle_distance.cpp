@@ -40,6 +40,10 @@ void ObstacleDistance::updatedScene(planning_scene_monitor::PlanningSceneMonitor
     planning_scene_monitor::LockedPlanningSceneRO ps(planning_scene_monitor_);
     planning_scene::PlanningScenePtr planning_scene_ptr = ps->diff();
 
+    moveit_msgs::PlanningScene scene;
+    planning_scene_ptr->getPlanningSceneMsg(scene);
+    monitored_scene_pub_.publish(scene);
+
     std::vector<boost::shared_ptr<fcl::CollisionObject> > robot_obj, world_obj;
     robot_state::RobotState robot_state(planning_scene_ptr->getCurrentState());
 
@@ -66,6 +70,15 @@ void ObstacleDistance::updatedScene(planning_scene_monitor::PlanningSceneMonitor
                 static_cast<const collision_detection::CollisionGeometryData *>(world_obj[i]->collisionGeometry()->getUserData());
         collision_objects_list[collision_object->getID()] = world_obj[i];
     }
+}
+
+bool ObstacleDistance::planningSceneCallback(moveit_msgs::GetPlanningScene::Request &req, moveit_msgs::GetPlanningScene::Response &res)
+{
+    planning_scene_monitor::LockedPlanningSceneRO ps(planning_scene_monitor_);
+    planning_scene::PlanningScenePtr planning_scene_ptr = ps->diff();
+
+    planning_scene_ptr->getPlanningSceneMsg(res.scene, req.components);
+    return true;
 }
 
 bool ObstacleDistance::registerCallback(cob_srvs::SetString::Request &req,
@@ -215,14 +228,25 @@ obstacle_distance::DistanceInfo ObstacleDistance::getDistanceInfo(std::string ro
                                 fcl::DistanceRequest(true, 1.0, 0.01),  // ToDo: Tune parameter
                                 res);
 
+    fcl::CollisionObject rl = *collision_objects[collision_object_name].get();
+    fcl::Transform3f trans_fcl = rl.getTransform();
+    fcl::Vec3f translation = trans_fcl.getTranslation();
+    fcl::Quaternion3f rotation = trans_fcl.getQuatRotation();
+
+    Eigen::Affine3d trans_eigen;
+    tf::Transform trans_tf(tf::Quaternion(rotation.getX(),rotation.getY(),rotation.getZ(),rotation.getW()),tf::Vector3(translation[0],translation[1],translation[2]));
+    tf::transformTFToEigen(trans_tf, trans_eigen);
+
     Eigen::Vector3d jnt_rl_origin_to_np(res.nearest_points[0][0],      // w.r.t robot_link (rl)
                                         res.nearest_points[0][1],
                                         res.nearest_points[0][2]);
 
 
-    Eigen::Vector3d obj_bl_origin_to_np(res.nearest_points[1][0],      // w.r.t base_link (bl)
-                                        res.nearest_points[1][1],
-                                        res.nearest_points[1][2]);
+    Eigen::Vector3d obj_origin_to_np(res.nearest_points[1][0],      // w.r.t base_link (bl)
+                                     res.nearest_points[1][1],
+                                     res.nearest_points[1][2]);
+
+    Eigen::Vector3d obj_pf_to_np = trans_eigen * obj_origin_to_np;
 
     if (dist < 0) dist = 0;
 
@@ -231,10 +255,13 @@ obstacle_distance::DistanceInfo ObstacleDistance::getDistanceInfo(std::string ro
     info.obstacle_id = collision_object_name;
     info.distance = dist;
 
-    info.nearest_point_obstacle_vector.header.frame_id = "base_link";    // ToDo: get from PlanningScene
+    planning_scene_monitor::LockedPlanningSceneRO ps(planning_scene_monitor_);
+    planning_scene::PlanningScenePtr planning_scene_ptr = ps->diff();
+
+    info.nearest_point_obstacle_vector.header.frame_id = planning_scene_ptr->getPlanningFrame();
     info.nearest_point_frame_vector.header.frame_id = robot_link_name;
 
-    tf::vectorEigenToMsg(obj_bl_origin_to_np, info.nearest_point_obstacle_vector.vector);
+    tf::vectorEigenToMsg(obj_pf_to_np, info.nearest_point_obstacle_vector.vector);
     tf::vectorEigenToMsg(jnt_rl_origin_to_np, info.nearest_point_frame_vector.vector);
 
     return info;
@@ -268,6 +295,9 @@ ObstacleDistance::ObstacleDistance()
     unregister_server_ = nh_.advertiseService(unregister_service, &ObstacleDistance::unregisterCallback, this);
     distance_timer_ = nh_.createTimer(ros::Duration(0.1), &ObstacleDistance::calculateDistances, this);
     distance_pub_ = nh_.advertise<obstacle_distance::DistanceInfos>(distance_topic, 1);
+
+    monitored_scene_pub_ = nh_.advertise<moveit_msgs::PlanningScene>("/monitored_planning_scene", 1);
+    monitored_scene_server_ = nh_.advertiseService("/get_planning_scene", &ObstacleDistance::planningSceneCallback, this);
 
     if (!error)
     {
