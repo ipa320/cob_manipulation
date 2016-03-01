@@ -39,7 +39,7 @@ ros::Publisher marker_pub_;
 ros::Subscriber obstacle_distances_sub_;
 
 Eigen::Affine3d transform_;
-
+tf::TransformListener tf_listener_;
 
 public:
 
@@ -49,6 +49,7 @@ public:
         marker_pub_ = this->nh_.advertise<visualization_msgs::MarkerArray>("obstacle_distance/distance_markers", 1, true);
         obstacle_distances_sub_ = this->nh_.subscribe("obstacle_distances", 1, &DebugObstacleDistance::obstacleDistancesCallback, this);
 
+        ros::Duration(1.0).sleep();
         ROS_WARN("Debug initialized.");
         return 0;
     }
@@ -155,15 +156,15 @@ public:
 
     Eigen::Affine3d transform(std::string target, std::string source)
     {
-        tf::TransformListener tf_listener;
+
         Eigen::Affine3d ret;
         try
         {
             tf::StampedTransform transform;
-            ros::Time time = ros::Time(0);
-            if(tf_listener.waitForTransform(target, source, time, ros::Duration(5.0)))
+            ros::Time time = ros::Time::now();
+            if(tf_listener_.waitForTransform(target, source, time, ros::Duration(1.0)))
             {
-                tf_listener.lookupTransform(target, source, time, transform);
+                tf_listener_.lookupTransform(target, source, time, transform);
                 tf::transformTFToEigen(transform, ret);
             }
         }
@@ -173,11 +174,8 @@ public:
         }
 
         return ret;
-        ros::Duration(0.1).sleep();
     }
 };
-
-
 
 int main(int argc, char** argv)
 {
