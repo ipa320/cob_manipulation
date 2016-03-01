@@ -3,21 +3,24 @@ project(obstacle_distance)
 
 find_package(catkin REQUIRED
     COMPONENTS
+        cmake_modules
         cob_srvs
+        eigen_conversions
+        geometry_msgs
         message_generation
         moveit_core
-        moveit_ros_planning
         moveit_ros_planning_interface
         roscpp
         tf
+        tf_conversions
 )
 
-find_package(Boost REQUIRED
-    COMPONENTS
-        filesystem
-        system
-        REQUIRED)
+find_package(Boost REQUIRED COMPONENTS)
+
 find_package(fcl REQUIRED)
+
+find_package(Eigen REQUIRED)
+add_definitions(${EIGEN_DEFINITIONS})
 
 #######################################
 ## Declare ROS messages and services ##
@@ -49,17 +52,7 @@ pkg_check_modules(LIBFCL REQUIRED fcl)
 find_library(LIBFCL_LIBRARIES_FULL ${LIBFCL_LIBRARIES} ${LIBFCL_LIBRARY_DIRS})
 set(LIBFCL_LIBRARIES "${LIBFCL_LIBRARIES_FULL}")
 
-catkin_package(
-    CATKIN_DEPENDS
-        moveit_core
-        moveit_ros_planning_interface
-        roscpp
-    DEPENDS
-        Boost
-        fcl
-    INCLUDE_DIRS
-        include
-)
+catkin_package()
 
 ###########
 ## Build ##
@@ -80,3 +73,8 @@ link_directories(
 add_executable(obstacle_distance_node src/${PROJECT_NAME}/obstacle_distance.cpp include/${PROJECT_NAME}/obstacle_distance.h)
 add_dependencies(obstacle_distance_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(obstacle_distance_node ${catkin_LIBRARIES} ${LIBFCL_LIBRARIES})
+
+add_executable(visualize_obstacle_distance_node src/visualize_obstacle_distance_node.cpp)
+add_dependencies(visualize_obstacle_distance_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(visualize_obstacle_distance_node ${catkin_LIBRARIES} ${LIBFCL_LIBRARIES})
+

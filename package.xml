@@ -20,13 +20,17 @@
     <exec_depend>message_runtime</exec_depend>
 
     <depend>boost</depend>
+    <depend>cmake_modules</depend>
     <depend>cob_srvs</depend>
-    <depend>roscpp</depend>
+    <depend>eigen</depend>
+    <depend>eigen_conversions</depend>
+    <depend>fcl</depend>
+    <depend>geometry_msgs</depend>
     <depend>moveit_core</depend>
     <depend>moveit_ros_planning_interface</depend>
+    <depend>roscpp</depend>
     <depend>tf</depend>
-    <depend>fcl</depend>
-    <depend>pkg-config</depend>
+    <depend>tf_conversions</depend>
 
     <exec_depend>rospy</exec_depend>
 

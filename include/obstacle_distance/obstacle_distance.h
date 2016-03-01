@@ -3,6 +3,9 @@
 
 #include <ros/ros.h>
 
+#include <string.h>
+#include <map>
+
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/collision_detection_fcl/collision_world_fcl.h>
 
@@ -12,6 +15,13 @@
 #include <cob_srvs/SetString.h>
 #include <obstacle_distance/GetObstacleDistance.h>
 #include <obstacle_distance/DistanceInfos.h>
+
+#include <tf_conversions/tf_kdl.h>
+#include <tf_conversions/tf_eigen.h>
+#include <kdl_conversions/kdl_msg.h>
+
+#include <eigen_conversions/eigen_kdl.h>
+#include <eigen_conversions/eigen_msg.h>
 
 class ObstacleDistance : public ros::NodeHandle {
 public:
