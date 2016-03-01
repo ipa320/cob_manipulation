@@ -5,6 +5,8 @@
 
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/collision_detection_fcl/collision_world_fcl.h>
+#include <moveit_msgs/PlanningScene.h>
+#include <moveit_msgs/GetPlanningScene.h>
 
 #include <boost/thread.hpp>
 #include <boost/thread/mutex.hpp>
@@ -37,12 +39,15 @@ private:
     std::vector<std::string> kinematic_list;
 
     void updatedScene(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType type);
+    ros::ServiceServer monitored_scene_server_;
+    ros::Publisher monitored_scene_pub_;
 
     bool calculateDistanceCallback(obstacle_distance::GetObstacleDistance::Request &req,
                                    obstacle_distance::GetObstacleDistance::Response &res);
 
     bool registerCallback(cob_srvs::SetString::Request &req, cob_srvs::SetString::Response &res);
     bool unregisterCallback(cob_srvs::SetString::Request &req, cob_srvs::SetString::Response &res);
+    bool planningSceneCallback(moveit_msgs::GetPlanningScene::Request &req, moveit_msgs::GetPlanningScene::Response &res);
 
     void calculateDistances(const ros::TimerEvent& event);
 

@@ -35,6 +35,10 @@ void ObstacleDistance::updatedScene(planning_scene_monitor::PlanningSceneMonitor
     planning_scene_monitor::LockedPlanningSceneRO ps(planning_scene_monitor_);
     planning_scene::PlanningScenePtr planning_scene_ptr = ps->diff();
 
+    moveit_msgs::PlanningScene scene;
+    planning_scene_ptr->getPlanningSceneMsg(scene);
+    monitored_scene_pub_.publish(scene);
+
     std::vector<boost::shared_ptr<fcl::CollisionObject> > robot_obj, world_obj;
     robot_state::RobotState robot_state(planning_scene_ptr->getCurrentState());
 
@@ -59,6 +63,15 @@ void ObstacleDistance::updatedScene(planning_scene_monitor::PlanningSceneMonitor
                 static_cast<const collision_detection::CollisionGeometryData *>(world_obj[i]->collisionGeometry()->getUserData());
         collision_objects_list[collision_object->getID()] = world_obj[i];
     }
+}
+
+bool ObstacleDistance::planningSceneCallback(moveit_msgs::GetPlanningScene::Request &req, moveit_msgs::GetPlanningScene::Response &res) {
+
+    planning_scene_monitor::LockedPlanningSceneRO ps(planning_scene_monitor_);
+    planning_scene::PlanningScenePtr planning_scene_ptr = ps->diff();
+
+    planning_scene_ptr->getPlanningSceneMsg(res.scene, req.components);
+    return true;
 }
 
 bool ObstacleDistance::registerCallback(cob_srvs::SetString::Request &req,
@@ -221,6 +234,9 @@ ObstacleDistance::ObstacleDistance() {
     unregister_server_ = nh_.advertiseService(unregister_service, &ObstacleDistance::unregisterCallback, this);
     distance_timer_ = nh_.createTimer(ros::Duration(0.1), &ObstacleDistance::calculateDistances, this);
     distance_pub_ = nh_.advertise<obstacle_distance::DistanceInfos>(distance_topic, 1);
+
+    monitored_scene_pub_ = nh_.advertise<moveit_msgs::PlanningScene>("/monitored_planning_scene", 1);
+    monitored_scene_server_ = nh_.advertiseService("/get_planning_scene", &ObstacleDistance::planningSceneCallback, this);
 
     if (!error) {
         planning_scene_monitor_->setStateUpdateFrequency(update_frequency);

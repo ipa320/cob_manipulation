@@ -6,6 +6,7 @@ find_package(catkin REQUIRED
         cob_srvs
         message_generation
         moveit_core
+        moveit_msgs
         moveit_ros_planning
         moveit_ros_planning_interface
         roscpp
