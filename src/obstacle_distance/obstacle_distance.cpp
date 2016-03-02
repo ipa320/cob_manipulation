@@ -114,30 +114,68 @@ bool ObstacleDistance::unregisterCallback(cob_srvs::SetString::Request &req,
 
 void ObstacleDistance::calculateDistances(const ros::TimerEvent& event)
 {
-
     std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > robot_links_list = this->robot_links_list;
     std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > collision_objects_list = this->collision_objects_list;
 
     boost::mutex::scoped_lock lock(registered_links_mutex_);
     obstacle_distance::DistanceInfos distance_infos;
     
+    planning_scene_monitor::LockedPlanningSceneRO ps(planning_scene_monitor_);
+    planning_scene::PlanningScenePtr planning_scene_ptr = ps->diff();
+    collision_detection::AllowedCollisionMatrix acm = planning_scene_ptr->getAllowedCollisionMatrix();
+
+//    acm.print(std::cout);
+
     std::set<std::string>::iterator link_it;
+    std::map<std::string, boost::shared_ptr<fcl::CollisionObject> >::iterator selfcollision_it;
+
     for (link_it = registered_links_.begin(); link_it!=registered_links_.end(); ++link_it)
     {
+
         std::map<std::string, boost::shared_ptr<fcl::CollisionObject> >::iterator obj_it;
+
         for (obj_it = collision_objects_list.begin(); obj_it != collision_objects_list.end(); ++obj_it)
         {
             obstacle_distance::DistanceInfo info;
-            info = getDistanceInfo(robot_links_list[*link_it], collision_objects_list[obj_it->first]);
+            info = getDistanceInfo(robot_links_list[*link_it], collision_objects_list[obj_it->first], true);
 
             info.header.stamp = event.current_real;
             info.link_of_interest = *link_it;
             info.obstacle_id = obj_it->first;
             info.nearest_point_frame_vector.header.frame_id = *link_it;
+            info.nearest_point_obstacle_vector.header.frame_id = planning_scene_ptr->getPlanningFrame();
 
             distance_infos.infos.push_back(info);
         }
-        // ToDo: Magic für selfcollisions
+
+            // ToDo: asfgdasd
+        for (selfcollision_it = robot_links_list.begin(); selfcollision_it != robot_links_list.end(); ++selfcollision_it)
+        {
+            collision_detection::AllowedCollision::Type type;
+
+            if(acm.getEntry(*link_it, selfcollision_it->first, type))
+            {
+
+                if(type == collision_detection::AllowedCollision::NEVER)
+                {
+                    obstacle_distance::DistanceInfo info;
+                    info = getDistanceInfo(robot_links_list[*link_it], robot_links_list[selfcollision_it->first], false);
+
+                    info.header.stamp = event.current_real;
+                    info.link_of_interest = *link_it;
+                    info.obstacle_id = selfcollision_it->first;
+
+                    info.nearest_point_frame_vector.header.frame_id = planning_scene_ptr->getPlanningFrame();
+                    info.nearest_point_obstacle_vector.header.frame_id = planning_scene_ptr->getPlanningFrame();
+
+                    distance_infos.infos.push_back(info);
+                }
+            }
+            else
+            {
+                // This is diagonal of allowed collision matrix
+            }
+        }
     }
 
     distance_pub_.publish(distance_infos);
@@ -177,7 +215,7 @@ bool ObstacleDistance::calculateDistanceCallback(obstacle_distance::GetObstacleD
                     for (it = collision_objects_list.begin(); it != collision_objects_list.end(); ++it)
                     {
                         resp.link_to_object.push_back(kinematic_list[i] + "_to_" + it->first);
-                        resp.distances.push_back(ObstacleDistance::getDistanceInfo(robot_links_list[kinematic_list[i]], collision_objects_list[it->first]).distance);
+                        resp.distances.push_back(ObstacleDistance::getDistanceInfo(robot_links_list[kinematic_list[i]], collision_objects_list[it->first], true).distance);
                     }
                 }
                 else
@@ -186,7 +224,7 @@ bool ObstacleDistance::calculateDistanceCallback(obstacle_distance::GetObstacleD
                     for (int y = 0; y < req.objects.size(); y++)
                     {
                         resp.link_to_object.push_back(kinematic_list[i] + " to " + req.objects[y]);
-                        resp.distances.push_back(ObstacleDistance::getDistanceInfo(robot_links_list[kinematic_list[i]], collision_objects_list[req.objects[y]]).distance);
+                        resp.distances.push_back(ObstacleDistance::getDistanceInfo(robot_links_list[kinematic_list[i]], collision_objects_list[req.objects[y]],true).distance);
 
                     }
                 }
@@ -206,7 +244,7 @@ bool ObstacleDistance::calculateDistanceCallback(obstacle_distance::GetObstacleD
             for (it = collision_objects_list.begin(); it != collision_objects_list.end(); ++it)
             {
                 resp.link_to_object.push_back(req.links[i] + "_to_" + it->first);
-                resp.distances.push_back(ObstacleDistance::getDistanceInfo(robot_links_list[req.links[i]], collision_objects_list[it->first]).distance);
+                resp.distances.push_back(ObstacleDistance::getDistanceInfo(robot_links_list[req.links[i]], collision_objects_list[it->first], true).distance);
             }
         }
         else
@@ -215,7 +253,7 @@ bool ObstacleDistance::calculateDistanceCallback(obstacle_distance::GetObstacleD
             for (int y = 0; y < req.objects.size(); y++)
             {
                 resp.link_to_object.push_back(req.links[i] + " to " + req.objects[y]);
-                resp.distances.push_back(ObstacleDistance::getDistanceInfo(robot_links_list[req.links[i]], collision_objects_list[req.objects[y]]).distance);
+                resp.distances.push_back(ObstacleDistance::getDistanceInfo(robot_links_list[req.links[i]], collision_objects_list[req.objects[y]], true).distance);
             }
         }
     }
@@ -223,14 +261,15 @@ bool ObstacleDistance::calculateDistanceCallback(obstacle_distance::GetObstacleD
 }
 
 obstacle_distance::DistanceInfo ObstacleDistance::getDistanceInfo(const boost::shared_ptr<fcl::CollisionObject> robot_link,
-                                                                  const boost::shared_ptr<fcl::CollisionObject> collision_object)
+                                                                  const boost::shared_ptr<fcl::CollisionObject> collision_object,
+                                                                  bool do_transform)
 {
     fcl::DistanceResult res;
     res.update(MAXIMAL_MINIMAL_DISTANCE, NULL, NULL, fcl::DistanceResult::NONE, fcl::DistanceResult::NONE);
 
     double dist = fcl::distance(robot_link.get(),
                                 collision_object.get(),
-                                fcl::DistanceRequest(true, 1.0, 0.01),  // ToDo: Tune parameter
+                                fcl::DistanceRequest(true, 0.0, 0.01),  // ToDo: Tune parameter
                                 res);
 
     fcl::CollisionObject rl = *collision_object.get();
@@ -246,24 +285,23 @@ obstacle_distance::DistanceInfo ObstacleDistance::getDistanceInfo(const boost::s
                                         res.nearest_points[0][1],
                                         res.nearest_points[0][2]);
 
-
     Eigen::Vector3d obj_origin_to_np(res.nearest_points[1][0],      // w.r.t base_link (bl)
                                      res.nearest_points[1][1],
                                      res.nearest_points[1][2]);
 
-    Eigen::Vector3d obj_pf_to_np = trans_eigen * obj_origin_to_np;
+    if(do_transform)
+    {
+        // For some reason "robot_link-to-collision_object" requires this transformation.
+        obj_origin_to_np = trans_eigen * obj_origin_to_np;
+    }
+
 
     if (dist < 0) dist = 0;
 
     obstacle_distance::DistanceInfo info;
     info.distance = dist;
 
-    planning_scene_monitor::LockedPlanningSceneRO ps(planning_scene_monitor_);
-    planning_scene::PlanningScenePtr planning_scene_ptr = ps->diff();
-
-    info.nearest_point_obstacle_vector.header.frame_id = planning_scene_ptr->getPlanningFrame();
-
-    tf::vectorEigenToMsg(obj_pf_to_np, info.nearest_point_obstacle_vector.vector);
+    tf::vectorEigenToMsg(obj_origin_to_np, info.nearest_point_obstacle_vector.vector);
     tf::vectorEigenToMsg(jnt_rl_origin_to_np, info.nearest_point_frame_vector.vector);
 
     return info;

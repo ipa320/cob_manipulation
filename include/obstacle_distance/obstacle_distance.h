@@ -63,7 +63,8 @@ private:
     void calculateDistances(const ros::TimerEvent& event);
 
     obstacle_distance::DistanceInfo getDistanceInfo(const boost::shared_ptr<fcl::CollisionObject> robot_links,
-                                                    const boost::shared_ptr<fcl::CollisionObject> collision_objects);
+                                                    const boost::shared_ptr<fcl::CollisionObject> collision_objects,
+                                                    bool do_transform);
 
 };
 
