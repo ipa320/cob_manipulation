@@ -42,7 +42,7 @@ private:
     boost::mutex registered_links_mutex_;
 
     ros::Publisher distance_pub_;
-    ros::Timer distance_timer_;
+    ros::Timer distance_timer_, planning_scene_timer_;
 
     std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > robot_links_list;
     std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > collision_objects_list;
@@ -58,6 +58,7 @@ private:
     bool registerCallback(cob_srvs::SetString::Request &req, cob_srvs::SetString::Response &res);
     bool unregisterCallback(cob_srvs::SetString::Request &req, cob_srvs::SetString::Response &res);
     bool planningSceneCallback(moveit_msgs::GetPlanningScene::Request &req, moveit_msgs::GetPlanningScene::Response &res);
+    void planningSceneTimerCallback(const ros::TimerEvent& event);
 
     void calculateDistances(const ros::TimerEvent& event);
 

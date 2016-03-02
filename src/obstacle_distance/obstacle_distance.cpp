@@ -40,10 +40,6 @@ void ObstacleDistance::updatedScene(planning_scene_monitor::PlanningSceneMonitor
     planning_scene_monitor::LockedPlanningSceneRO ps(planning_scene_monitor_);
     planning_scene::PlanningScenePtr planning_scene_ptr = ps->diff();
 
-    moveit_msgs::PlanningScene scene;
-    planning_scene_ptr->getPlanningSceneMsg(scene);
-    monitored_scene_pub_.publish(scene);
-
     std::vector<boost::shared_ptr<fcl::CollisionObject> > robot_obj, world_obj;
     robot_state::RobotState robot_state(planning_scene_ptr->getCurrentState());
 
@@ -132,16 +128,26 @@ void ObstacleDistance::calculateDistances(const ros::TimerEvent& event)
         for (obj_it = collision_objects_list.begin(); obj_it != collision_objects_list.end(); ++obj_it)
         {
             obstacle_distance::DistanceInfo info;
-            info = getDistanceInfo(*link_it, obj_it->first, robot_links_list, collision_objects_list);
+            info = getDistanceInfo(*link_it, obj_it->first, robot_links_list, collision_objects_list);  // ToDo: map übergabe umschreiben
             info.header.stamp = event.current_real;
 
             distance_infos.infos.push_back(info);
         }
+        // ToDo: Magic für selfcollisions
     }
 
     distance_pub_.publish(distance_infos);
 }
 
+void ObstacleDistance::planningSceneTimerCallback(const ros::TimerEvent& event)
+{
+    planning_scene_monitor::LockedPlanningSceneRO ps(planning_scene_monitor_);
+    planning_scene::PlanningScenePtr planning_scene_ptr = ps->diff();
+
+    moveit_msgs::PlanningScene scene;
+    planning_scene_ptr->getPlanningSceneMsg(scene);
+    monitored_scene_pub_.publish(scene);
+}
 
 
 bool ObstacleDistance::calculateDistanceCallback(obstacle_distance::GetObstacleDistance::Request &req,
@@ -298,6 +304,8 @@ ObstacleDistance::ObstacleDistance()
 
     monitored_scene_pub_ = nh_.advertise<moveit_msgs::PlanningScene>("/monitored_planning_scene", 1);
     monitored_scene_server_ = nh_.advertiseService("/get_planning_scene", &ObstacleDistance::planningSceneCallback, this);
+    planning_scene_timer_ = nh_.createTimer(ros::Duration(0.1), &ObstacleDistance::planningSceneTimerCallback, this);
+
 
     if (!error)
     {
