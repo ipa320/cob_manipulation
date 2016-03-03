@@ -8,7 +8,7 @@ from shape_msgs.msg import SolidPrimitive, Mesh
 
 if __name__ == "__main__":
     rospy.init_node("simple_obstacle_pub")
-    root_frame = "base_link"
+    root_frame = "torso_center_link"
 
     pub = rospy.Publisher("/collision_object", CollisionObject, queue_size = 1)
     rospy.sleep(1.0)
@@ -20,14 +20,16 @@ if __name__ == "__main__":
     x.operation = CollisionObject.ADD
     #x.operation = CollisionObject.REMOVE
     sphere = SolidPrimitive()
-    sphere.type = SolidPrimitive.SPHERE
-    sphere.dimensions.append(0.1)  # radius
+    sphere.type = SolidPrimitive.BOX
+    sphere.dimensions.append(0.001)  # radius
+    sphere.dimensions.append(0.001)  # radius
+    sphere.dimensions.append(0.001)  # radius
     x.primitives.append(sphere)
 
     pose = Pose()
-    pose.position.x = 0.35
-    pose.position.y = -0.45
-    pose.position.z = 0.8
+    pose.position.x = 0.0
+    pose.position.y = 0.0
+    pose.position.z = 0.0
     pose.orientation.x = 0.0;
     pose.orientation.y = 0.0;
     pose.orientation.z = 0.0;

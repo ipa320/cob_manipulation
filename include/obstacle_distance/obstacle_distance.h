@@ -25,6 +25,9 @@
 #include <eigen_conversions/eigen_kdl.h>
 #include <eigen_conversions/eigen_msg.h>
 
+#include <urdf/model.h>
+
+
 class ObstacleDistance : public ros::NodeHandle {
 public:
     ObstacleDistance();
@@ -51,6 +54,8 @@ private:
     void updatedScene(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType type);
     ros::ServiceServer monitored_scene_server_;
     ros::Publisher monitored_scene_pub_;
+    urdf::Model model_;
+    typedef boost::shared_ptr<const urdf::Link> PtrConstLink_t;
 
     bool calculateDistanceCallback(obstacle_distance::GetObstacleDistance::Request &req,
                                    obstacle_distance::GetObstacleDistance::Response &res);
@@ -62,10 +67,10 @@ private:
 
     void calculateDistances(const ros::TimerEvent& event);
 
-    obstacle_distance::DistanceInfo getDistanceInfo(const boost::shared_ptr<fcl::CollisionObject> robot_links,
-                                                    const boost::shared_ptr<fcl::CollisionObject> collision_objects,
-                                                    bool do_transform);
-
+    obstacle_distance::DistanceInfo getDistanceInfo(const boost::shared_ptr<fcl::CollisionObject> robot_link,
+                                                    const boost::shared_ptr<fcl::CollisionObject> collision_object,
+                                                    bool do_transform_robot_link, bool do_transform_selfcollision_object);
+    bool getRootFrame(const boost::shared_ptr<fcl::CollisionObject> co);
 };
 
 #endif //OBSTACLE_DISTANCE_OBSTACLE_DISTANCE_H

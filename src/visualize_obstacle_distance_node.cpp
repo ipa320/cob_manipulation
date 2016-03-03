@@ -46,7 +46,7 @@ public:
     int init()
     {
 
-        marker_pub_ = this->nh_.advertise<visualization_msgs::Marker>("obstacle_distance/distance_markers", 1, true);
+        marker_pub_ = this->nh_.advertise<visualization_msgs::MarkerArray>("obstacle_distance/distance_markers", 1, true);
         obstacle_distances_sub_ = this->nh_.subscribe("obstacle_distances", 1, &DebugObstacleDistance::obstacleDistancesCallback, this);
 
         ros::Duration(1.0).sleep();
@@ -60,7 +60,7 @@ public:
         visualization_msgs::MarkerArray marker_array;
         std::map<std::string, std::vector<obstacle_distance::DistanceInfo> > relevant_obstacle_distances;
 
-        for(uint32_t i=0; i<msg->infos.size(); i++)
+        for(uint32_t i=0; i < msg->infos.size(); i++)
         {
             const std::string id = msg->infos[i].link_of_interest;
 
@@ -81,14 +81,12 @@ public:
                 marker_vector.type = visualization_msgs::Marker::ARROW;
                 marker_vector.lifetime = ros::Duration();
                 marker_vector.action = visualization_msgs::Marker::ADD;
-                marker_vector.ns = boost::lexical_cast<std::string>(2*i);
+                marker_vector.ns = it->first;
                 marker_vector.id = 2*i;
                 marker_vector.header.frame_id = "base_link";
 
-
                 marker_vector.scale.x = 0.01;
                 marker_vector.scale.y = 0.05;
-
 
                 Eigen::Vector3d obst_np(it->second[i].nearest_point_obstacle_vector.vector.x,
                                         it->second[i].nearest_point_obstacle_vector.vector.y,
@@ -116,7 +114,6 @@ public:
 
                 marker_vector.points.push_back(start);
                 marker_vector.points.push_back(end);
-                marker_pub_.publish(marker_vector);
                 marker_array.markers.push_back(marker_vector);
 
 
@@ -125,11 +122,10 @@ public:
                 marker_distance.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
                 marker_distance.lifetime = ros::Duration();
                 marker_distance.action = visualization_msgs::Marker::ADD;
-                marker_distance.ns = boost::lexical_cast<std::string>(2*i+1);
+                marker_distance.ns = it->first;
                 marker_distance.id = 2*i+1;
                 marker_distance.header.frame_id = "base_link";
-//                marker_distance.text = boost::lexical_cast<std::string>(boost::format("%.3f") % it->second[i].distance);
-                marker_distance.text = msg->infos[i].obstacle_id;
+                marker_distance.text = boost::lexical_cast<std::string>(boost::format("%.3f") % it->second[i].distance);
 
                 marker_distance.scale.x = 0.1;
                 marker_distance.scale.y = 0.1;
@@ -147,13 +143,11 @@ public:
                 marker_distance.pose.position.y = frame_bl_np[1] + 0.05;
                 marker_distance.pose.position.z = frame_bl_np[2];
 
-                marker_pub_.publish(marker_distance);
-
                 marker_array.markers.push_back(marker_distance);
             }
         }
 
-//        this->marker_pub_.publish(marker_array);
+        marker_pub_.publish(marker_array);
     }
 
     Eigen::Affine3d transform(std::string target, std::string source)
