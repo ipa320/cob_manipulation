@@ -190,18 +190,18 @@ void ObstacleDistance::calculateDistances(const ros::TimerEvent& event)
 
                     info = getDistanceInfo(robot_link_object, selfcollision_object, do_transform_robot_link, do_transform_selfcollision_object);
 
-//                    info = getDistanceInfo(robot_link_object, selfcollision_object, false, do_transform_selfcollision_object);
-
                     info.header.stamp = event.current_real;
                     info.link_of_interest = *link_it;
                     info.obstacle_id = selfcollision_it->first;
 
-
                     info.nearest_point_frame_vector.header.frame_id = planning_frame;
-
                     info.nearest_point_obstacle_vector.header.frame_id = planning_frame;
-//                    info.nearest_point_frame_vector.header.frame_id = planning_frame;
-//                    info.nearest_point_obstacle_vector.header.frame_id = selfcollision_link_root_frame;
+
+                    if(!do_transform_robot_link)
+                    {
+                        info.nearest_point_frame_vector.header.frame_id = *link_it;
+                        info.nearest_point_obstacle_vector.header.frame_id = planning_frame;
+                    }
 
                     distance_infos.infos.push_back(info);
                 }
@@ -340,15 +340,25 @@ obstacle_distance::DistanceInfo ObstacleDistance::getDistanceInfo(const boost::s
                                      res.nearest_points[1][1],
                                      res.nearest_points[1][2]);
 
-    if(do_transform_selfcollision_object || !do_transform_robot_link)
+    if(do_transform_selfcollision_object || (do_transform_robot_link && !do_transform_selfcollision_object))
     {
-        obj_origin_to_np = co_trans_eigen * obj_origin_to_np;
+        obj_origin_to_np = co_trans_eigen * obj_origin_to_np;   // COLLISION OBJECT
     }
 
-    if(!do_transform_robot_link || do_transform_selfcollision_object)
+    if(!do_transform_robot_link && do_transform_selfcollision_object)
     {
-        jnt_rl_origin_to_np = rf_trans_eigen * jnt_rl_origin_to_np;
+        jnt_rl_origin_to_np = rf_trans_eigen * jnt_rl_origin_to_np; // ROBOT FRAME
     }
+
+//    if()
+//    {
+//        obj_origin_to_np = co_trans_eigen * obj_origin_to_np;   // COLLISION OBJECT
+//    }
+//
+//    if(!do_transform_robot_link && do_transform_selfcollision_object)
+//    {
+//        jnt_rl_origin_to_np = rf_trans_eigen * jnt_rl_origin_to_np; // ROBOT FRAME
+//    }
 
     if (dist < 0) dist = 0;
 
