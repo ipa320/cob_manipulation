@@ -25,8 +25,12 @@
 #include <eigen_conversions/eigen_kdl.h>
 #include <eigen_conversions/eigen_msg.h>
 
-#include <urdf/model.h>
+#include <geometric_shapes/mesh_operations.h>
+#include <fcl/BVH/BVH_model.h>
+#include <fcl/math/vec_3f.h>
 
+#include <shape_msgs/Mesh.h>
+#include <shape_msgs/MeshTriangle.h>
 
 class ObstacleDistance : public ros::NodeHandle {
 public:
@@ -49,13 +53,15 @@ private:
 
     std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > robot_links_list;
     std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > collision_objects_list;
+
     std::vector<std::string> kinematic_list;
+    boost::shared_ptr<fcl::BVHModel<fcl::RSS> > prt_fcl_bvh_;
+
 
     void updatedScene(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType type);
     ros::ServiceServer monitored_scene_server_;
     ros::Publisher monitored_scene_pub_;
     urdf::Model model_;
-    typedef boost::shared_ptr<const urdf::Link> PtrConstLink_t;
 
     bool calculateDistanceCallback(obstacle_distance::GetObstacleDistance::Request &req,
                                    obstacle_distance::GetObstacleDistance::Response &res);

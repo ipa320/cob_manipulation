@@ -6,6 +6,7 @@ find_package(catkin REQUIRED
         cmake_modules
         cob_srvs
         eigen_conversions
+        geometric_shapes
         geometry_msgs
         message_generation
         moveit_core
