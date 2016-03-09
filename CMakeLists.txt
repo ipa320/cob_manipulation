@@ -77,5 +77,9 @@ target_link_libraries(obstacle_distance_node ${catkin_LIBRARIES} ${LIBFCL_LIBRAR
 
 add_executable(visualize_obstacle_distance_node src/visualize_obstacle_distance_node.cpp)
 add_dependencies(visualize_obstacle_distance_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(visualize_obstacle_distance_node ${catkin_LIBRARIES} ${LIBFCL_LIBRARIES})
+target_link_libraries(visualize_obstacle_distance_node ${catkin_LIBRARIES})
+
+add_executable(test_obstacle_publisher_node src/test_obstacle_publisher_node.cpp)
+add_dependencies(test_obstacle_publisher_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(test_obstacle_publisher_node ${catkin_LIBRARIES})
 
