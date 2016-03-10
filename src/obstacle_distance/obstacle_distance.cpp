@@ -233,85 +233,83 @@ bool ObstacleDistance::calculateDistanceServiceCallback(obstacle_distance::GetOb
     return true;
 }
 
-obstacle_distance::DistanceInfo ObstacleDistance::getDistanceInfo(const boost::shared_ptr<fcl::CollisionObject> robot_link,
-                                                                  const boost::shared_ptr<fcl::CollisionObject> collision_object)
+obstacle_distance::DistanceInfo ObstacleDistance::getDistanceInfo(const boost::shared_ptr<fcl::CollisionObject> object_a,
+                                                                  const boost::shared_ptr<fcl::CollisionObject> object_b)
 {
     fcl::DistanceRequest req(true);  // enable_nearest_points
     fcl::DistanceResult res;
     res.update(MAXIMAL_MINIMAL_DISTANCE, NULL, NULL, fcl::DistanceResult::NONE, fcl::DistanceResult::NONE);
 
-    Eigen::Vector3d jnt_rl_origin_to_np;
-    Eigen::Vector3d obj_origin_to_np;
+    Eigen::Vector3d np_object_a;
+    Eigen::Vector3d np_object_b;
 
-    double dist = fcl::distance(robot_link.get(), collision_object.get(), req, res);
+    double dist = fcl::distance(object_a.get(), object_b.get(), req, res);
 
     // this is to prevent what seems to be a nasty bug in fcl
-    if(robot_link->getObjectType() == fcl::OT_GEOM && collision_object->getObjectType() == fcl::OT_BVH)
+    if(object_a->getObjectType() == fcl::OT_GEOM && object_b->getObjectType() == fcl::OT_BVH)
     {
-        // res.nearest_points seem swapped in this case
-        jnt_rl_origin_to_np(0) = res.nearest_points[1][0];
-        jnt_rl_origin_to_np(1) = res.nearest_points[1][1];
-        jnt_rl_origin_to_np(2) = res.nearest_points[1][2];
+        // res.nearest_points is swapped in this case
+        np_object_a(0) = res.nearest_points[1][0];
+        np_object_a(1) = res.nearest_points[1][1];
+        np_object_a(2) = res.nearest_points[1][2];
 
-        obj_origin_to_np(0) = res.nearest_points[0][0];
-        obj_origin_to_np(1) = res.nearest_points[0][1];
-        obj_origin_to_np(2) = res.nearest_points[0][2];
+        np_object_b(0) = res.nearest_points[0][0];
+        np_object_b(1) = res.nearest_points[0][1];
+        np_object_b(2) = res.nearest_points[0][2];
     }
     else
     {
-        jnt_rl_origin_to_np(0) = res.nearest_points[0][0];
-        jnt_rl_origin_to_np(1) = res.nearest_points[0][1];
-        jnt_rl_origin_to_np(2) = res.nearest_points[0][2];
+        np_object_a(0) = res.nearest_points[0][0];
+        np_object_a(1) = res.nearest_points[0][1];
+        np_object_a(2) = res.nearest_points[0][2];
 
-        obj_origin_to_np(0) = res.nearest_points[1][0];
-        obj_origin_to_np(1) = res.nearest_points[1][1];
-        obj_origin_to_np(2) = res.nearest_points[1][2];
+        np_object_b(0) = res.nearest_points[1][0];
+        np_object_b(1) = res.nearest_points[1][1];
+        np_object_b(2) = res.nearest_points[1][2];
     }
     // ToDo: are there other cases? OT_OCTREE? see fcl::OBJECT_TYPE
 
-    geometry_msgs::Vector3 rl_np_msg;
-    tf::vectorEigenToMsg(jnt_rl_origin_to_np, rl_np_msg);
-    ROS_DEBUG_STREAM("NearestPoint RL: \n" << rl_np_msg);
+    geometry_msgs::Vector3 np_object_a_msg;
+    tf::vectorEigenToMsg(np_object_a, np_object_a_msg);
+    ROS_DEBUG_STREAM("NearestPoint OBJ_A: \n" << np_object_a_msg);
 
-    geometry_msgs::Vector3 obj_np_msg;
-    tf::vectorEigenToMsg(obj_origin_to_np, obj_np_msg);
-    ROS_DEBUG_STREAM("NearestPoint OBJ: \n" << obj_np_msg);
+    geometry_msgs::Vector3 np_object_b_msg;
+    tf::vectorEigenToMsg(np_object_b, np_object_b_msg);
+    ROS_DEBUG_STREAM("NearestPoint OBJ_B: \n" << np_object_b_msg);
 
-    // Transformation for robot frame
-    fcl::CollisionObject rf = *robot_link.get();
-    fcl::Transform3f rf_trans_fcl = rf.getTransform();
-    fcl::Vec3f rf_translation = rf_trans_fcl.getTranslation();
-    fcl::Quaternion3f rf_rotation = rf_trans_fcl.getQuatRotation();
+    // Transformation for object_a
+    fcl::Transform3f fcl_trans_object_a = object_a->getTransform();
+    fcl::Vec3f fcl_vec_object_a = fcl_trans_object_a.getTranslation();
+    fcl::Quaternion3f fcl_quat_object_a = fcl_trans_object_a.getQuatRotation();
 
-    Eigen::Affine3d rf_trans_eigen;
-    tf::Transform rf_trans_tf(tf::Quaternion(rf_rotation.getX(),rf_rotation.getY(),rf_rotation.getZ(),rf_rotation.getW()),
-                           tf::Vector3(rf_translation[0],rf_translation[1],rf_translation[2]));
-    tf::transformTFToEigen(rf_trans_tf, rf_trans_eigen);
+    Eigen::Affine3d eigen_trans_object_a;
+    tf::Transform tf_trans_object_a(tf::Quaternion(fcl_quat_object_a.getX(),fcl_quat_object_a.getY(),fcl_quat_object_a.getZ(),fcl_quat_object_a.getW()),
+                                    tf::Vector3(fcl_vec_object_a[0],fcl_vec_object_a[1],fcl_vec_object_a[2]));
+    tf::transformTFToEigen(tf_trans_object_a, eigen_trans_object_a);
 
-    geometry_msgs::Transform rf_trans_msg;
-    tf::transformTFToMsg(rf_trans_tf, rf_trans_msg);
-    ROS_DEBUG_STREAM("Transform RL: \n" << rf_trans_msg);
+    geometry_msgs::Transform trans_object_a_msg;
+    tf::transformTFToMsg(tf_trans_object_a, trans_object_a_msg);
+    ROS_DEBUG_STREAM("Transform OBJ_A: \n" << trans_object_a_msg);
 
-    // Transformation for collision object
-    fcl::CollisionObject co = *collision_object.get();
-    fcl::Transform3f co_trans_fcl = co.getTransform();
-    fcl::Vec3f co_translation = co_trans_fcl.getTranslation();
-    fcl::Quaternion3f co_rotation = co_trans_fcl.getQuatRotation();
+    // Transformation for object_b
+    fcl::Transform3f fcl_trans_object_b = object_b->getTransform();
+    fcl::Vec3f fcl_vec_object_b = fcl_trans_object_b.getTranslation();
+    fcl::Quaternion3f fcl_quat_object_b = fcl_trans_object_b.getQuatRotation();
 
-    Eigen::Affine3d co_trans_eigen;
-    tf::Transform co_trans_tf(tf::Quaternion(co_rotation.getX(),co_rotation.getY(),co_rotation.getZ(),co_rotation.getW()),
-                           tf::Vector3(co_translation[0],co_translation[1],co_translation[2]));
-    tf::transformTFToEigen(co_trans_tf, co_trans_eigen);
+    Eigen::Affine3d eigen_trans_object_b;
+    tf::Transform tf_trans_object_b(tf::Quaternion(fcl_quat_object_b.getX(),fcl_quat_object_b.getY(),fcl_quat_object_b.getZ(),fcl_quat_object_b.getW()),
+                                    tf::Vector3(fcl_vec_object_b[0],fcl_vec_object_b[1],fcl_vec_object_b[2]));
+    tf::transformTFToEigen(tf_trans_object_b, eigen_trans_object_b);
 
-    geometry_msgs::Transform co_trans_msg;
-    tf::transformTFToMsg(co_trans_tf, co_trans_msg);
-    ROS_DEBUG_STREAM("Transform OBJ: \n" << co_trans_msg);
+    geometry_msgs::Transform trans_object_b_msg;
+    tf::transformTFToMsg(tf_trans_object_b, trans_object_b_msg);
+    ROS_DEBUG_STREAM("Transform OBJ_B: \n" << trans_object_b_msg);
 
     //  in case both objects are of OBJECT_TYPE OT_BVH the nearest points are already given in PlanningFrame coordinates
-    if(!(robot_link->getObjectType() == fcl::OT_BVH && collision_object->getObjectType() == fcl::OT_BVH))
+    if(!(object_a->getObjectType() == fcl::OT_BVH && object_b->getObjectType() == fcl::OT_BVH))
     {
-        jnt_rl_origin_to_np = rf_trans_eigen * jnt_rl_origin_to_np;
-        obj_origin_to_np = co_trans_eigen * obj_origin_to_np;
+        np_object_a = eigen_trans_object_a * np_object_a;
+        np_object_b = eigen_trans_object_b * np_object_b;
     }
     // ToDo: are there other cases? OT_OCTREE? see fcl::OBJECT_TYPE
 
@@ -320,10 +318,10 @@ obstacle_distance::DistanceInfo ObstacleDistance::getDistanceInfo(const boost::s
     obstacle_distance::DistanceInfo info;
     info.distance = dist;
 
-    tf::vectorEigenToMsg(jnt_rl_origin_to_np, info.nearest_point_frame_vector);
-    tf::vectorEigenToMsg(obj_origin_to_np, info.nearest_point_obstacle_vector);    
-    ROS_DEBUG_STREAM("NearestPointTransformed RL: \n" << info.nearest_point_frame_vector);
-    ROS_DEBUG_STREAM("NearestPointTransformed OBJ: \n" << info.nearest_point_obstacle_vector);
+    tf::vectorEigenToMsg(np_object_a, info.nearest_point_frame_vector);
+    tf::vectorEigenToMsg(np_object_b, info.nearest_point_obstacle_vector);    
+    ROS_DEBUG_STREAM("NearestPointTransformed OBJ_A: \n" << info.nearest_point_frame_vector);
+    ROS_DEBUG_STREAM("NearestPointTransformed OBJ_B: \n" << info.nearest_point_obstacle_vector);
 
     return info;
 }

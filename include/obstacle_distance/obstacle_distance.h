@@ -55,8 +55,8 @@ private:
     ros::Timer distance_timer_;
     void calculateDistanceTimerCallback(const ros::TimerEvent& event);
 
-    obstacle_distance::DistanceInfo getDistanceInfo(const boost::shared_ptr<fcl::CollisionObject> robot_link,
-                                                    const boost::shared_ptr<fcl::CollisionObject> collision_object);
+    obstacle_distance::DistanceInfo getDistanceInfo(const boost::shared_ptr<fcl::CollisionObject> object_a,
+                                                    const boost::shared_ptr<fcl::CollisionObject> object_b);
 };
 
 #endif //OBSTACLE_DISTANCE_OBSTACLE_DISTANCE_H
