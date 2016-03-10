@@ -11,6 +11,11 @@
     <arg name="config_path" value="$(arg config_path)" />
   </include>
 
-  <node pkg="obstacle_distance" type="obstacle_distance_node" name="obstacle_distance_node" output="screen"/>
+  <node pkg="obstacle_distance" type="obstacle_distance_node" name="obstacle_distance_node" output="screen">
+    <rosparam file="$(arg config_path)/sensors.yaml"/>
+    <param name="octomap_frame" type="string" value="odom_combined" />
+    <param name="octomap_resolution" type="double" value="0.1" />
+    <param name="max_range" type="double" value="2.0" />
+  </node>
 
 </launch>
