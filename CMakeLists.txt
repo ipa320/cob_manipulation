@@ -32,7 +32,6 @@ add_service_files(
  
 add_message_files(
     FILES
-        Chain.msg
         DistanceInfo.msg
         DistanceInfos.msg
 )

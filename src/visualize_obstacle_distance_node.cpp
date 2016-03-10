@@ -143,7 +143,7 @@ public:
                 marker_distance.pose.position.y = frame_bl_np[1] + 0.05;
                 marker_distance.pose.position.z = frame_bl_np[2];
 
-                marker_array.markers.push_back(marker_distance);
+                //marker_array.markers.push_back(marker_distance);
             }
         }
 

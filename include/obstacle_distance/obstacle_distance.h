@@ -44,8 +44,6 @@ private:
     std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > robot_links_list;
     std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > collision_objects_list;
 
-    std::vector<std::string> kinematic_list;
-
     void updatedScene(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType type);
     ros::ServiceServer monitored_scene_server_;
     ros::Publisher monitored_scene_pub_;

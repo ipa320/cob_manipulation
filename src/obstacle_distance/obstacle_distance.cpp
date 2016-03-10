@@ -51,15 +51,12 @@ void ObstacleDistance::updatedScene(planning_scene_monitor::PlanningSceneMonitor
 
     robot_links_list.clear();
     collision_objects_list.clear();
-    kinematic_list.empty();
 
     for (int i = 0; i < robot_obj.size(); i++)
     {
         const collision_detection::CollisionGeometryData *robot_link =
                 static_cast<const collision_detection::CollisionGeometryData *>(robot_obj[i]->collisionGeometry()->getUserData());
-        
         robot_links_list[robot_link->getID()] = robot_obj[i];
-        kinematic_list.push_back(robot_link->getID());
     }
     for (int i = 0; i < world_obj.size(); i++)
     {
@@ -213,42 +210,6 @@ bool ObstacleDistance::calculateDistanceCallback(obstacle_distance::GetObstacleD
 {
     std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > robot_links_list = this->robot_links_list;
     std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > collision_objects_list = this->collision_objects_list;
-    std::vector<std::string> kinematic_list = this->kinematic_list;
-
-    // Chains
-    for (unsigned int c=0; c< req.chains.size(); ++c)
-    {
-        // Link chain to objects
-        bool start = false;
-        for (int i = 0; i < kinematic_list.size(); i++)
-        {
-            // ToDo: Add proper/robust chain parsing
-            if (!start && kinematic_list[i] == req.chains[c].chain_base) start = true;
-            if (start) {
-                if (req.objects.size() == 0)
-                {
-                    // All objects
-                    std::map<std::string, boost::shared_ptr<fcl::CollisionObject> >::iterator it;
-                    for (it = collision_objects_list.begin(); it != collision_objects_list.end(); ++it)
-                    {
-                        resp.link_to_object.push_back(kinematic_list[i] + "_to_" + it->first);
-                        resp.distances.push_back(ObstacleDistance::getDistanceInfo(robot_links_list[kinematic_list[i]], collision_objects_list[it->first]).distance);
-                    }
-                }
-                else
-                {
-                    // Specific objects
-                    for (int y = 0; y < req.objects.size(); y++)
-                    {
-                        resp.link_to_object.push_back(kinematic_list[i] + " to " + req.objects[y]);
-                        resp.distances.push_back(ObstacleDistance::getDistanceInfo(robot_links_list[kinematic_list[i]], collision_objects_list[req.objects[y]]).distance);
-                    }
-                }
-
-                if (kinematic_list[i] == req.chains[c].chain_tip) break;
-            }
-        }
-    }
     
     // Links
     for (unsigned int i=0; i< req.links.size(); ++i)
