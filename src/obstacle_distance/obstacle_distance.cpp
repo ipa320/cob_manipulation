@@ -342,9 +342,12 @@ ObstacleDistance::ObstacleDistance()
     planning_scene_monitor_ = boost::make_shared<planning_scene_monitor::PlanningSceneMonitor>(robot_description, tf_listener_);
 
     planning_scene_monitor_->setStateUpdateFrequency(update_frequency);
-    planning_scene_monitor_->startSceneMonitor();
-    planning_scene_monitor_->startWorldGeometryMonitor();
-    planning_scene_monitor_->startStateMonitor();
+    planning_scene_monitor_->startSceneMonitor(planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_TOPIC);
+    planning_scene_monitor_->startWorldGeometryMonitor(planning_scene_monitor::PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC,
+                                                       planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
+                                                       true);  // load_octomap_monitor
+    planning_scene_monitor_->startStateMonitor(planning_scene_monitor::PlanningSceneMonitor::DEFAULT_JOINT_STATES_TOPIC,
+                                               planning_scene_monitor::PlanningSceneMonitor::DEFAULT_ATTACHED_COLLISION_OBJECT_TOPIC);
     planning_scene_monitor_->addUpdateCallback(boost::bind(&ObstacleDistance::updatedScene, this, _1));
 
     registered_links_.clear();
