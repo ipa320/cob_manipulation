@@ -17,11 +17,9 @@ find_package(catkin REQUIRED
 )
 
 find_package(Boost REQUIRED COMPONENTS)
-
-find_package(fcl REQUIRED)
-
 find_package(Eigen REQUIRED)
 add_definitions(${EIGEN_DEFINITIONS})
+find_package(fcl REQUIRED)
 
 #######################################
 ## Declare ROS messages and services ##
@@ -33,25 +31,20 @@ add_service_files(
 )
  
 add_message_files(
-  FILES
-  Chain.msg
-  DistanceInfo.msg
-  DistanceInfos.msg
+    FILES
+        Chain.msg
+        DistanceInfo.msg
+        DistanceInfos.msg
 )
 
 generate_messages(
-  DEPENDENCIES
-  geometry_msgs
+    DEPENDENCIES
+        geometry_msgs
 )
 
 ###################################
 ## catkin specific configuration ##
 ###################################
-
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(LIBFCL REQUIRED fcl)
-find_library(LIBFCL_LIBRARIES_FULL ${LIBFCL_LIBRARIES} ${LIBFCL_LIBRARY_DIRS})
-set(LIBFCL_LIBRARIES "${LIBFCL_LIBRARIES_FULL}")
 
 catkin_package()
 
@@ -61,19 +54,12 @@ catkin_package()
 
 include_directories(
     include
-        ${catkin_INCLUDE_DIRS}
-        ${Boost_INCLUDE_DIRS}
-        ${FCL_INCLUDE_DIRS}
-)
-link_directories(
-    ${catkin_LIBRARY_DIRS}
-    ${Boost_INCLUDE_DIRS}
-    ${FCL_INCLUDE_DIRS}
+    ${catkin_INCLUDE_DIRS}
 )
 
 add_executable(obstacle_distance_node src/${PROJECT_NAME}/obstacle_distance.cpp include/${PROJECT_NAME}/obstacle_distance.h)
 add_dependencies(obstacle_distance_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(obstacle_distance_node ${catkin_LIBRARIES} ${LIBFCL_LIBRARIES})
+target_link_libraries(obstacle_distance_node ${catkin_LIBRARIES} ${fcl_LIBRARIES})
 
 add_executable(visualize_obstacle_distance_node src/visualize_obstacle_distance_node.cpp)
 add_dependencies(visualize_obstacle_distance_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
