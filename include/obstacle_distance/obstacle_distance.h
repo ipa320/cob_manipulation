@@ -18,21 +18,11 @@
 #include <obstacle_distance/GetObstacleDistance.h>
 #include <obstacle_distance/DistanceInfos.h>
 
-#include <tf_conversions/tf_kdl.h>
 #include <tf_conversions/tf_eigen.h>
-#include <kdl_conversions/kdl_msg.h>
-
-#include <eigen_conversions/eigen_kdl.h>
 #include <eigen_conversions/eigen_msg.h>
 
-#include <geometric_shapes/mesh_operations.h>
-#include <fcl/BVH/BVH_model.h>
-#include <fcl/math/vec_3f.h>
-
-#include <shape_msgs/Mesh.h>
-#include <shape_msgs/MeshTriangle.h>
-
-class ObstacleDistance : public ros::NodeHandle {
+class ObstacleDistance
+{
 public:
     ObstacleDistance();
 
@@ -55,13 +45,10 @@ private:
     std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > collision_objects_list;
 
     std::vector<std::string> kinematic_list;
-    boost::shared_ptr<fcl::BVHModel<fcl::RSS> > prt_fcl_bvh_;
-
 
     void updatedScene(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType type);
     ros::ServiceServer monitored_scene_server_;
     ros::Publisher monitored_scene_pub_;
-    urdf::Model model_;
 
     bool calculateDistanceCallback(obstacle_distance::GetObstacleDistance::Request &req,
                                    obstacle_distance::GetObstacleDistance::Response &res);
@@ -74,9 +61,7 @@ private:
     void calculateDistances(const ros::TimerEvent& event);
 
     obstacle_distance::DistanceInfo getDistanceInfo(const boost::shared_ptr<fcl::CollisionObject> robot_link,
-                                                    const boost::shared_ptr<fcl::CollisionObject> collision_object,
-                                                    bool do_transform_robot_link, bool do_transform_selfcollision_object);
-    bool getRootFrame(const boost::shared_ptr<fcl::CollisionObject> co);
+                                                    const boost::shared_ptr<fcl::CollisionObject> collision_object);
 };
 
 #endif //OBSTACLE_DISTANCE_OBSTACLE_DISTANCE_H
