@@ -10,6 +10,7 @@ find_package(catkin REQUIRED
         geometry_msgs
         message_generation
         moveit_core
+        moveit_ros_perception
         moveit_ros_planning_interface
         roscpp
         tf
