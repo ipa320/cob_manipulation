@@ -223,6 +223,7 @@ void ObstacleDistance::calculateDistances(const ros::TimerEvent& event)
         //const boost::shared_ptr<fcl::CollisionObject> robot_link_object = robot_links_list[robot_link];
         //ROS_ERROR_STREAM("RobotLink: " << robot_link << ", Type: " << robot_link_object->getObjectType());
         
+        /// testing
         std::string robot_link = "test_primitive";
         if (collision_objects_list.find(robot_link) == collision_objects_list.end())
         {
@@ -231,7 +232,6 @@ void ObstacleDistance::calculateDistances(const ros::TimerEvent& event)
         }
         const boost::shared_ptr<fcl::CollisionObject> robot_link_object = collision_objects_list[robot_link];
         ROS_ERROR_STREAM("RobotLink: " << robot_link << ", Type: " << robot_link_object->getObjectType());
-
 
         std::map<std::string, boost::shared_ptr<fcl::CollisionObject> >::iterator obj_it;
         for (obj_it = collision_objects_list.begin(); obj_it != collision_objects_list.end(); ++obj_it)
@@ -372,31 +372,46 @@ obstacle_distance::DistanceInfo ObstacleDistance::getDistanceInfo(const boost::s
                                                                   const boost::shared_ptr<fcl::CollisionObject> collision_object,
                                                                   bool do_transform_robot_link, bool do_transform_selfcollision_object)
 {
+    fcl::DistanceRequest req(true);  // enable_nearest_points
     fcl::DistanceResult res;
     res.update(MAXIMAL_MINIMAL_DISTANCE, NULL, NULL, fcl::DistanceResult::NONE, fcl::DistanceResult::NONE);
 
-    double dist = fcl::distance(robot_link.get(),
-                                collision_object.get(),
-                                fcl::DistanceRequest(true, 0.0, 0.01),  // ToDo: Tune parameter
-                                res);
+    Eigen::Vector3d jnt_rl_origin_to_np;
+    Eigen::Vector3d obj_origin_to_np;
 
+    double dist = fcl::distance(robot_link.get(), collision_object.get(), req, res);
 
-    // Nearest Point on robot frame
-    Eigen::Vector3d jnt_rl_origin_to_np(res.nearest_points[0][0],
-                                        res.nearest_points[0][1],
-                                        res.nearest_points[0][2]);
+    // this is to prevent what seems to be a nasty bug in fcl
+    if(robot_link->getObjectType() == fcl::OT_GEOM && collision_object->getObjectType() == fcl::OT_BVH)
+    {
+        // res.nearest_points seem swapped in this case
+        jnt_rl_origin_to_np(0) = res.nearest_points[1][0];
+        jnt_rl_origin_to_np(1) = res.nearest_points[1][1];
+        jnt_rl_origin_to_np(2) = res.nearest_points[1][2];
+
+        obj_origin_to_np(0) = res.nearest_points[0][0];
+        obj_origin_to_np(1) = res.nearest_points[0][1];
+        obj_origin_to_np(2) = res.nearest_points[0][2];
+    }
+    else
+    {
+        jnt_rl_origin_to_np(0) = res.nearest_points[0][0];
+        jnt_rl_origin_to_np(1) = res.nearest_points[0][1];
+        jnt_rl_origin_to_np(2) = res.nearest_points[0][2];
+
+        obj_origin_to_np(0) = res.nearest_points[1][0];
+        obj_origin_to_np(1) = res.nearest_points[1][1];
+        obj_origin_to_np(2) = res.nearest_points[1][2];
+    }
+    // ToDo: are there other cases? OT_OCTREE? see fcl::OBJECT_TYPE
+
     geometry_msgs::Vector3 rl_np_msg;
     tf::vectorEigenToMsg(jnt_rl_origin_to_np, rl_np_msg);
     ROS_INFO_STREAM("NearestPoint RL: \n" << rl_np_msg);
 
-    // Nearest Point on collision object
-    Eigen::Vector3d obj_origin_to_np(res.nearest_points[1][0],
-                                     res.nearest_points[1][1],
-                                     res.nearest_points[1][2]);
     geometry_msgs::Vector3 obj_np_msg;
     tf::vectorEigenToMsg(obj_origin_to_np, obj_np_msg);
     ROS_INFO_STREAM("NearestPoint OBJ: \n" << obj_np_msg);
-
 
     // Transformation for robot frame
     fcl::CollisionObject rf = *robot_link.get();
@@ -428,32 +443,23 @@ obstacle_distance::DistanceInfo ObstacleDistance::getDistanceInfo(const boost::s
     tf::transformTFToMsg(co_trans_tf, co_trans_msg);
     ROS_INFO_STREAM("Transform OBJ: \n" << co_trans_msg);
 
-
-
-    /// ToDo: WIP: Find proper transformation!
-    //if(!(!do_transform_robot_link && !do_transform_selfcollision_object))
-    //{
-        //obj_origin_to_np = co_trans_eigen * obj_origin_to_np;   // COLLISION OBJECT
-        //jnt_rl_origin_to_np = rf_trans_eigen * jnt_rl_origin_to_np; // ROBOT FRAME
-    //}
-
-//    if()
-//    {
-//        obj_origin_to_np = co_trans_eigen * obj_origin_to_np;   // COLLISION OBJECT
-//    }
-//
-//    if(!do_transform_robot_link && do_transform_selfcollision_object)
-//    {
-//        jnt_rl_origin_to_np = rf_trans_eigen * jnt_rl_origin_to_np; // ROBOT FRAME
-//    }
+    //  in case both objects are of OBJECT_TYPE OT_BVH the nearest points are already given in PlanningFrame coordinates
+    if(!(robot_link->getObjectType() == fcl::OT_BVH && collision_object->getObjectType() == fcl::OT_BVH))
+    {
+        jnt_rl_origin_to_np = rf_trans_eigen * jnt_rl_origin_to_np;
+        obj_origin_to_np = co_trans_eigen * obj_origin_to_np;
+    }
+    // ToDo: are there other cases? OT_OCTREE? see fcl::OBJECT_TYPE
 
     if (dist < 0) dist = 0;
 
     obstacle_distance::DistanceInfo info;
     info.distance = dist;
 
-    tf::vectorEigenToMsg(obj_origin_to_np, info.nearest_point_obstacle_vector.vector);
     tf::vectorEigenToMsg(jnt_rl_origin_to_np, info.nearest_point_frame_vector.vector);
+    tf::vectorEigenToMsg(obj_origin_to_np, info.nearest_point_obstacle_vector.vector);    
+    ROS_INFO_STREAM("NearestPointTransformed RL: \n" << info.nearest_point_frame_vector.vector);
+    ROS_INFO_STREAM("NearestPointTransformed OBJ: \n" << info.nearest_point_obstacle_vector.vector);
 
     return info;
 }
