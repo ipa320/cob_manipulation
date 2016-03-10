@@ -155,15 +155,19 @@ int main(int argc, char** argv)
 
 
   /// test robot objects
-  // primitive sphere
-  moveit_msgs::CollisionObject test_col_sphere_msg;
-  test_col_sphere_msg.id = "test_primitive";
-  test_col_sphere_msg.header.frame_id = "odom_combined";
-  test_col_sphere_msg.operation = moveit_msgs::CollisionObject::ADD;
+  // test primitive
+  moveit_msgs::CollisionObject test_col_prim_msg;
+  test_col_prim_msg.id = "test_primitive";
+  test_col_prim_msg.header.frame_id = "odom_combined";
+  test_col_prim_msg.operation = moveit_msgs::CollisionObject::ADD;
 
-  shape_msgs::SolidPrimitive test_sphere;
-  test_sphere.type = shape_msgs::SolidPrimitive::SPHERE;
-  test_sphere.dimensions.push_back(0.1);
+  shape_msgs::SolidPrimitive test_prim;
+  //test_prim.type = shape_msgs::SolidPrimitive::SPHERE;
+  //test_prim.type = shape_msgs::SolidPrimitive::BOX;
+  test_prim.type = shape_msgs::SolidPrimitive::CYLINDER;
+  test_prim.dimensions.push_back(0.1);
+  test_prim.dimensions.push_back(0.1);
+  //test_prim.dimensions.push_back(0.1);
 
   geometry_msgs::Pose test_pose;
   test_pose.position.x = 2.0;
@@ -171,32 +175,34 @@ int main(int argc, char** argv)
   test_pose.position.z = 1.0;
   test_pose.orientation.w = 1.0;
 
-  test_col_sphere_msg.primitives.push_back(test_sphere);
-  test_col_sphere_msg.primitive_poses.push_back(test_pose);
+  test_col_prim_msg.primitives.push_back(test_prim);
+  test_col_prim_msg.primitive_poses.push_back(test_pose);
 
-  pub.publish(test_col_sphere_msg);
+  pub.publish(test_col_prim_msg);
   ros::Duration(0.1).sleep();
 
-  // mesh sphere
-  moveit_msgs::CollisionObject test_col_sphere_mesh_msg;
-  test_col_sphere_mesh_msg.id = "test_mesh";
-  test_col_sphere_mesh_msg.header.frame_id = "odom_combined";
-  test_col_sphere_mesh_msg.operation = moveit_msgs::CollisionObject::ADD;
+  // test mesh
+  moveit_msgs::CollisionObject test_col_mesh_msg;
+  test_col_mesh_msg.id = "test_mesh";
+  test_col_mesh_msg.header.frame_id = "odom_combined";
+  test_col_mesh_msg.operation = moveit_msgs::CollisionObject::ADD;
 
-  shapes::Mesh* test_sphere_shape = shapes::createMeshFromResource("package://obstacle_distance/files/sphere.stl");
-  shapes::ShapeMsg test_sphere_mesh_msg;
-  shapes::constructMsgFromShape(test_sphere_shape, test_sphere_mesh_msg);
-  shape_msgs::Mesh test_sphere_mesh = boost::get<shape_msgs::Mesh>(test_sphere_mesh_msg);
+  //shapes::Mesh* test_shape = shapes::createMeshFromResource("package://obstacle_distance/files/sphere.stl");
+  //shapes::Mesh* test_shape = shapes::createMeshFromResource("package://obstacle_distance/files/box.stl");
+  shapes::Mesh* test_shape = shapes::createMeshFromResource("package://obstacle_distance/files/cylinder.stl");
+  shapes::ShapeMsg test_mesh_msg;
+  shapes::constructMsgFromShape(test_shape, test_mesh_msg);
+  shape_msgs::Mesh test_mesh = boost::get<shape_msgs::Mesh>(test_mesh_msg);
 
   test_pose.position.x = 2.0;
   // test_pose.position.y = 1.0;
   test_pose.position.z = 1.0;
   test_pose.orientation.w = 1.0;
 
-  test_col_sphere_mesh_msg.meshes.push_back(test_sphere_mesh);
-  test_col_sphere_mesh_msg.mesh_poses.push_back(test_pose);
+  test_col_mesh_msg.meshes.push_back(test_mesh);
+  test_col_mesh_msg.mesh_poses.push_back(test_pose);
 
-  pub.publish(test_col_sphere_mesh_msg);
+  pub.publish(test_col_mesh_msg);
   ros::Duration(0.1).sleep();
 
 
