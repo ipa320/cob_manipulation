@@ -146,6 +146,12 @@ void ObstacleDistance::calculateDistanceTimerCallback(const ros::TimerEvent& eve
             std::string collision_object_name = obj_it->first;
             const boost::shared_ptr<fcl::CollisionObject> collision_object = collision_objects[collision_object_name];
             ROS_DEBUG_STREAM("CollisionLink: " << collision_object_name << ", Type: " << collision_object->getObjectType());
+            
+            if(collision_object->getObjectType() == fcl::OT_OCTREE)
+            {
+                ROS_WARN_THROTTLE(1, "Consideration of <octomap> not yet implemented");
+                continue;
+            }
 
             obstacle_distance::DistanceInfo info;
             info = getDistanceInfo(robot_object, collision_object);
@@ -216,8 +222,14 @@ bool ObstacleDistance::calculateDistanceServiceCallback(obstacle_distance::GetOb
             std::map<std::string, boost::shared_ptr<fcl::CollisionObject> >::iterator it;
             for (it = collision_objects.begin(); it != collision_objects.end(); ++it)
             {
+                const boost::shared_ptr<fcl::CollisionObject> collision_object = collision_objects[it->first];
+                if(collision_object->getObjectType() == fcl::OT_OCTREE)
+                {
+                    ROS_WARN_THROTTLE(1, "Consideration of <octomap> not yet implemented");
+                    continue;
+                }
                 resp.link_to_object.push_back(req.links[i] + "_to_" + it->first);
-                resp.distances.push_back(ObstacleDistance::getDistanceInfo(robot_links[req.links[i]], collision_objects[it->first]).distance);
+                resp.distances.push_back(ObstacleDistance::getDistanceInfo(robot_links[req.links[i]], collision_object).distance);
             }
         }
         else
@@ -225,8 +237,14 @@ bool ObstacleDistance::calculateDistanceServiceCallback(obstacle_distance::GetOb
             // Specific objects
             for (int y = 0; y < req.objects.size(); y++)
             {
+                const boost::shared_ptr<fcl::CollisionObject> collision_object = collision_objects[req.objects[y]];
+                if(collision_object->getObjectType() == fcl::OT_OCTREE)
+                {
+                    ROS_WARN_THROTTLE(1, "Consideration of <octomap> not yet implemented");
+                    continue;
+                }
                 resp.link_to_object.push_back(req.links[i] + " to " + req.objects[y]);
-                resp.distances.push_back(ObstacleDistance::getDistanceInfo(robot_links[req.links[i]], collision_objects[req.objects[y]]).distance);
+                resp.distances.push_back(ObstacleDistance::getDistanceInfo(robot_links[req.links[i]], collision_object).distance);
             }
         }
     }
