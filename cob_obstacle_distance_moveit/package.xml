@@ -1,10 +1,11 @@
 <?xml version="1.0"?>
 <package format="2">
-    <name>obstacle_distance</name>
+    <name>cob_obstacle_distance_moveit</name>
     <version>1.0.0</version>
-    <description>The obstacle_distance package</description>
+    <description>This package provides nodes for calculating the minimal distance to robot links, obstacles and octomap using MoveIt!'s PlanningSceneMonitor</description>
 
-    <maintainer email="koellsch86@googlemail.com">Florian Koehler</maintainer>
+    <author email="koellsch86@googlemail.com">Florian Koehler</author>
+    <author email="fxm@ipa.fhg.de">Felix Messmer</author>
     <maintainer email="fxm@ipa.fhg.de">Felix Messmer</maintainer>
 
     <license>LGPL</license>

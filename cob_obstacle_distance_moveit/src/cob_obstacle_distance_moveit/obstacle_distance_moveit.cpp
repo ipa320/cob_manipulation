@@ -1,4 +1,4 @@
-#include <obstacle_distance/obstacle_distance.h>
+#include <cob_obstacle_distance_moveit/obstacle_distance_moveit.h>
 
 class CreateCollisionWorld : public collision_detection::CollisionWorldFCL
 {
@@ -35,7 +35,7 @@ public:
     }
 };
 
-void ObstacleDistance::updatedScene(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType type)
+void ObstacleDistanceMoveit::updatedScene(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType type)
 {
     planning_scene_monitor::LockedPlanningSceneRO ps(planning_scene_monitor_);
     planning_scene::PlanningScenePtr planning_scene_ptr = ps->diff();
@@ -66,7 +66,7 @@ void ObstacleDistance::updatedScene(planning_scene_monitor::PlanningSceneMonitor
     }
 }
 
-bool ObstacleDistance::planningSceneCallback(moveit_msgs::GetPlanningScene::Request &req, moveit_msgs::GetPlanningScene::Response &res)
+bool ObstacleDistanceMoveit::planningSceneCallback(moveit_msgs::GetPlanningScene::Request &req, moveit_msgs::GetPlanningScene::Response &res)
 {
     planning_scene_monitor::LockedPlanningSceneRO ps(planning_scene_monitor_);
     planning_scene::PlanningScenePtr planning_scene_ptr = ps->diff();
@@ -76,8 +76,8 @@ bool ObstacleDistance::planningSceneCallback(moveit_msgs::GetPlanningScene::Requ
     return true;
 }
 
-bool ObstacleDistance::registerCallback(cob_srvs::SetString::Request &req,
-                                        cob_srvs::SetString::Response &res)
+bool ObstacleDistanceMoveit::registerCallback(cob_srvs::SetString::Request &req,
+                                              cob_srvs::SetString::Response &res)
 {
     boost::mutex::scoped_lock lock(registered_links_mutex_);
     std::pair<std::set<std::string>::iterator, bool> ret = registered_links_.insert(req.data);
@@ -87,8 +87,8 @@ bool ObstacleDistance::registerCallback(cob_srvs::SetString::Request &req,
     return true;
 }
 
-bool ObstacleDistance::unregisterCallback(cob_srvs::SetString::Request &req,
-                                          cob_srvs::SetString::Response &res)
+bool ObstacleDistanceMoveit::unregisterCallback(cob_srvs::SetString::Request &req,
+                                                cob_srvs::SetString::Response &res)
 {
     boost::mutex::scoped_lock lock(registered_links_mutex_);
     std::set<std::string>::iterator it = registered_links_.find(req.data);
@@ -109,13 +109,13 @@ bool ObstacleDistance::unregisterCallback(cob_srvs::SetString::Request &req,
     return true;
 }
 
-void ObstacleDistance::calculateDistanceTimerCallback(const ros::TimerEvent& event)
+void ObstacleDistanceMoveit::calculateDistanceTimerCallback(const ros::TimerEvent& event)
 {
     std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > robot_links = this->robot_links_;
     std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > collision_objects = this->collision_objects_;
 
     boost::mutex::scoped_lock lock(registered_links_mutex_);
-    obstacle_distance::DistanceInfos distance_infos;
+    cob_obstacle_distance_moveit::DistanceInfos distance_infos;
     
     planning_scene_monitor::LockedPlanningSceneRO ps(planning_scene_monitor_);
     planning_scene::PlanningScenePtr planning_scene_ptr = ps->diff();
@@ -153,7 +153,7 @@ void ObstacleDistance::calculateDistanceTimerCallback(const ros::TimerEvent& eve
                 continue;
             }
 
-            obstacle_distance::DistanceInfo info;
+            cob_obstacle_distance_moveit::DistanceInfo info;
             info = getDistanceInfo(robot_object, collision_object);
 
             info.header.frame_id = planning_frame;
@@ -176,7 +176,7 @@ void ObstacleDistance::calculateDistanceTimerCallback(const ros::TimerEvent& eve
                     const boost::shared_ptr<fcl::CollisionObject> robot_self_object = robot_links[robot_self_name];
                     ROS_DEBUG_STREAM("CollisionLink: " << robot_self_name << ", Type: " << robot_self_object->getObjectType());
                     
-                    obstacle_distance::DistanceInfo info;
+                    cob_obstacle_distance_moveit::DistanceInfo info;
                     info = getDistanceInfo(robot_object, robot_self_object);
 
                     info.header.frame_id = planning_frame;
@@ -196,7 +196,7 @@ void ObstacleDistance::calculateDistanceTimerCallback(const ros::TimerEvent& eve
     distance_pub_.publish(distance_infos);
 }
 
-void ObstacleDistance::planningSceneTimerCallback(const ros::TimerEvent& event)
+void ObstacleDistanceMoveit::planningSceneTimerCallback(const ros::TimerEvent& event)
 {
     planning_scene_monitor::LockedPlanningSceneRO ps(planning_scene_monitor_);
     planning_scene::PlanningScenePtr planning_scene_ptr = ps->diff();
@@ -207,8 +207,8 @@ void ObstacleDistance::planningSceneTimerCallback(const ros::TimerEvent& event)
 }
 
 
-bool ObstacleDistance::calculateDistanceServiceCallback(obstacle_distance::GetObstacleDistance::Request &req,
-                                                        obstacle_distance::GetObstacleDistance::Response &resp)
+bool ObstacleDistanceMoveit::calculateDistanceServiceCallback(cob_obstacle_distance_moveit::GetObstacleDistance::Request &req,
+                                                              cob_obstacle_distance_moveit::GetObstacleDistance::Response &resp)
 {
     std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > robot_links = this->robot_links_;
     std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > collision_objects = this->collision_objects_;
@@ -229,7 +229,7 @@ bool ObstacleDistance::calculateDistanceServiceCallback(obstacle_distance::GetOb
                     continue;
                 }
                 resp.link_to_object.push_back(req.links[i] + "_to_" + it->first);
-                resp.distances.push_back(ObstacleDistance::getDistanceInfo(robot_links[req.links[i]], collision_object).distance);
+                resp.distances.push_back(getDistanceInfo(robot_links[req.links[i]], collision_object).distance);
             }
         }
         else
@@ -244,15 +244,15 @@ bool ObstacleDistance::calculateDistanceServiceCallback(obstacle_distance::GetOb
                     continue;
                 }
                 resp.link_to_object.push_back(req.links[i] + " to " + req.objects[y]);
-                resp.distances.push_back(ObstacleDistance::getDistanceInfo(robot_links[req.links[i]], collision_object).distance);
+                resp.distances.push_back(getDistanceInfo(robot_links[req.links[i]], collision_object).distance);
             }
         }
     }
     return true;
 }
 
-obstacle_distance::DistanceInfo ObstacleDistance::getDistanceInfo(const boost::shared_ptr<fcl::CollisionObject> object_a,
-                                                                  const boost::shared_ptr<fcl::CollisionObject> object_b)
+cob_obstacle_distance_moveit::DistanceInfo ObstacleDistanceMoveit::getDistanceInfo(const boost::shared_ptr<fcl::CollisionObject> object_a,
+                                                                                   const boost::shared_ptr<fcl::CollisionObject> object_b)
 {
     fcl::DistanceRequest req(true);  // enable_nearest_points
     fcl::DistanceResult res;
@@ -333,7 +333,7 @@ obstacle_distance::DistanceInfo ObstacleDistance::getDistanceInfo(const boost::s
 
     if (dist < 0) dist = 0;
 
-    obstacle_distance::DistanceInfo info;
+    cob_obstacle_distance_moveit::DistanceInfo info;
     info.distance = dist;
 
     tf::vectorEigenToMsg(np_object_a, info.nearest_point_frame_vector);
@@ -344,7 +344,7 @@ obstacle_distance::DistanceInfo ObstacleDistance::getDistanceInfo(const boost::s
     return info;
 }
 
-ObstacleDistance::ObstacleDistance()
+ObstacleDistanceMoveit::ObstacleDistanceMoveit()
 {
     MAXIMAL_MINIMAL_DISTANCE = 5.0; //m
     double update_frequency = 50.0; //Hz
@@ -366,28 +366,17 @@ ObstacleDistance::ObstacleDistance()
                                                        true);  // load_octomap_monitor
     planning_scene_monitor_->startStateMonitor(planning_scene_monitor::PlanningSceneMonitor::DEFAULT_JOINT_STATES_TOPIC,
                                                planning_scene_monitor::PlanningSceneMonitor::DEFAULT_ATTACHED_COLLISION_OBJECT_TOPIC);
-    planning_scene_monitor_->addUpdateCallback(boost::bind(&ObstacleDistance::updatedScene, this, _1));
+    planning_scene_monitor_->addUpdateCallback(boost::bind(&ObstacleDistanceMoveit::updatedScene, this, _1));
 
     registered_links_.clear();
 
-    calculate_obstacle_distance_ = nh_.advertiseService(distance_service, &ObstacleDistance::calculateDistanceServiceCallback, this);
-    register_server_ = nh_.advertiseService(register_service, &ObstacleDistance::registerCallback, this);
-    unregister_server_ = nh_.advertiseService(unregister_service, &ObstacleDistance::unregisterCallback, this);
-    distance_timer_ = nh_.createTimer(ros::Duration(1.0/update_frequency), &ObstacleDistance::calculateDistanceTimerCallback, this);
-    distance_pub_ = nh_.advertise<obstacle_distance::DistanceInfos>(distance_topic, 1);
+    calculate_obstacle_distance_ = nh_.advertiseService(distance_service, &ObstacleDistanceMoveit::calculateDistanceServiceCallback, this);
+    register_server_ = nh_.advertiseService(register_service, &ObstacleDistanceMoveit::registerCallback, this);
+    unregister_server_ = nh_.advertiseService(unregister_service, &ObstacleDistanceMoveit::unregisterCallback, this);
+    distance_timer_ = nh_.createTimer(ros::Duration(1.0/update_frequency), &ObstacleDistanceMoveit::calculateDistanceTimerCallback, this);
+    distance_pub_ = nh_.advertise<cob_obstacle_distance_moveit::DistanceInfos>(distance_topic, 1);
 
     monitored_scene_pub_ = nh_.advertise<moveit_msgs::PlanningScene>("/monitored_planning_scene", 1);
-    monitored_scene_server_ = nh_.advertiseService("/get_planning_scene", &ObstacleDistance::planningSceneCallback, this);
-    planning_scene_timer_ = nh_.createTimer(ros::Duration(1.0/update_frequency), &ObstacleDistance::planningSceneTimerCallback, this);
-}
-
-int main(int argc, char **argv)
-{
-    ros::init(argc, argv, "obstacle_distance_node");
-
-    ObstacleDistance ob;
-    ros::spin();
-
-    ros::shutdown();
-    return 0;
+    monitored_scene_server_ = nh_.advertiseService("/get_planning_scene", &ObstacleDistanceMoveit::planningSceneCallback, this);
+    planning_scene_timer_ = nh_.createTimer(ros::Duration(1.0/update_frequency), &ObstacleDistanceMoveit::planningSceneTimerCallback, this);
 }

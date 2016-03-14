@@ -44,7 +44,7 @@ int main(int argc, char** argv)
   col_sphere_mesh_msg.header.frame_id = "odom_combined";
   col_sphere_mesh_msg.operation = moveit_msgs::CollisionObject::ADD;
 
-  shapes::Mesh* sphere_shape = shapes::createMeshFromResource("package://obstacle_distance/files/sphere.stl");
+  shapes::Mesh* sphere_shape = shapes::createMeshFromResource("package://cob_obstacle_distance_moveit/files/sphere.stl");
   shapes::ShapeMsg sphere_mesh_msg;
   shapes::constructMsgFromShape(sphere_shape, sphere_mesh_msg);
   shape_msgs::Mesh sphere_mesh = boost::get<shape_msgs::Mesh>(sphere_mesh_msg);
@@ -89,7 +89,7 @@ int main(int argc, char** argv)
   col_box_mesh_msg.header.frame_id = "odom_combined";
   col_box_mesh_msg.operation = moveit_msgs::CollisionObject::ADD;
 
-  shapes::Mesh* box_shape = shapes::createMeshFromResource("package://obstacle_distance/files/box.stl");
+  shapes::Mesh* box_shape = shapes::createMeshFromResource("package://cob_obstacle_distance_moveit/files/box.stl");
   shapes::ShapeMsg box_mesh_msg;
   shapes::constructMsgFromShape(box_shape, box_mesh_msg);
   shape_msgs::Mesh box_mesh = boost::get<shape_msgs::Mesh>(box_mesh_msg);
@@ -133,7 +133,7 @@ int main(int argc, char** argv)
   col_cylinder_mesh_msg.header.frame_id = "odom_combined";
   col_cylinder_mesh_msg.operation = moveit_msgs::CollisionObject::ADD;
 
-  shapes::Mesh* cylinder_shape = shapes::createMeshFromResource("package://obstacle_distance/files/cylinder.stl");
+  shapes::Mesh* cylinder_shape = shapes::createMeshFromResource("package://cob_obstacle_distance_moveit/files/cylinder.stl");
   shapes::ShapeMsg cylinder_mesh_msg;
   shapes::constructMsgFromShape(cylinder_shape, cylinder_mesh_msg);
   shape_msgs::Mesh cylinder_mesh = boost::get<shape_msgs::Mesh>(cylinder_mesh_msg);
@@ -187,9 +187,9 @@ int main(int argc, char** argv)
   test_col_mesh_msg.header.frame_id = "odom_combined";
   test_col_mesh_msg.operation = moveit_msgs::CollisionObject::ADD;
 
-  //shapes::Mesh* test_shape = shapes::createMeshFromResource("package://obstacle_distance/files/sphere.stl");
-  //shapes::Mesh* test_shape = shapes::createMeshFromResource("package://obstacle_distance/files/box.stl");
-  shapes::Mesh* test_shape = shapes::createMeshFromResource("package://obstacle_distance/files/cylinder.stl");
+  //shapes::Mesh* test_shape = shapes::createMeshFromResource("package://cob_obstacle_distance_moveit/files/sphere.stl");
+  //shapes::Mesh* test_shape = shapes::createMeshFromResource("package://cob_obstacle_distance_moveit/files/box.stl");
+  shapes::Mesh* test_shape = shapes::createMeshFromResource("package://cob_obstacle_distance_moveit/files/cylinder.stl");
   shapes::ShapeMsg test_mesh_msg;
   shapes::constructMsgFromShape(test_shape, test_mesh_msg);
   shape_msgs::Mesh test_mesh = boost::get<shape_msgs::Mesh>(test_mesh_msg);

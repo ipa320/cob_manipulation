@@ -29,7 +29,7 @@
 #include <map>
 #include <ros/ros.h>
 #include <visualization_msgs/MarkerArray.h>
-#include <obstacle_distance/obstacle_distance.h>
+#include <cob_obstacle_distance_moveit/DistanceInfos.h>
 
 
 class DebugObstacleDistance
@@ -51,7 +51,7 @@ public:
     }
 
 
-    void obstacleDistancesCallback(const obstacle_distance::DistanceInfos::ConstPtr& msg)
+    void obstacleDistancesCallback(const cob_obstacle_distance_moveit::DistanceInfos::ConstPtr& msg)
     {
         visualization_msgs::MarkerArray marker_array;
 

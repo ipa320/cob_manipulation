@@ -1,5 +1,5 @@
-#ifndef OBSTACLE_DISTANCE_OBSTACLE_DISTANCE_H
-#define OBSTACLE_DISTANCE_OBSTACLE_DISTANCE_H
+#ifndef COB_OBSTACLE_DISTANCE_MOVEIT__OBSTACLE_DISTANCE_H
+#define COB_OBSTACLE_DISTANCE_MOVEIT__OBSTACLE_DISTANCE_H
 
 #include <map>
 #include <string.h>
@@ -14,17 +14,17 @@
 #include <moveit_msgs/GetPlanningScene.h>
 
 #include <cob_srvs/SetString.h>
-#include <obstacle_distance/GetObstacleDistance.h>
-#include <obstacle_distance/DistanceInfos.h>
+#include <cob_obstacle_distance_moveit/GetObstacleDistance.h>
+#include <cob_obstacle_distance_moveit/DistanceInfos.h>
 
 #include <eigen_conversions/eigen_msg.h>
 #include <tf_conversions/tf_eigen.h>
 
 
-class ObstacleDistance
+class ObstacleDistanceMoveit
 {
 public:
-    ObstacleDistance();
+    ObstacleDistanceMoveit();
 
 private:
     ros::NodeHandle nh_;    
@@ -45,8 +45,8 @@ private:
     boost::mutex registered_links_mutex_;
 
     ros::ServiceServer calculate_obstacle_distance_;
-    bool calculateDistanceServiceCallback(obstacle_distance::GetObstacleDistance::Request &req,
-                                          obstacle_distance::GetObstacleDistance::Response &res);
+    bool calculateDistanceServiceCallback(cob_obstacle_distance_moveit::GetObstacleDistance::Request &req,
+                                          cob_obstacle_distance_moveit::GetObstacleDistance::Response &res);
 
     ros::Publisher distance_pub_;
     ros::ServiceServer register_server_, unregister_server_;
@@ -56,8 +56,8 @@ private:
     ros::Timer distance_timer_;
     void calculateDistanceTimerCallback(const ros::TimerEvent& event);
 
-    obstacle_distance::DistanceInfo getDistanceInfo(const boost::shared_ptr<fcl::CollisionObject> object_a,
-                                                    const boost::shared_ptr<fcl::CollisionObject> object_b);
+    cob_obstacle_distance_moveit::DistanceInfo getDistanceInfo(const boost::shared_ptr<fcl::CollisionObject> object_a,
+                                                               const boost::shared_ptr<fcl::CollisionObject> object_b);
 };
 
-#endif //OBSTACLE_DISTANCE_OBSTACLE_DISTANCE_H
+#endif  // COB_OBSTACLE_DISTANCE_MOVEIT__OBSTACLE_DISTANCE_H

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(obstacle_distance)
+project(cob_obstacle_distance_moveit)
 
 find_package(catkin REQUIRED
     COMPONENTS
@@ -57,9 +57,13 @@ include_directories(
     ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(obstacle_distance_node src/${PROJECT_NAME}/obstacle_distance.cpp include/${PROJECT_NAME}/obstacle_distance.h)
+add_library(obstacle_distance_moveit src/${PROJECT_NAME}/obstacle_distance_moveit.cpp)
+add_dependencies(obstacle_distance_moveit ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(obstacle_distance_moveit ${catkin_LIBRARIES} ${fcl_LIBRARIES})
+
+add_executable(obstacle_distance_node src/obstacle_distance_moveit_node.cpp)
 add_dependencies(obstacle_distance_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(obstacle_distance_node ${catkin_LIBRARIES} ${fcl_LIBRARIES})
+target_link_libraries(obstacle_distance_node obstacle_distance_moveit ${catkin_LIBRARIES})
 
 add_executable(visualize_obstacle_distance_node src/visualize_obstacle_distance_node.cpp)
 add_dependencies(visualize_obstacle_distance_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
