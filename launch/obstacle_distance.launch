@@ -1,21 +1,21 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="load_robot_description" default="false"/>
   <arg name="robot" default="$(env ROBOT)"/>
   <arg name="config_path" default="$(find cob_moveit_config)/$(arg robot)/config"/>
+  <arg name="use_sensors" default="true"/>
   
   <!-- Load SRDF -->
   <include file="$(find cob_moveit_config)/launch/planning_context.xml">
-    <arg name="load_robot_description" value="$(arg load_robot_description)" />
-    <arg name="robot" value="$(arg robot)" />
-    <arg name="config_path" value="$(arg config_path)" />
+    <arg name="robot" value="$(arg robot)"/>
+    <arg name="config_path" value="$(arg config_path)"/>
   </include>
 
-  <node pkg="obstacle_distance" type="obstacle_distance_node" name="obstacle_distance_node" output="screen">
-    <rosparam file="$(arg config_path)/sensors.yaml"/>
-    <param name="octomap_frame" type="string" value="odom_combined" />
-    <param name="octomap_resolution" type="double" value="0.1" />
-    <param name="max_range" type="double" value="2.0" />
-  </node>
+  <!-- Load Sensor Input Information -->
+  <include ns="obstacle_distance_node" file="$(find cob_moveit_config)/launch/sensor_manager.xml">
+    <arg name="config_path" value="$(arg config_path)"/>
+    <arg name="use_sensors" value="$(arg use_sensors)"/>
+  </include>
+
+  <node pkg="obstacle_distance" type="obstacle_distance_node" name="obstacle_distance_node" output="screen"/>
 
 </launch>
