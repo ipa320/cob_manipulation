@@ -1,1 +1,0 @@
-DistanceInfo[] infos

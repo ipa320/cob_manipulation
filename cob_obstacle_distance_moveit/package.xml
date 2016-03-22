@@ -12,11 +12,9 @@
 
     <buildtool_depend>catkin</buildtool_depend>
 
-    <build_depend>message_generation</build_depend>
-    <exec_depend>message_runtime</exec_depend>
-
     <depend>boost</depend>
     <depend>cmake_modules</depend>
+    <depend>cob_control_msgs</depend>
     <depend>cob_srvs</depend>
     <depend>eigen</depend>
     <depend>eigen_conversions</depend>
