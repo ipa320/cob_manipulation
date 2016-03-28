@@ -29,7 +29,7 @@
 #include <map>
 #include <ros/ros.h>
 #include <visualization_msgs/MarkerArray.h>
-#include <cob_obstacle_distance_moveit/DistanceInfos.h>
+#include <cob_control_msgs/ObstacleDistances.h>
 
 
 class DebugObstacleDistance
@@ -51,12 +51,14 @@ public:
     }
 
 
-    void obstacleDistancesCallback(const cob_obstacle_distance_moveit::DistanceInfos::ConstPtr& msg)
+    void obstacleDistancesCallback(const cob_control_msgs::ObstacleDistances::ConstPtr& msg)
     {
         visualization_msgs::MarkerArray marker_array;
 
-        for(unsigned int i = 0; i < msg->infos.size(); i++)
+        for(unsigned int i = 0; i < msg->distances.size(); i++)
         {
+            cob_control_msgs::ObstacleDistance info = msg->distances[i];
+            
             //show distance vector as arrow
             visualization_msgs::Marker marker_vector;
             marker_vector.type = visualization_msgs::Marker::ARROW;
@@ -64,20 +66,20 @@ public:
             marker_vector.action = visualization_msgs::Marker::ADD;
             marker_vector.ns = "arrows";
             marker_vector.id = 2*i;
-            marker_vector.header.frame_id = msg->infos[i].header.frame_id;
+            marker_vector.header.frame_id = info.header.frame_id;
 
             marker_vector.scale.x = 0.01;
             marker_vector.scale.y = 0.05;
 
             geometry_msgs::Point start;
-            start.x = msg->infos[i].nearest_point_obstacle_vector.x;
-            start.y = msg->infos[i].nearest_point_obstacle_vector.y;
-            start.z = msg->infos[i].nearest_point_obstacle_vector.z;
+            start.x = info.nearest_point_obstacle_vector.x;
+            start.y = info.nearest_point_obstacle_vector.y;
+            start.z = info.nearest_point_obstacle_vector.z;
 
             geometry_msgs::Point end;
-            end.x = msg->infos[i].nearest_point_frame_vector.x;
-            end.y = msg->infos[i].nearest_point_frame_vector.y;
-            end.z = msg->infos[i].nearest_point_frame_vector.z;
+            end.x = info.nearest_point_frame_vector.x;
+            end.y = info.nearest_point_frame_vector.y;
+            end.z = info.nearest_point_frame_vector.z;
 
             marker_vector.color.a = 1.0;
             marker_vector.color.g = 1.0;
@@ -94,8 +96,8 @@ public:
             marker_distance.action = visualization_msgs::Marker::ADD;
             marker_distance.ns = "distances";
             marker_distance.id = 2*i+1;
-            marker_distance.header.frame_id = msg->infos[i].header.frame_id;
-            marker_distance.text = boost::lexical_cast<std::string>(boost::format("%.3f") % msg->infos[i].distance);
+            marker_distance.header.frame_id = info.header.frame_id;
+            marker_distance.text = boost::lexical_cast<std::string>(boost::format("%.3f") % info.distance);
 
             marker_distance.scale.x = 0.1;
             marker_distance.scale.y = 0.1;
@@ -109,9 +111,9 @@ public:
             marker_distance.color.g = 0.0;
             marker_distance.color.b = 0.0;
 
-            marker_distance.pose.position.x = msg->infos[i].nearest_point_frame_vector.x;
-            marker_distance.pose.position.y = msg->infos[i].nearest_point_frame_vector.y + 0.05;
-            marker_distance.pose.position.z = msg->infos[i].nearest_point_frame_vector.z;
+            marker_distance.pose.position.x = info.nearest_point_frame_vector.x;
+            marker_distance.pose.position.y = info.nearest_point_frame_vector.y + 0.05;
+            marker_distance.pose.position.z = info.nearest_point_frame_vector.z;
 
             marker_array.markers.push_back(marker_distance);
         }

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
-from cob_obstacle_distance_moveit.srv import GetObstacleDistance, GetObstacleDistanceRequest, GetObstacleDistanceResponse
+from cob_control_msgs.srv import GetObstacleDistance, GetObstacleDistanceRequest, GetObstacleDistanceResponse
 
 if __name__ == "__main__":
     rospy.wait_for_service('/calculate_distance')
