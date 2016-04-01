@@ -2,6 +2,11 @@
 Changelog for package cob_manipulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* update meta-package
+* Contributors: ipa-fxm
+
 0.6.3 (2015-08-31)
 ------------------
 
