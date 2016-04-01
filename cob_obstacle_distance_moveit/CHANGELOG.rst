@@ -2,8 +2,8 @@
 Changelog for package cob_obstacle_distance_moveit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.4 (2016-04-01)
+------------------
 * use messages and services from new package cob_control_msgs
 * removing license
 * move obstacle_distance into new package cob_obstacle_distance_moveit

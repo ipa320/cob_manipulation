@@ -2,8 +2,8 @@
 Changelog for package cob_collision_monitor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.4 (2016-04-01)
+------------------
 * explicit name for the collision_monitor plugin
 * add launch file for standalone collision_monitor node
 * introducing default values for parameter circumpassing fcl bug
