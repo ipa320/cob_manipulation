@@ -24,10 +24,8 @@ find_package(fcl REQUIRED)
 
 catkin_package()
 
-###########
-## Build ##
-###########
 
+### Build ###
 include_directories(
     include
     ${catkin_INCLUDE_DIRS}
@@ -49,3 +47,22 @@ add_executable(test_obstacle_publisher_node src/test_obstacle_publisher_node.cpp
 add_dependencies(test_obstacle_publisher_node ${catkin_EXPORTED_TARGETS})
 target_link_libraries(test_obstacle_publisher_node ${catkin_LIBRARIES})
 
+
+### INSTALL ###
+install(TARGETS obstacle_distance_moveit obstacle_distance_node visualize_obstacle_distance_node test_obstacle_publisher_node
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+)
+
+install(PROGRAMS scripts/test_obstacle_publisher.py scripts/test_registration_client.py scripts/test_service_client.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/scripts
+)
+
+install(DIRECTORY files launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
