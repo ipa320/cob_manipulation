@@ -15,8 +15,8 @@ def setup_environment():
 	psi = smi_.get_planning_scene_interface()
 	rospy.sleep(1.0)
 
-	#smi_.clear_objects("arm_7_link")
-	smi_.clear_objects("arm_left_7_link")
+	smi_.clear_objects("arm_7_link")
+	#smi_.clear_objects("arm_left_7_link")
 
 	### Add a floor
 	smi_.add_ground()
@@ -57,16 +57,18 @@ def cob_pick_action_client():
 
 	goal.object_pose.header.stamp = rospy.Time.now()
 	goal.object_pose.header.frame_id = "base_footprint"
-	#goal.object_pose.pose.position.x = random.uniform(-0.8, -0.6)
-	#goal.object_pose.pose.position.y = random.uniform(-0.3,  0.3)
-	#goal.object_pose.pose.position.z = random.uniform( 0.8,  1.1)
-	#goal.object_pose.pose.orientation.x, goal.object_pose.pose.orientation.y, goal.object_pose.pose.orientation.z, goal.object_pose.pose.orientation.w = quaternion_from_euler(random.uniform(-pi/2, pi/2),random.uniform(-pi/2, pi/2),random.uniform(-pi/2, pi/2))
-	goal.object_pose.pose.position.x = 0.5
-	goal.object_pose.pose.position.y = 0.6
-	goal.object_pose.pose.position.z = 0.9
-	goal.object_pose.pose.orientation.x, goal.object_pose.pose.orientation.y, goal.object_pose.pose.orientation.z, goal.object_pose.pose.orientation.w = quaternion_from_euler(pi/2,0,pi/4)
-
-	goal.gripper_type = "sdhx"
+	### cob3
+	goal.object_pose.pose.position.x = random.uniform(-0.8, -0.6)
+	goal.object_pose.pose.position.y = random.uniform(-0.3,  0.3)
+	goal.object_pose.pose.position.z = random.uniform( 0.8,  1.1)
+	goal.object_pose.pose.orientation.x, goal.object_pose.pose.orientation.y, goal.object_pose.pose.orientation.z, goal.object_pose.pose.orientation.w = quaternion_from_euler(random.uniform(-pi/2, pi/2),random.uniform(-pi/2, pi/2),random.uniform(-pi/2, pi/2))
+	goal.gripper_type = "sdh"
+	### cob4
+	# goal.object_pose.pose.position.x = random.uniform(0.4, 0.6)
+	# goal.object_pose.pose.position.y = random.uniform(0.5, 0.7)
+	# goal.object_pose.pose.position.z = random.uniform(0.8, 1.0)
+	# goal.object_pose.pose.orientation.x, goal.object_pose.pose.orientation.y, goal.object_pose.pose.orientation.z, goal.object_pose.pose.orientation.w = quaternion_from_euler(random.uniform(-pi/2, pi/2),random.uniform(-pi/2, pi/2),random.uniform(-pi/2, pi/2))
+	# goal.gripper_type = "sdhx"
 
 	#goal.grasp_database = "KIT"
 	goal.grasp_database = "OpenRAVE"
