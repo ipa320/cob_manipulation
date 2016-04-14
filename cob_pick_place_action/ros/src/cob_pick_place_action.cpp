@@ -661,8 +661,9 @@ void CobPickPlaceActionServer::fillGraspsOR(unsigned int objectClassId, std::str
 			//current_grasp.pre_grasp_approach.min_distance = 0.18;
 			//current_grasp.pre_grasp_approach.desired_distance = 0.28;
 
-			//current_grasp.pre_grasp_approach.direction.header.frame_id = "/arm_7_link";
-			current_grasp.pre_grasp_approach.direction.header.frame_id = "/arm_left_7_link";
+
+			ROS_INFO_STREAM("EndeffectorLink: " << group.getEndEffectorLink());
+			current_grasp.pre_grasp_approach.direction.header.frame_id = group.getEndEffectorLink();
 			current_grasp.pre_grasp_approach.direction.vector.x = 0.0;
 			current_grasp.pre_grasp_approach.direction.vector.y = 0.0;
 			current_grasp.pre_grasp_approach.direction.vector.z = 1.0;
@@ -755,12 +756,13 @@ tf::Transform CobPickPlaceActionServer::transformPose(tf::Transform transform_O_
 	while(!transform_available)
 	{
 		try{
-			//tf_listener_.lookupTransform("/sdh_palm_link", "/arm_7_link", ros::Time(0), transform_SDH_from_ARM7);
-			tf_listener_.lookupTransform("/gripper_left_palm_link", "/arm_left_7_link", ros::Time(0), transform_SDH_from_ARM7);
+			/// ToDo: get palm-link name from robot!
+			tf_listener_.lookupTransform("/sdh_palm_link", group.getEndEffectorLink(), ros::Time(0), transform_SDH_from_ARM7);
+			//tf_listener_.lookupTransform("/gripper_left_palm_link", group.getEndEffectorLink(), ros::Time(0), transform_SDH_from_ARM7);
 			transform_available = true;
 		}
 		catch (tf::TransformException ex){
-			//ROS_WARN("Waiting for transform...(%s)",ex.what());
+			ROS_WARN("Waiting for transform...(%s)",ex.what());
 			ros::Duration(0.1).sleep();
 		}
 	}
