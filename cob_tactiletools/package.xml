@@ -1,6 +1,6 @@
-<package>
+<package format="2">
   <name>cob_tactiletools</name>
-  <version>0.6.0</version>
+  <version>0.6.3</version>
   <description>
      cob_tactiletools
   </description>
@@ -14,9 +14,10 @@
   <url type="repository">https://github.com/ipa320/cob_manipulation</url>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <run_depend>rospy</run_depend>
-  <run_depend>cob_srvs</run_depend>
-  <run_depend>std_msgs</run_depend>
-  <run_depend>schunk_sdh</run_depend>
+
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>schunk_sdh</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>std_srvs</exec_depend>
 
 </package>

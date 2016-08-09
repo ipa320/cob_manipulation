@@ -10,6 +10,6 @@ bool constraint_aware
 # Maximum allowed time for IK calculation
 duration timeout
 ---
-# The returned solution 
+# The returned solution
 moveit_msgs/RobotState solution
 moveit_msgs/MoveItErrorCodes error_code

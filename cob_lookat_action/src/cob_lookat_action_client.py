@@ -1,16 +1,14 @@
 #! /usr/bin/env python
 
-import roslib; roslib.load_manifest('cob_lookat_action')
-import rospy
 import random
 
-# Brings in the SimpleActionClient
+import rospy
 import actionlib
 
-import cob_lookat_action.msg
 from geometry_msgs.msg import PoseStamped
 from moveit_msgs.srv import *
 from moveit_msgs.msg import *
+import cob_lookat_action.msg
 
 def cob_lookat_action_client():
     # Creates the SimpleActionClient, passing the type of the action
@@ -19,15 +17,15 @@ def cob_lookat_action_client():
     print "Waiting for Server..."
     client.wait_for_server()
     print "...done!"
-    
+
     focus_pub = rospy.Publisher('/lookat_target', PoseStamped)
     rospy.sleep(1.0)
-    
+
     #print "Waiting for IK-Services..."
     #rospy.wait_for_service('/compute_fk')
     #print "...done!"
     #get_fk = rospy.ServiceProxy('/compute_fk', GetPositionFK)
-    
+
     #fk_req = moveit_msgs.srv.GetPositionFKRequest()
 
     #fk_req.header.stamp = rospy.Time.now()
@@ -36,7 +34,7 @@ def cob_lookat_action_client():
     #fk_req.robot_state.joint_state.name = ["torso_lower_neck_tilt_joint","torso_pan_joint","torso_upper_neck_tilt_joint","lookat_lin_joint","lookat_x_joint","lookat_y_joint","lookat_z_joint"]
     #fk_req.robot_state.joint_state.position = [random.uniform(-0.25,0.25), random.uniform(-0.2,0.2), random.uniform(-0.4,0.4), random.uniform(-5.0,5.0), random.uniform(-3.141,3.141), random.uniform(-3.141,3.141), random.uniform(-3.141,3.141)]
     ##print "REQUEST: ", fk_req
-    
+
     #fk_res = moveit_msgs.srv.GetPositionFKResponse()
     #try:
         #fk_res = get_fk(fk_req)
@@ -61,18 +59,17 @@ def cob_lookat_action_client():
     focus.pose.orientation.w = 1.0
     goal.target = focus
     #print "GOAL: ", goal
-    
+
     #Debug
     focus_pub.publish(goal.target)
     rospy.sleep(1.0)
-   
- 
+
     # Sends the goal to the action server.
     client.send_goal(goal)
 
     # Waits for the server to finish performing the action.
     client.wait_for_result()
-    
+
     result = client.get_result()
     print result
 

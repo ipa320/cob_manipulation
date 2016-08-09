@@ -1,13 +1,12 @@
 #!/usr/bin/python
 
-import roslib; roslib.load_manifest('cob_moveit_interface')
 import threading
 from copy import deepcopy
 
 import rospy
-import tf
 from geometry_msgs.msg import PoseStamped
 from moveit_commander import MoveGroupCommander, PlanningSceneInterface
+import tf
 
 
 
@@ -84,12 +83,12 @@ def clear_objects(attach_link):
     psi = get_planning_scene_interface()
     psi.remove_attached_object(attach_link)
     psi.remove_world_object("")
-    
+
 def clear_attached_object(attach_link, object_name):
     psi = get_planning_scene_interface()
     psi.remove_attached_object(link = attach_link, name = object_name)
     psi.remove_world_object(object_name)
-    
+
 
 def attach_mesh_to_link(link, name, path):
     psi = get_planning_scene_interface()
@@ -121,21 +120,21 @@ def moveit_pose_goal(group, ref_frame, goal, replan=False):
     else:
         print "Failed to plan path"
         return 'failed'
-    
-    
+
+
 
 #this is linear movement
 def moveit_cart_goals(group, ref_frame, goal_list, avoid_collisions=True):
     mgc = get_move_group_commander(group)
-    
+
     mgc.set_pose_reference_frame(ref_frame)
     (traj,frac)  = mgc.compute_cartesian_path(goal_list, 0.01, 4, avoid_collisions)
     print traj,frac
 
     #mgc.execute(traj)
     #print "Done moving"
-    #return 'succeeded'  
-    
+    #return 'succeeded'
+
     if frac == 1.0:
         if mgc.execute(traj):
 		print "Done moving"
@@ -175,7 +174,7 @@ def get_goal_from_server(group, parameter_name):
                 rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",param_string)
                 return None
         joint_names = rospy.get_param(param_string)
-        
+
         # check joint_names parameter
         if not type(joint_names) is list: # check list
                 rospy.logerr("no valid joint_names for %s: not a list, aborting...",group)
@@ -189,7 +188,7 @@ def get_goal_from_server(group, parameter_name):
                     return None
                 else:
                     rospy.logdebug("accepted joint_names for group %s",group)
-        
+
         # get joint values from parameter server
         if type(parameter_name) is str:
             if not rospy.has_param(ns_global_prefix + "/" + group + "/" + parameter_name):
@@ -239,7 +238,7 @@ def get_goal_from_server(group, parameter_name):
                 print "parameter is:",param
                 return None
             rospy.logdebug("accepted value %f for %s",value,group)
-        
+
         return point
 
 

@@ -1,10 +1,9 @@
 #! /usr/bin/env python
-import roslib; roslib.load_manifest('cob_grasp_generation')
 import rospy
 
 import actionlib
 import moveit_msgs.msg
-import cob_grasp_generation.msg 
+import cob_grasp_generation.msg
 
 def query_grasps_client():
     client = actionlib.SimpleActionClient('query_grasps', cob_grasp_generation.msg.QueryGraspsAction)
@@ -18,11 +17,11 @@ def query_grasps_client():
     #goal.grasp_id = 2
     goal.num_grasps = 0
     goal.threshold = 0
-    
+
     client.send_goal(goal)
     client.wait_for_result()
     return client.get_result()
-    
+
 if __name__ == '__main__':
     try:
         rospy.init_node('query_grasps_client')

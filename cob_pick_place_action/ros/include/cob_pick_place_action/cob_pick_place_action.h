@@ -23,7 +23,7 @@
  *
  * \brief
  *	 This package provides pick place action
- *   It takes object id and choosed grasp from the graspList. 
+ *   It takes object id and choosed grasp from the graspList.
  *	 It does pick and place depending on the request
  *
  ****************************************************************/
@@ -59,31 +59,31 @@ class CobPickPlaceActionServer
 {
 private:
 	ros::NodeHandle nh_;
-	
+
 	ros::Publisher pub_co; //publisher for collision_objects
 	ros::Publisher pub_ao; //publisher for attached_collision_objects
 
 	boost::scoped_ptr<actionlib::SimpleActionServer<cob_pick_place_action::CobPickAction> > as_pick;
 	boost::scoped_ptr<actionlib::SimpleActionServer<cob_pick_place_action::CobPlaceAction> > as_place;
-	
+
 	boost::scoped_ptr<actionlib::SimpleActionClient<cob_grasp_generation::QueryGraspsAction> > ac_grasps_or;
-	
+
 	moveit::planning_interface::MoveGroup group;
-	
+
 	char* GraspTableIniFile;
 	GraspTable* m_GraspTable;
-	
+
 	bool last_grasp_valid;
 	std::string last_object_name;
 	tf::TransformListener tf_listener_;
 	tf::TransformBroadcaster tf_broadcaster_;
-	
+
 	std::map<unsigned int,std::string> map_classid_to_classname;
-	
+
 public:
 	CobPickPlaceActionServer(std::string group_name) : group(group_name) {}
 	~CobPickPlaceActionServer();
-	
+
 	void initialize();
 	void run();
 
@@ -91,13 +91,13 @@ public:
 	void place_goal_cb(const cob_pick_place_action::CobPlaceGoalConstPtr &goal);
 
 	void insertObject(std::string object_name, unsigned int object_class, geometry_msgs::PoseStamped object_pose);
-	
+
 	void fillAllGraspsKIT(unsigned int objectClassId, std::string gripper_type, geometry_msgs::PoseStamped object_pose, std::vector<moveit_msgs::Grasp> &grasps);
 	void fillSingleGraspKIT(unsigned int objectClassId, std::string gripper_type, unsigned int grasp_id, geometry_msgs::PoseStamped object_pose, std::vector<moveit_msgs::Grasp> &grasps);
 	void convertGraspKIT(Grasp* current_grasp, geometry_msgs::PoseStamped object_pose, std::vector<moveit_msgs::Grasp> &grasps);
-	
+
 	void fillGraspsOR(unsigned int objectClassId, std::string gripper_type, unsigned int grasp_id, geometry_msgs::PoseStamped object_pose, std::vector<moveit_msgs::Grasp> &grasps);
-	
+
 	trajectory_msgs::JointTrajectory MapHandConfiguration(sensor_msgs::JointState table_config);
 	tf::Transform transformPose(tf::Transform transform_O_from_SDH, tf::Transform transform_HEADER_from_OBJECT, std::string object_frame_id);
 	moveit_msgs::GripperTranslation calculateApproachDirection(geometry_msgs::Pose msg_pose_grasp_FOOTPRINT_from_ARM7, geometry_msgs::Pose msg_pose_pre_FOOTPRINT_from_ARM7);

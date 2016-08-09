@@ -1,14 +1,13 @@
 #! /usr/bin/env python
 
-import roslib; roslib.load_manifest('cob_pick_place_action')
-import rospy
-import actionlib
 import random
 from math import pi
-from tf.transformations import *
 
+import rospy
+import actionlib
 from geometry_msgs.msg import PoseStamped
-import cob_pick_place_action.msg 
+from tf.transformations import *
+import cob_pick_place_action.msg
 
 def cob_place_action_client():
 	# Creates the SimpleActionClient, passing the type of the action
@@ -18,29 +17,29 @@ def cob_place_action_client():
 	# Waits until the action server has started up and started
 	# listening for goals.
 	place_action_client.wait_for_server()
-	
+
 	# Creates a goal to send to the action server.
 	goal = cob_pick_place_action.msg.CobPlaceGoal()
 	#goal.object_class = 18
 	#goal.object_name = "yellowsaltcube"
 	goal.object_class = 50
 	goal.object_name = "instantsoup"
-	
+
 	pose = PoseStamped()
-	
+
 	pose.header.stamp = rospy.Time.now()
 	pose.header.frame_id = "base_footprint"
 	#pose.pose.position.x = random.uniform(-0.8, -0.6)
 	#pose.pose.position.y = random.uniform(-0.3,  0.3)
 	#pose.pose.position.z = random.uniform( 0.8,  1.1)
-	#pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w = quaternion_from_euler(random.uniform(-pi/2, pi/2),random.uniform(-pi/2, pi/2),random.uniform(-pi/2, pi/2)) 
+	#pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w = quaternion_from_euler(random.uniform(-pi/2, pi/2),random.uniform(-pi/2, pi/2),random.uniform(-pi/2, pi/2))
 	pose.pose.position.x = -0.7
-	pose.pose.position.y = -0.5  
+	pose.pose.position.y = -0.5
 	pose.pose.position.z = 0.9
-	pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w = quaternion_from_euler(0,0,0) 
+	pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w = quaternion_from_euler(0,0,0)
 	goal.destinations.append(pose)
-	
-	
+
+
 	# Sends the goal to the action server.
 	place_action_client.send_goal(goal)
 

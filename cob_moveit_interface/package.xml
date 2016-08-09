@@ -1,6 +1,6 @@
-<package>
+<package format="2">
   <name>cob_moveit_interface</name>
-  <version>0.6.0</version>
+  <version>0.6.3</version>
   <description>
      cob_moveit_interface
   </description>
@@ -13,13 +13,12 @@
   <url type="bugtracker">https://github.com/ipa320/cob_manipulation/issues</url>
   <url type="repository">https://github.com/ipa320/cob_manipulation</url>
 
-  <run_depend>rospy</run_depend>
-  <run_depend>geometry_msgs</run_depend>
-  <run_depend>tf</run_depend>
-  <run_depend>moveit_commander</run_depend>
-
   <buildtool_depend>catkin</buildtool_depend>
 
+  <exec_depend>cob_script_server</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>moveit_commander</exec_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>tf</exec_depend>
+
 </package>
-
-

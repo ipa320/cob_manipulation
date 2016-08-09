@@ -1,22 +1,20 @@
 #! /usr/bin/env python
 
-import roslib; roslib.load_manifest('cob_lookat_action')
-import rospy
 import random
 
-# Brings in the SimpleActionClient
+import rospy
 import actionlib
 
-import cob_lookat_action.msg
 from geometry_msgs.msg import PoseStamped
 from moveit_msgs.srv import *
 from moveit_msgs.msg import *
+import cob_lookat_action.msg
 
 def cob_lookat_action_client():
     # Creates the SimpleActionClient, passing the type of the action
     # (FibonacciAction) to the constructor.
     client = actionlib.SimpleActionClient('lookat_action', cob_lookat_action.msg.LookAtAction)
-    
+
     focus_pub = rospy.Publisher('/lookat_target', PoseStamped)
 
     # Waits until the action server has started up and started
@@ -31,25 +29,25 @@ def cob_lookat_action_client():
     focus.pose.orientation.w = 1.0
     goal.target = focus
     #print "GOAL: ", goal
-    
+
     while not rospy.is_shutdown():
         #client.cancel_goal()
-        
+
         focus.header.stamp = rospy.Time.now()
-    
+
         ##Debug
         #focus_pub.publish(goal.target)
         #rospy.sleep(2.0)
-     
+
         # Sends the goal to the action server.
         client.send_goal(goal)
-        
+
         #rospy.sleep(0.1)
 
 
     # Waits for the server to finish performing the action.
-    client.wait_for_result()        
-    
+    client.wait_for_result()
+
     result = client.get_result()
     print result
 

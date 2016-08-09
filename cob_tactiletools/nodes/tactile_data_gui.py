@@ -1,24 +1,15 @@
 #!/usr/bin/python
-#
-#
-#
-#
-#
-#
-#
-#
 
-import roslib; roslib.load_manifest('cob_tactiletools')
-import rospy
-from schunk_sdh.msg import TactileMatrix, TactileSensor
 import pygtk
 pygtk.require('2.0')
 import gtk, gobject, cairo
 import threading
-import time
 
 #Initializing the gtk's thread engine
 gtk.gdk.threads_init()
+
+import rospy
+from schunk_sdh.msg import TactileMatrix, TactileSensor
 
 class Screen(gtk.DrawingArea):
 
@@ -94,8 +85,6 @@ class Screen(gtk.DrawingArea):
         self.tactile_array = array
         self.queue_draw()
 
-
-            
 def roscb(data):
     global sc1
     global sc2
