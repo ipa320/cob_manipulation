@@ -11,6 +11,7 @@
   <include file="$(find cob_hardware_config)/common/upload_robot.launch" if="$(arg load_robot_description)">
     <arg name="robot" value="$(arg robot)" />
     <arg name="config_path" value="$(arg config_path)" />
+    <arg name="planning_context" value="true" />
   </include>
 
 </launch>
