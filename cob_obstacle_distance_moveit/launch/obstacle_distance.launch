@@ -17,6 +17,7 @@
     <arg name="use_sensors" value="$(arg use_sensors)"/>
   </include>
 
-  <node pkg="cob_obstacle_distance_moveit" type="obstacle_distance_node" name="$(arg node_name)" output="screen"/>
-
+  <node pkg="cob_obstacle_distance_moveit" type="obstacle_distance_node" name="$(arg node_name)" output="screen">
+    <!--remap from="/obstacle_distances" to="/obstacle_distances"/-->  <!--only needed for the cob4 specific configuration-->
+  </node>
 </launch>
