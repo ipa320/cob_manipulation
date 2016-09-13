@@ -1,0 +1,28 @@
+<package format="2">
+  <name>cob_moveit_bringup</name>
+  <version>0.6.4</version>
+  <description>
+     MoveIt config files for all cob and raw
+  </description>
+  <author email="mdl@ipa.fhg.de">Mathias Luedtke</author>
+  <maintainer email="mdl@ipa.fhg.de">Mathias Luedtke</maintainer>
+  <maintainer email="fxm@ipa.fhg.de">Felix Messmer</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://moveit.ros.org/</url>
+  <url type="bugtracker">https://github.com/ros-planning/moveit_setup_assistant/issues</url>
+  <url type="repository">https://github.com/ros-planning/moveit_setup_assistant</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <exec_depend>cob_hardware_config</exec_depend>
+  <exec_depend>joint_state_publisher</exec_depend>
+  <exec_depend>moveit_planners_ompl</exec_depend>
+  <exec_depend>moveit_plugins</exec_depend>
+  <exec_depend>moveit_ros_move_group</exec_depend>
+  <exec_depend>moveit_ros_visualization</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>xacro</exec_depend>
+
+</package>
