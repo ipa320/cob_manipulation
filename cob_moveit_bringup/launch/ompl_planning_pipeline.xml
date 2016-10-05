@@ -1,7 +1,7 @@
 <launch>
 
   <arg name="robot" default="$(optenv ROBOT !!NO_ROBOT_SET!!)"/>
-  <arg name="config_path" default="$(find cob_hardware_config)/$(arg robot)/config"/>
+  <arg name="config_path" default="$(find cob_hardware_config)/$(arg robot)/moveit_config"/>
 
   <!-- OMPL Plugin for MoveIt! -->
   <arg name="planning_plugin" value="ompl_interface/OMPLPlanner" />
