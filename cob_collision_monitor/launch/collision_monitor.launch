@@ -2,7 +2,7 @@
 <launch>
   <arg name="load_robot_description" default="false"/>
   <arg name="robot" default="$(env ROBOT)"/>
-  <arg name="config_path" default="$(find cob_hardware_config)/$(arg robot)/config"/>
+  <arg name="config_path" default="$(find cob_hardware_config)/$(arg robot)/moveit_config"/>
   
   <!-- Load SRDF -->
   <include file="$(find cob_moveit_config)/launch/planning_context.xml">
