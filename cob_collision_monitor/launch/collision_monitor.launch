@@ -11,6 +11,8 @@
     <arg name="config_path" value="$(arg config_path)" />
   </include>
 
-  <node pkg="cob_collision_monitor" type="cob_collision_monitor_node" name="cob_collision_monitor_node"/>
+  <node pkg="cob_collision_monitor" type="cob_collision_monitor_node" name="cob_collision_monitor_node">
+    <!--remap from="/cob_collision_monitor_node/state_is_valid" to="/safety_controller/state_is_valid"/-->  <!--only needed for the cob4 specific configuration-->
+  </node>
 
 </launch>
