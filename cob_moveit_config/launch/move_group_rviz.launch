@@ -5,6 +5,7 @@
   <arg name="robot" default="$(optenv ROBOT !!NO_ROBOT_SET!!)"/>
   <arg name="debug" default="false"/>
   <arg name="use_sensors" default="true"/>
+  <arg name="fake_execution" default="false"/>
 
   # The planning and execution components of MoveIt! configured to
   # publish the current configuration of the robot (simulated or real)
@@ -13,6 +14,7 @@
     <arg name="robot" value="$(arg robot)" />
     <arg name="debug" value="$(arg debug)" />
     <arg name="use_sensors" default="$(arg use_sensors)"/>
+    <arg name="fake_execution" value="$(arg fake_execution)"/>
   </include>
 
   # The visualization component of MoveIt!

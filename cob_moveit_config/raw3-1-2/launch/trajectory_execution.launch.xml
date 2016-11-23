@@ -12,7 +12,7 @@
   <param name="allowed_goal_duration_margin" value="0.5"/> <!-- default 0.5 -->
   
   <!-- Load the robot specific controller manager; this sets the moveit_controller_manager ROS parameter -->
-  <arg name="moveit_controller_manager" default="raw3-1" />
+  <arg name="moveit_controller_manager" default="raw3-1-2" />
   <include file="$(find raw3-1-2)/launch/$(arg moveit_controller_manager)_moveit_controller_manager.launch.xml" />
   
 </launch>

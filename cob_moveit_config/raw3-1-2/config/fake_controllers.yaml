@@ -1,6 +1,7 @@
 controller_list:
   - name: fake_arm_controller
     joints:
+      - virtual
       - arm_shoulder_pan_joint
       - arm_shoulder_lift_joint
       - arm_elbow_joint
