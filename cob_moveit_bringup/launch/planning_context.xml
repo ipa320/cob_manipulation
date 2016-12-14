@@ -1,17 +1,23 @@
 <launch>
-  <!-- By default we do not overwrite the URDF. Change the following to true to change the default behavior -->
-  <arg name="load_robot_description" default="false"/>
+
   <arg name="robot" default="$(optenv ROBOT !!NO_ROBOT_SET!!)"/>
   <arg name="config_path" default="$(find cob_moveit_config)/$(arg robot)/config"/>
+
+  <!-- By default we do not overwrite the URDF. Change the following to true to change the default behavior -->
+  <arg name="load_robot_description" default="false"/>
+  <arg name="load_semantic_description" default="true"/>
+  <arg name="load_planning_context" default="true"/>
 
   <!-- The name of the parameter under which the URDF is loaded -->
   <arg name="robot_description" default="robot_description"/>
 
   <include file="$(find cob_moveit_config)/launch/upload_config.launch">
-    <arg name="load_robot_description" value="$(arg load_robot_description)"/>
     <arg name="robot" value="$(arg robot)"/>
     <arg name="config_path" value="$(arg config_path)"/>
     <arg name="robot_description" value="$(arg robot_description)"/>
+    <arg name="load_robot_description" value="$(arg load_robot_description)"/>
+    <arg name="load_semantic_description" value="$(arg load_semantic_description)"/>
+    <arg name="load_planning_context" value="$(arg load_planning_context)"/>
   </include>
 
 
