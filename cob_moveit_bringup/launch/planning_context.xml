@@ -11,11 +11,15 @@
   <!-- The name of the parameter under which the URDF is loaded -->
   <arg name="robot_description" default="robot_description"/>
 
+  <!-- Load universal robotic description format (URDF) -->
+  <include file="$(find cob_hardware_config)/common/upload_robot.launch" if="$(arg load_robot_description)">
+    <arg name="robot" value="$(arg robot)" />
+  </include>
+
   <include file="$(find cob_moveit_config)/launch/upload_config.launch">
     <arg name="robot" value="$(arg robot)"/>
     <arg name="config_path" value="$(arg config_path)"/>
     <arg name="robot_description" value="$(arg robot_description)"/>
-    <arg name="load_robot_description" value="$(arg load_robot_description)"/>
     <arg name="load_semantic_description" value="$(arg load_semantic_description)"/>
     <arg name="load_planning_context" value="$(arg load_planning_context)"/>
   </include>

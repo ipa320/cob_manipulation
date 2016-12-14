@@ -3,7 +3,6 @@
   <arg name="robot" default="$(env ROBOT)"/>
   <arg name="config_path" default="$(find cob_moveit_config)/$(arg robot)/config"/>
 
-  <arg name="load_robot_description" default="false"/>
   <arg name="load_semantic_description" default="true"/>
   <arg name="load_planning_context" default="false"/>
 
@@ -14,7 +13,6 @@
   <include file="$(find cob_moveit_config)/launch/upload_config.launch">
     <arg name="robot" value="$(arg robot)" />
     <arg name="config_path" value="$(arg config_path)" />
-    <arg name="load_robot_description" value="$(arg load_robot_description)" />
     <arg name="load_semantic_description" value="$(arg load_semantic_description)" />
     <arg name="load_planning_context" value="$(arg load_planning_context)" />
   </include>
