@@ -14,7 +14,7 @@
 
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen"/>
 
-  <include file="$(find cob_moveit_config)/launch/move_group.launch">
+  <include file="$(find cob_moveit_bringup)/launch/move_group.launch">
     <arg name="robot" value="$(arg robot)"/>
     <arg name="load_robot_description" value="true"/>
     <arg name="allow_trajectory_execution" value="true"/>
@@ -24,13 +24,13 @@
     <arg name="debug" value="$(arg debug)"/>
   </include>
 
-  <include file="$(find cob_moveit_config)/launch/rviz.launch">
+  <include file="$(find cob_moveit_bringup)/launch/rviz.launch">
     <arg name="robot" value="$(arg robot)"/>
     <arg name="config" value="true"/>
     <arg name="debug" value="$(arg debug)"/>
   </include>
 
-  <include file="$(find cob_moveit_config)/launch/warehouse.launch" if="$(arg with_db)">
+  <include file="$(find cob_moveit_bringup)/launch/warehouse.launch" if="$(arg with_db)">
     <arg name="moveit_warehouse_database_path" value="$(find cob_moveit_config)/$(arg robot)/default_warehouse_mongo_db"/>
   </include>
 
