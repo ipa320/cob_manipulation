@@ -4,6 +4,8 @@
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <std_msgs/Bool.h>
 
+#include <moveit/collision_detection/collision_common.h>
+
 namespace cob_collision_monitor{
 class ValidStatePublisher{
     planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
@@ -65,7 +67,23 @@ public:
             planning_scene_monitor::LockedPlanningSceneRO ps(planning_scene_monitor_);
             planning_scene::PlanningScenePtr diff_ps = ps->diff(diff_msg_);
             data_.data = !diff_ps->isStateColliding("", verbose_);
+            
+            /// debug
+            collision_detection::CollisionResult::ContactMap contacts;
+            diff_ps->getCollidingPairs(contacts);
+
+            ROS_WARN("#Collisions: %zu", contacts.size());
+            for (collision_detection::CollisionResult::ContactMap::iterator map_it=contacts.begin(); map_it!=contacts.end(); ++map_it)
+            {
+                ROS_ERROR("Collision between %s and %s", map_it->first.first.c_str(), map_it->first.second.c_str());
+                ROS_INFO("#Contacts: %zu", map_it->second.size());
+                for (std::vector<collision_detection::Contact>::iterator vec_it=map_it->second.begin(); vec_it!=map_it->second.end(); ++vec_it)
+                {
+                    ROS_INFO("Depth: %f", vec_it->depth);
+                }
+            }
         }else if(was_complete_){
+            ROS_ERROR("was not complete");
             data_.data = false;
         }
         pub_.publish(data_);
