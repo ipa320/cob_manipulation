@@ -6,6 +6,7 @@
   <arg name="debug" default="false"/>
   <arg name="use_sensors" default="true"/>
   <arg name="fake_execution" default="false"/>
+  <arg name="pipeline" default="ompl"/>
 
   # The planning and execution components of MoveIt! configured to
   # publish the current configuration of the robot (simulated or real)
@@ -13,12 +14,13 @@
   <include file="$(find cob_moveit_config)/launch/move_group.launch">
     <arg name="robot" value="$(arg robot)" />
     <arg name="debug" value="$(arg debug)" />
+    <arg name="pipeline" value="$(arg pipeline)"/>
     <arg name="use_sensors" default="$(arg use_sensors)"/>
     <arg name="fake_execution" value="$(arg fake_execution)"/>
   </include>
 
   # The visualization component of MoveIt!
-  <include file="$(find cob_moveit_config)/launch/rviz.launch">
+  <include file="$(find cob_moveit_config)/launch/$(arg pipeline)_rviz.launch">
     <arg name="robot" value="$(arg robot)" />
     <arg name="config" value="true"/>
     <arg name="debug" value="$(arg debug)"/>

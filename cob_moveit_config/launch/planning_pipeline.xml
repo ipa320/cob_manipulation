@@ -6,7 +6,7 @@
   <arg name="robot" default="$(optenv ROBOT !!NO_ROBOT_SET!!)"/>
   <arg name="pipeline" default="ompl"/>
 
-  <include file="$(find cob_moveit_config)/launch/$(arg pipeline)_planning_pipeline.xml">
+  <include file="$(find cob_moveit_config)/launch/$(arg pipeline)_planning_pipeline.launch.xml">
     <arg name="robot" value="$(arg robot)"/>
   </include>
 
