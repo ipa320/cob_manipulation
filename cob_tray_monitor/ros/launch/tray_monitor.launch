@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-
-	<rosparam ns="tray_monitor" file="$(find cob_tray_monitor)/config/monitor_params.yaml" command="load" />
-
-	<node ns="tray_monitor" pkg="cob_tray_monitor" type="tray_monitor.py" name="tray_monitor" respawn="false" output="screen"/>
-
-</launch>
-
