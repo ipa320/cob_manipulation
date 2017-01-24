@@ -1,0 +1,26 @@
+<package format="2">
+  <name>cob_moveit_bringup</name>
+  <version>0.6.4</version>
+  <description>
+     MoveIt launch files
+  </description>
+  <author email="fxm@ipa.fhg.de">Felix Messmer</author>
+  <maintainer email="mdl@ipa.fhg.de">Mathias Luedtke</maintainer>
+  <maintainer email="fxm@ipa.fhg.de">Felix Messmer</maintainer>
+
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <exec_depend>cob_hardware_config</exec_depend>
+  <exec_depend>cob_moveit_config</exec_depend>
+  <exec_depend>joint_state_publisher</exec_depend>
+  <exec_depend>moveit_planners_ompl</exec_depend>
+  <exec_depend>moveit_plugins</exec_depend>
+  <exec_depend>moveit_ros_move_group</exec_depend>
+  <exec_depend>moveit_ros_visualization</exec_depend>
+  <exec_depend>moveit_setup_assistant</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>tf</exec_depend>
+
+</package>
