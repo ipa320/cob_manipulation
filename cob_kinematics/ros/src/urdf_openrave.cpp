@@ -136,7 +136,7 @@ int main(int argc, char **argv){
 			sstream << line << endl;
 		}
 		xml = sstream.str();
-    } else xml = exec((string("rosrun xacro xacro.py ")+file_urdf).c_str());
+    } else xml = exec((string("rosrun xacro xacro --inorder ")+file_urdf).c_str());
 
     if(!urdf_->initString(xml))
     {
