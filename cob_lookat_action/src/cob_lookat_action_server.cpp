@@ -1,366 +1,228 @@
-#include  <ros/ros.h>
-#include  <actionlib/server/simple_action_server.h>
-#include  <cob_lookat_action/LookAtAction.h>
-#include  <actionlib/client/simple_action_client.h>
-#include  <actionlib/client/terminal_state.h>
-#include  <control_msgs/FollowJointTrajectoryAction.h>
-#include  <trajectory_msgs/JointTrajectory.h>
-#include  <trajectory_msgs/JointTrajectoryPoint.h>
-#include  <geometry_msgs/PoseStamped.h>
-#include  <moveit_msgs/GetPositionIK.h>
-
-#include  <tf/transform_datatypes.h>
-#include  <math.h>
+#include <ros/ros.h>
+#include <cob_lookat_action/cob_lookat_action_server.h>
 
 
-class  CobLookAtAction
+bool CobLookAtAction::init()
 {
-protected:
-
-    ros::NodeHandle  nh;
-
-    ros::ServiceClient  ik_client;
-    actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction> *torso_ac;
-    actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction> *head_ac;
-
-    //  NodeHandle  instance  must  be  created  before  this  line.  Otherwise  strange  error  may  occur.
-    actionlib::SimpleActionServer<cob_lookat_action::LookAtAction> *lookat_as;
-    std::string  lookat_action_name;
-
-    //  create  messages  that  are  used  to  published  feedback/result
-    cob_lookat_action::LookAtFeedback  lookat_fb;
-    cob_lookat_action::LookAtResult  lookat_res;
-
-    bool torso_available;
-    bool head_available;
-    std::vector<std::string>  torso_joints;
-    std::vector<std::string>  head_joints;
-    std::vector<std::string>  lookat_joints;
-
-public:
-
-    CobLookAtAction(std::string  action_name)  :
-        lookat_action_name(action_name) {}
-
-    ~CobLookAtAction(void) {}
-
-    bool init()
+    /// get parameters from parameter server
+    if (!nh_.getParam("joint_names", joint_names_))
     {
-        torso_available = false;
-        head_available = false;
-
-        torso_ac = new actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction>(nh, "/torso_controller/follow_joint_trajectory",  true);
-        head_ac = new actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction>(nh,"/head_controller/follow_joint_trajectory",  true);
-
-        ROS_WARN("Waiting for Torso-AS");
-        torso_available = torso_ac->waitForServer(ros::Duration(10.0));
-        ROS_WARN("Waiting for Head-AS");
-        head_available = head_ac->waitForServer(ros::Duration(10.0));
-
-        if(torso_available)
-        {
-            XmlRpc::XmlRpcValue tj;
-            nh.getParam("/torso_controller/joint_names", tj);
-            ROS_ASSERT(tj.getType() == XmlRpc::XmlRpcValue::TypeArray);
-
-            for (int32_t i = 0; i < tj.size(); ++i)
-            {
-              ROS_ASSERT(tj[i].getType() == XmlRpc::XmlRpcValue::TypeString);
-              torso_joints.push_back(tj[i]);
-            }
-
-            if(head_available)
-            {
-                XmlRpc::XmlRpcValue hj;
-                nh.getParam("/head_controller/JointName", hj);
-                ROS_ASSERT(hj.getType() == XmlRpc::XmlRpcValue::TypeString);
-                head_joints.push_back(hj);
-
-                //nh.getParam("/head_controller/joints", hj);
-                //ROS_ASSERT(hj.getType() == XmlRpc::XmlRpcValue::TypeArray);
-
-                //for (int32_t i = 0; i < hj.size(); ++i)
-                //{
-                //  ROS_ASSERT(hj[i].getType() == XmlRpc::XmlRpcValue::TypeString);
-                //  head_joints.push_back(hj[i]);
-                //}
-            }
-
-            //additional lookat joints
-            lookat_joints.clear();
-            lookat_joints = torso_joints;
-            lookat_joints.push_back("lookat_lin_joint");
-            lookat_joints.push_back("lookat_x_joint");
-            lookat_joints.push_back("lookat_y_joint");
-            lookat_joints.push_back("lookat_z_joint");
-
-            ROS_INFO("Starting up...");
-            ik_client  =  nh.serviceClient<moveit_msgs::GetPositionIK>("/compute_ik");
-
-            if(head_available)
-                lookat_as = new actionlib::SimpleActionServer<cob_lookat_action::LookAtAction>(nh,  lookat_action_name,  boost::bind(&CobLookAtAction::goalCB,  this,  _1),  false);
-            else
-                lookat_as = new actionlib::SimpleActionServer<cob_lookat_action::LookAtAction>(nh,  lookat_action_name,  boost::bind(&CobLookAtAction::goalCB_torso,  this,  _1),  false);
-
-            lookat_as->start();
-
-            return true;
-        }
-
-        ROS_ERROR("No torso_controller loaded!");
+        ROS_ERROR("Parameter 'joint_names' not set");
         return false;
     }
 
-    void goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
+    if (!nh_.getParam("chain_base_link", chain_base_link_))
     {
-        // helper variables
-        bool success = false;
-
-        //  publish  info  to  the  console  for  the  user
-        //ROS_INFO("%s:  New Goal!",  lookat_action_name.c_str());
-
-        moveit_msgs::GetPositionIK  srv;
-        srv.request.ik_request.group_name  =  "lookat";
-        srv.request.ik_request.ik_link_name  =  "lookat_focus_frame";
-        srv.request.ik_request.timeout  =  ros::Duration(0.1);
-        srv.request.ik_request.attempts  =  1;
-        srv.request.ik_request.pose_stamped  =  goal->target;
-
-        std::vector<double>  joint_seed  (lookat_joints.size(),  0.0);
-
-        moveit_msgs::RobotState  seed;
-        seed.joint_state.header  =  goal->target.header;
-        seed.joint_state.name  =  lookat_joints;
-        seed.joint_state.position  =  joint_seed;
-        srv.request.ik_request.robot_state  =  seed;
-
-        if  (ik_client.call(srv))
-        {
-            //ROS_DEBUG("IK  Result:  %d",  srv.response.error_code.val);
-            if(srv.response.error_code.val  ==  1)
-            {
-                ROS_INFO("IK  Solution  found");
-                success  =  true;
-            }
-            else
-            {
-                ROS_ERROR("No  IK  Solution  found");
-                success  =  false;
-                //lookat_res.success  =  success;
-                ////  set  the  action  state  to  aborted
-                //lookat_as->setAborted(lookat_res);
-                //return;
-            }
-        }
-        else
-        {
-            ROS_ERROR("IK-Call  failed");
-            success  =  false;
-            lookat_res.success  =  success;
-            //  set  the  action  state  to  aborted
-            lookat_as->setAborted(lookat_res);
-            return;
-        }
-
-        std::vector<double>  torso_config;
-        torso_config.resize(torso_joints.size());
-
-        std::vector<double>  head_config;
-        head_config.resize(head_joints.size());
-
-        if(success)
-        {
-            for(unsigned  int  i=0, j=0;  i<srv.response.solution.joint_state.name.size();  i++)
-            {
-                //ROS_INFO("%s:  %f",  srv.response.solution.joint_state.name[i].c_str(),  srv.response.solution.joint_state.position[i]);
-                if(j<torso_joints.size() && srv.response.solution.joint_state.name[i]==torso_joints[j])
-                {
-                    torso_config[j]  =  srv.response.solution.joint_state.position[i];
-		    j++;
-		}
-		if(srv.response.solution.joint_state.name[i]  ==  "lookat_lin_joint")
-		    if(srv.response.solution.joint_state.position[i] >= 0)
-                        head_config[0] = 0.0;   //look backwards
-                    else
-                        head_config[0] = -3.1415926;    //lock forwards
-            }
-        }
-
-        //  send  a  goal  to  the  action
-        control_msgs::FollowJointTrajectoryGoal  torso_goal;
-        torso_goal.trajectory.header.stamp  =  ros::Time::now();
-        torso_goal.trajectory.header.frame_id  =  "base_link";
-        torso_goal.trajectory.joint_names = torso_joints;
-        trajectory_msgs::JointTrajectoryPoint  torso_point;
-        torso_point.positions  = torso_config;
-        torso_point.time_from_start  = ros::Duration(1.0);
-        torso_goal.trajectory.points.push_back(torso_point);
-
-        control_msgs::FollowJointTrajectoryGoal  head_goal;
-        head_goal.trajectory.header.stamp  =  ros::Time::now();
-        head_goal.trajectory.header.frame_id  =  "base_link";
-        head_goal.trajectory.joint_names = head_joints;
-        trajectory_msgs::JointTrajectoryPoint  head_point;
-        head_point.positions = head_config;
-        head_point.time_from_start = ros::Duration(1.0);
-        head_goal.trajectory.points.push_back(head_point);
-
-        torso_ac->sendGoal(torso_goal);
-        head_ac->sendGoal(head_goal);
-
-        bool finished_before_timeout = torso_ac->waitForResult(ros::Duration(5.0)) && head_ac->waitForResult(ros::Duration(5.0));
-
-        if  (finished_before_timeout)
-        {
-            ROS_INFO("Both Actions  finished");
-            success  =  true;
-        }
-        else
-        {
-            ROS_INFO("At leas one Action  did  not  finish  before  timeout.");
-            success  =  false;
-        }
-
-
-        if(success)
-        {
-            //ROS_INFO("%s:  Succeeded",  lookat_action_name.c_str());
-            lookat_res.success  =  success;
-
-            //  set  the  action  state  to  succeeded
-            lookat_as->setSucceeded(lookat_res);
-        }
-        else
-        {
-            //ROS_INFO("%s:  Failed  to  execute",  lookat_action_name.c_str());
-            lookat_res.success  =  success;
-
-            //  set  the  action  state  to  aborted
-            lookat_as->setAborted(lookat_res);
-        }
+        ROS_ERROR("Parameter 'chain_base_link' not set");
+        return false;
     }
 
-    void goalCB_torso(const cob_lookat_action::LookAtGoalConstPtr &goal)
+    if (!nh_.getParam("chain_tip_link", chain_tip_link_))
     {
-        // helper variables
-        bool success = false;
-
-        //  publish  info  to  the  console  for  the  user
-        //ROS_INFO("%s:  New Goal!",  lookat_action_name.c_str());
-
-        moveit_msgs::GetPositionIK  srv;
-        srv.request.ik_request.group_name  =  "lookat";
-        srv.request.ik_request.ik_link_name  =  "lookat_focus_frame";
-        srv.request.ik_request.timeout  =  ros::Duration(0.1);
-        srv.request.ik_request.attempts  =  1;
-        srv.request.ik_request.pose_stamped  =  goal->target;
-
-        std::vector<double>  joint_seed  (lookat_joints.size(),  0.0);
-
-        moveit_msgs::RobotState  seed;
-        seed.joint_state.header  =  goal->target.header;
-        seed.joint_state.name  =  lookat_joints;
-        seed.joint_state.position  =  joint_seed;
-        srv.request.ik_request.robot_state  =  seed;
-
-        if  (ik_client.call(srv))
-        {
-            //ROS_DEBUG("IK  Result:  %d",  srv.response.error_code.val);
-            if(srv.response.error_code.val  ==  1)
-            {
-                ROS_INFO("IK  Solution  found");
-                success  =  true;
-            }
-            else
-            {
-                ROS_ERROR("No  IK  Solution  found");
-                success  =  false;
-                //lookat_res.success  =  success;
-                ////  set  the  action  state  to  aborted
-                //lookat_as->setAborted(lookat_res);
-                //return;
-            }
-        }
-        else
-        {
-            ROS_ERROR("IK-Call  failed");
-            success  =  false;
-            lookat_res.success  =  success;
-            //  set  the  action  state  to  aborted
-            lookat_as->setAborted(lookat_res);
-            return;
-        }
-
-        std::vector<double>  torso_config;
-        torso_config.resize(torso_joints.size());
-
-        if(success)
-        {
-            for(unsigned  int  i=0, j=0;  i<srv.response.solution.joint_state.name.size();  i++)
-            {
-                //ROS_DEBUG("%s:  %f",  srv.response.solution.joint_state.name[i].c_str(),  srv.response.solution.joint_state.position[i]);
-                if(j<torso_joints.size() && srv.response.solution.joint_state.name[i]==torso_joints[j])
-                {
-                    torso_config[j]  =  srv.response.solution.joint_state.position[i];
-                    j++;
-                }
-            }
-        }
-
-        //  send  a  goal  to  the  action
-        control_msgs::FollowJointTrajectoryGoal  torso_goal;
-        torso_goal.trajectory.header.stamp  =  ros::Time::now();
-        torso_goal.trajectory.header.frame_id  =  "base_link";
-        torso_goal.trajectory.joint_names = torso_joints;
-        trajectory_msgs::JointTrajectoryPoint  torso_point;
-        torso_point.positions  = torso_config;
-        torso_point.time_from_start  = ros::Duration(1.0);
-        torso_goal.trajectory.points.push_back(torso_point);
-
-        torso_ac->sendGoal(torso_goal);
-
-        bool finished_before_timeout = torso_ac->waitForResult(ros::Duration(5.0));
-
-        if  (finished_before_timeout)
-        {
-            ROS_INFO("Action  finished");
-            success  =  true;
-        }
-        else
-        {
-            ROS_INFO("Action  did  not  finish  before  timeout.");
-            success  =  false;
-        }
-
-
-        if(success)
-        {
-            ROS_INFO("%s:  Succeeded",  lookat_action_name.c_str());
-            lookat_res.success  =  success;
-
-            //  set  the  action  state  to  succeeded
-            lookat_as->setSucceeded(lookat_res);
-        }
-        else
-        {
-            ROS_INFO("%s:  Failed  to  execute",  lookat_action_name.c_str());
-            lookat_res.success  =  success;
-
-            //  set  the  action  state  to  aborted
-            lookat_as->setAborted(lookat_res);
-        }
+        ROS_ERROR("Parameter 'chain_tip_link' not set");
+        return false;
     }
 
-};
+    /// parse robot_description and generate KDL chains
+    KDL::Tree tree;
+    if (!kdl_parser::treeFromParam("/robot_description", tree))
+    {
+        ROS_ERROR("Failed to construct kdl tree");
+        return false;
+    }
+
+    tree.getChain(chain_base_link_, chain_tip_link_, chain_main_);
+    if (chain_main_.getNrOfJoints() == 0)
+    {
+        ROS_ERROR("Failed to initialize kinematic chain");
+        return false;
+    }
 
 
-int  main(int  argc,  char**  argv)
+    ROS_WARN_STREAM("Waiting for ActionServer: " << fjt_name_);
+    fjt_ac_ = new actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction>(nh_, fjt_name_, true);
+    fjt_ac_->waitForServer(ros::Duration(10.0));
+
+    lookat_as_ = new actionlib::SimpleActionServer<cob_lookat_action::LookAtAction>(nh_, lookat_name_, boost::bind(&CobLookAtAction::goalCB, this, _1), false);
+    lookat_as_->start();
+
+    return true;
+}
+
+
+void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
 {
-    ros::init(argc,  argv,  "cob_lookat_action");
+    bool success = true;
+    std::string message;
 
-    CobLookAtAction  *lookat = new CobLookAtAction("lookat_action");
-    if(lookat->init())
-        ros::spin();
+    /// set up lookat chain
+    KDL::Chain chain_lookat, chain_full;
+    KDL::Vector lookat_lin_axis(0.0, 0.0, 0.0);
+    switch (goal->pointing_axis_type)
+    {
+        case cob_lookat_action::LookAtGoal::X_POSITIVE:
+            lookat_lin_axis.x(1.0);
+            break;
+        case cob_lookat_action::LookAtGoal::Y_POSITIVE:
+            lookat_lin_axis.y(1.0);
+            break;
+        case cob_lookat_action::LookAtGoal::Z_POSITIVE:
+            lookat_lin_axis.z(1.0);
+            break;
+        case cob_lookat_action::LookAtGoal::X_NEGATIVE:
+            lookat_lin_axis.x(-1.0);
+            break;
+        case cob_lookat_action::LookAtGoal::Y_NEGATIVE:
+            lookat_lin_axis.y(-1.0);
+            break;
+        case cob_lookat_action::LookAtGoal::Z_NEGATIVE:
+            lookat_lin_axis.z(-1.0);
+            break;
+        default:
+            ROS_ERROR("PointingAxisType %d not defined! Using default: 'X_POSITIVE'!", goal->pointing_axis_type);
+            lookat_lin_axis.x(1.0);
+            break;
+    }
+    KDL::Joint lookat_lin_joint("lookat_lin_joint", KDL::Vector(), lookat_lin_axis, KDL::Joint::TransAxis);
 
-    return  0;
+    /// transform pointing_frame to offset
+    KDL::Frame offset;
+    tf::StampedTransform offset_transform;
+    bool transformed = false;
+
+    do
+    {
+        try
+        {
+            ros::Time now = ros::Time::now();
+            tf_listener_.waitForTransform(chain_tip_link_, goal->pointing_frame, now, ros::Duration(0.1));
+            tf_listener_.lookupTransform(chain_tip_link_, goal->pointing_frame, now, offset_transform);
+            transformed = true;
+        }
+        catch (tf::TransformException& ex)
+        {
+            ROS_ERROR("LookatAction: %s", ex.what());
+            ros::Duration(0.1).sleep();
+        }
+    } while (!transformed && ros::ok());
+
+    tf::transformTFToKDL(offset_transform, offset);
+    //tf::transformMsgToKDL(goal->pointing_offset, offset);
+
+    KDL::Segment lookat_rotx_link("lookat_rotx_link", lookat_lin_joint, offset);
+    chain_lookat.addSegment(lookat_rotx_link);
+
+    KDL::Vector lookat_rotx_axis(1.0, 0.0, 0.0);
+    KDL::Joint lookat_rotx_joint("lookat_rotx_joint", KDL::Vector(), lookat_rotx_axis, KDL::Joint::RotAxis);
+    KDL::Segment lookat_roty_link("lookat_roty_link", lookat_rotx_joint);
+    chain_lookat.addSegment(lookat_roty_link);
+
+    KDL::Vector lookat_roty_axis(0.0, 1.0, 0.0);
+    KDL::Joint lookat_roty_joint("lookat_roty_joint", KDL::Vector(), lookat_roty_axis, KDL::Joint::RotAxis);
+    KDL::Segment lookat_rotz_link("lookat_rotz_link", lookat_roty_joint);
+    chain_lookat.addSegment(lookat_rotz_link);
+
+    KDL::Vector lookat_rotz_axis(0.0, 0.0, 1.0);
+    KDL::Joint lookat_rotz_joint("lookat_rotz_joint", KDL::Vector(), lookat_rotz_axis, KDL::Joint::RotAxis);
+    KDL::Segment lookat_focus_frame("lookat_focus_frame", lookat_rotz_joint);
+    chain_lookat.addSegment(lookat_focus_frame);
+
+    chain_full = chain_main_;
+    chain_full.addChain(chain_lookat);
+
+    /// set up solver
+    fk_solver_pos_.reset(new KDL::ChainFkSolverPos_recursive(chain_full));
+    ik_solver_vel_.reset(new KDL::ChainIkSolverVel_pinv(chain_full));
+    ik_solver_pos_.reset(new KDL::ChainIkSolverPos_NR(chain_full, *fk_solver_pos_, *ik_solver_vel_));
+
+    /// transform target_frame to p_in
+    KDL::Frame p_in;
+    tf::StampedTransform transform_in;
+    transformed = false;
+
+    do
+    {
+        try
+        {
+            ros::Time now = ros::Time::now();
+            tf_listener_.waitForTransform(chain_base_link_, goal->target_frame, now, ros::Duration(0.1));
+            tf_listener_.lookupTransform(chain_base_link_, goal->target_frame, now, transform_in);
+            transformed = true;
+        }
+        catch (tf::TransformException& ex)
+        {
+            ROS_ERROR("LookatAction: %s", ex.what());
+            ros::Duration(0.1).sleep();
+        }
+    } while (!transformed && ros::ok());
+
+    tf::transformTFToKDL(transform_in, p_in);
+    KDL::JntArray q_init(chain_full.getNrOfJoints());
+    KDL::JntArray q_out(chain_full.getNrOfJoints());
+    int result = ik_solver_pos_->CartToJnt(q_init, p_in, q_out);
+
+    /// solution valid?
+    if (result != KDL::SolverI::E_NOERROR)
+    {
+        success = false;
+        message = "Failed to find solution";
+        ROS_ERROR_STREAM(lookat_name_ << ": " << message);
+        lookat_res_.success = success;
+        lookat_res_.message = message;
+        lookat_as_->setAborted(lookat_res_);
+        return;
+    }
+
+    /// execute solution as FJT
+    control_msgs::FollowJointTrajectoryGoal lookat_traj;
+    lookat_traj.trajectory.header.stamp = ros::Time::now();
+    lookat_traj.trajectory.header.frame_id = chain_base_link_;
+    lookat_traj.trajectory.joint_names = joint_names_;
+    trajectory_msgs::JointTrajectoryPoint traj_point;
+    for(unsigned int i = 0; i < chain_main_.getNrOfJoints(); i++)
+    {
+        traj_point.positions.push_back(q_out(i));
+    }
+    traj_point.time_from_start = ros::Duration(3.0);
+    lookat_traj.trajectory.points.push_back(traj_point);
+
+    fjt_ac_->sendGoal(lookat_traj);
+
+    bool finished_before_timeout = fjt_ac_->waitForResult(ros::Duration(5.0));
+    
+    /// fjt action successful?
+    if (finished_before_timeout)
+    {
+        actionlib::SimpleClientGoalState state = fjt_ac_->getState();
+        if(state != actionlib::SimpleClientGoalState::SUCCEEDED)
+        {
+            success = false;
+            message = "FJT finished: " + state.toString();
+            ROS_ERROR_STREAM(lookat_name_ << ": " << message);
+            lookat_res_.success = success;
+            lookat_res_.message = message;
+            lookat_as_->setAborted(lookat_res_);
+            return;
+        }
+    }
+    else
+    {
+        success = false;
+        message = "FJT did not finish before the time out.";
+        ROS_ERROR_STREAM(lookat_name_ << ": " << message);
+        lookat_res_.success = success;
+        lookat_res_.message = message;
+        lookat_as_->setAborted(lookat_res_);
+        return;
+    }
+
+
+    /// lookat action successful?
+    success = true;
+    message = "Lookat finished successful.";
+    ROS_ERROR_STREAM(lookat_name_ << ": " << message);
+    lookat_res_.success = success;
+    lookat_res_.message = message;
+    lookat_as_->setSucceeded(lookat_res_);
+    return;
 }
