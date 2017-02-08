@@ -20,11 +20,15 @@
 
   <depend>actionlib_msgs</depend>
   <depend>actionlib</depend>
+  <depend>boost</depend>
   <depend>control_msgs</depend>
   <depend>geometry_msgs</depend>
-  <depend>moveit_msgs</depend>
+  <depend>kdl_conversions</depend>
+  <depend>kdl_parser</depend>
+  <depend>orocos_kdl</depend>
   <depend>roscpp</depend>
   <depend>tf</depend>
+  <depend>tf_conversions</depend>
   <depend>trajectory_msgs</depend>
 
   <exec_depend>rospy</exec_depend>
