@@ -20,7 +20,11 @@ find_package(catkin REQUIRED
 find_package(Boost REQUIRED COMPONENTS)
 find_package(Eigen REQUIRED)
 add_definitions(${EIGEN_DEFINITIONS})
-find_package(fcl REQUIRED)
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LIBFCL REQUIRED fcl)
+find_library(LIBFCL_LIBRARIES_FULL ${LIBFCL_LIBRARIES} ${LIBFCL_LIBRARY_DIRS})
+set(fcl_LIBRARIES "${LIBFCL_LIBRARIES_FULL}")
 
 catkin_package()
 
