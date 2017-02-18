@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_pick_place_action)
 
-find_package(catkin REQUIRED COMPONENTS actionlib_msgs actionlib cob_grasp_generation cob_moveit_interface geometric_shapes geometry_msgs message_generation moveit_msgs moveit_ros_move_group moveit_ros_planning_interface roscpp shape_tools std_msgs tf)
+find_package(catkin REQUIRED COMPONENTS actionlib_msgs actionlib cob_grasp_generation cob_moveit_interface geometric_shapes geometry_msgs message_generation moveit_msgs moveit_ros_move_group moveit_ros_planning_interface roscpp std_msgs tf)
 
 ### Message Generation ###
 add_action_files(
@@ -15,7 +15,7 @@ generate_messages(
 )
 
 catkin_package(
-  CATKIN_DEPENDS actionlib_msgs actionlib cob_grasp_generation cob_moveit_interface geometric_shapes geometry_msgs message_runtime moveit_msgs moveit_ros_move_group moveit_ros_planning_interface roscpp shape_tools std_msgs tf
+  CATKIN_DEPENDS actionlib_msgs actionlib cob_grasp_generation cob_moveit_interface geometric_shapes geometry_msgs message_runtime moveit_msgs moveit_ros_move_group moveit_ros_planning_interface roscpp std_msgs tf
   INCLUDE_DIRS ros/include common/include
 )
 

@@ -38,10 +38,10 @@
 #include <math.h>
 
 #include <cob_pick_place_action/cob_pick_place_action.h>
-#include "geometric_shapes/shapes.h"
-#include "geometric_shapes/shape_messages.h"
-#include "geometric_shapes/mesh_operations.h"
-#include "geometric_shapes/shape_operations.h"
+#include <geometric_shapes/shapes.h>
+#include <geometric_shapes/shape_messages.h>
+#include <geometric_shapes/mesh_operations.h>
+#include <geometric_shapes/shape_operations.h>
 
 #include <algorithm>
 
