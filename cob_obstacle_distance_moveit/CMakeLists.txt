@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_obstacle_distance_moveit)
 
+add_definitions(-std=c++11)
+
 find_package(catkin REQUIRED
     COMPONENTS
-        cmake_modules
         cob_control_msgs
         cob_srvs
         eigen_conversions
@@ -18,8 +19,6 @@ find_package(catkin REQUIRED
 )
 
 find_package(Boost REQUIRED COMPONENTS)
-find_package(Eigen REQUIRED)
-add_definitions(${EIGEN_DEFINITIONS})
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBFCL REQUIRED fcl)

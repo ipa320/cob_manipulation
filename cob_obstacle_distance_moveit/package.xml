@@ -16,7 +16,6 @@
     <depend>cmake_modules</depend>
     <depend>cob_control_msgs</depend>
     <depend>cob_srvs</depend>
-    <depend>eigen</depend>
     <depend>eigen_conversions</depend>
     <depend>geometric_shapes</depend>
     <depend>geometry_msgs</depend>
