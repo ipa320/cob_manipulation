@@ -41,10 +41,9 @@
 #include <tf/tf.h>
 #include <tf/transform_broadcaster.h>
 #include <tf/transform_datatypes.h>
-//#include <geometry_msgs/Quaternion.h>
 
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-#include <moveit/move_group_interface/move_group.h>
+#include <moveit/move_group_interface/move_group_interface.h>
 #include <geometric_shapes/solid_primitive_dims.h>
 #include <moveit_msgs/Grasp.h>
 
@@ -68,7 +67,7 @@ private:
 
 	boost::scoped_ptr<actionlib::SimpleActionClient<cob_grasp_generation::QueryGraspsAction> > ac_grasps_or;
 
-	moveit::planning_interface::MoveGroup group;
+	moveit::planning_interface::MoveGroupInterface group;
 
 	char* GraspTableIniFile;
 	GraspTable* m_GraspTable;
