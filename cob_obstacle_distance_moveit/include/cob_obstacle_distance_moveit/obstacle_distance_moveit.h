@@ -39,8 +39,8 @@ private:
     bool planningSceneCallback(moveit_msgs::GetPlanningScene::Request &req, moveit_msgs::GetPlanningScene::Response &res);
     void planningSceneTimerCallback(const ros::TimerEvent& event);
 
-    std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > robot_links_;
-    std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > collision_objects_;
+    std::map<std::string, std::shared_ptr<fcl::CollisionObject> > robot_links_;
+    std::map<std::string, std::shared_ptr<fcl::CollisionObject> > collision_objects_;
     std::set< std::string > registered_links_;
     boost::mutex registered_links_mutex_;
 
@@ -56,8 +56,8 @@ private:
     ros::Timer distance_timer_;
     void calculateDistanceTimerCallback(const ros::TimerEvent& event);
 
-    cob_control_msgs::ObstacleDistance getDistanceInfo(const boost::shared_ptr<fcl::CollisionObject> object_a,
-                                                       const boost::shared_ptr<fcl::CollisionObject> object_b);
+    cob_control_msgs::ObstacleDistance getDistanceInfo(const std::shared_ptr<fcl::CollisionObject> object_a,
+                                                       const std::shared_ptr<fcl::CollisionObject> object_b);
 };
 
 #endif  // COB_OBSTACLE_DISTANCE_MOVEIT__OBSTACLE_DISTANCE_H
