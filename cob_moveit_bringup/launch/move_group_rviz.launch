@@ -22,6 +22,7 @@
     <arg name="robot" value="$(arg robot)" />
     <arg name="config" value="true"/>
     <arg name="debug" value="$(arg debug)"/>
+    <arg name="pipeline" value="$(arg pipeline)"/>
   </include>
 
 </launch>

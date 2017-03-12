@@ -3,7 +3,7 @@
   <arg name="robot" default="$(optenv ROBOT !!NO_ROBOT_SET!!)"/>
   <arg name="with_db" default="false"/>
   <arg name="debug" default="false"/>
-
+  <arg name="pipeline" default="ompl" />
 
   <node pkg="tf" type="static_transform_publisher" name="virtual_joint_broadcaster_0" args="0 0 0 0 0 0 odom_combined base_footprint 100"/>
 
@@ -22,6 +22,7 @@
     <arg name="use_sensors" value="false"/>
     <arg name="info" value="true"/>
     <arg name="debug" value="$(arg debug)"/>
+    <arg name="pipeline" value="$(arg pipeline)" />
   </include>
 
   <include file="$(find cob_moveit_bringup)/launch/rviz.launch">

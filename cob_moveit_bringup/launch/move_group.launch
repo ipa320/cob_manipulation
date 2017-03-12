@@ -39,6 +39,7 @@
   <include ns="move_group" file="$(find cob_moveit_bringup)/launch/controller_manager.xml" if="$(arg allow_trajectory_execution)">
     <arg name="config_path" value="$(arg config_path)"/>
     <arg name="fake_execution" value="$(arg fake_execution)"/>
+    <arg name="moveit_controller_manager" value="fake" if="$(arg fake_execution)"/>
   </include>
 
   <!-- Sensors Functionality -->
@@ -67,6 +68,7 @@
                                       move_group/MoveGroupQueryPlannersService
                                       move_group/MoveGroupStateValidationService
                                       move_group/MoveGroupGetPlanningSceneService
+                                      move_group/ClearOctomapService
                                       " />
                                       <!-- you can add 'cob_collision_monitor/CollisionMonitor' to the list above
                                            however, it is recommended to use the standalone-node in cob_collision_monitor -->
