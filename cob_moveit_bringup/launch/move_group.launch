@@ -2,7 +2,7 @@
 <launch>
   <arg name="robot" default="$(optenv ROBOT !!NO_ROBOT_SET!!)"/>
   <arg name="config_path" default="$(find cob_moveit_config)/$(arg robot)/config"/>
-  <arg name="load_robot_description" default="true"/>
+  <arg name="load_robot_description" default="false"/>
 
   <!-- GDB Debug Option -->
   <arg name="debug" default="false" />
@@ -37,9 +37,9 @@
 
   <!-- Trajectory Execution Functionality -->
   <include ns="move_group" file="$(find cob_moveit_bringup)/launch/controller_manager.xml" if="$(arg allow_trajectory_execution)">
-    <arg name="config_path" value="$(arg config_path)"/>
-    <arg name="fake_execution" value="$(arg fake_execution)"/>
     <arg name="moveit_controller_manager" value="fake" if="$(arg fake_execution)"/>
+    <arg name="fake_execution" value="$(arg fake_execution)"/>
+    <arg name="config_path" value="$(arg config_path)"/>
   </include>
 
   <!-- Sensors Functionality -->
@@ -56,7 +56,7 @@
     <param name="allow_trajectory_execution" value="$(arg allow_trajectory_execution)"/>
     <param name="max_safe_path_cost" value="$(arg max_safe_path_cost)"/>
     <param name="jiggle_fraction" value="$(arg jiggle_fraction)" />
-	<param name="collision_detector" value="IndustrialFCL" />
+    <param name="collision_detector" value="IndustrialFCL" />
 	
     <!-- MoveGroup capabilities to load -->
     <param name="capabilities" value="move_group/MoveGroupCartesianPathService

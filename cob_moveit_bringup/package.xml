@@ -22,5 +22,7 @@
   <exec_depend>moveit_setup_assistant</exec_depend>
   <exec_depend>robot_state_publisher</exec_depend>
   <exec_depend>tf</exec_depend>
+  <exec_depend>IndustrialFCL</exec_depend>
+  <exec_depend>stomp_moveit</exec_depend>
 
 </package>
