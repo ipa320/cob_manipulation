@@ -37,7 +37,6 @@
 
   <!-- Trajectory Execution Functionality -->
   <include ns="move_group" file="$(find cob_moveit_bringup)/launch/controller_manager.xml" if="$(arg allow_trajectory_execution)">
-    <arg name="moveit_controller_manager" value="fake" if="$(arg fake_execution)"/>
     <arg name="fake_execution" value="$(arg fake_execution)"/>
     <arg name="config_path" value="$(arg config_path)"/>
   </include>
