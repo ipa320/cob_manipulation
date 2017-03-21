@@ -19,12 +19,10 @@
   <exec_depend>moveit_planners_ompl</exec_depend>
   <exec_depend>moveit_plugins</exec_depend>
   <exec_depend>moveit_ros_move_group</exec_depend>
+  <exec_depend>moveit_ros_perception</exec_depend>
   <exec_depend>moveit_ros_visualization</exec_depend>
   <exec_depend>moveit_setup_assistant</exec_depend>
   <exec_depend>robot_state_publisher</exec_depend>
   <exec_depend>tf</exec_depend>
-  <exec_depend>occupancy_map_monitor</exec_depend>
-
-
 
 </package>
