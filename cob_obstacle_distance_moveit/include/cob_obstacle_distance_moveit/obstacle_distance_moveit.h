@@ -20,7 +20,6 @@
 #include <eigen_conversions/eigen_msg.h>
 #include <tf_conversions/tf_eigen.h>
 
-
 class ObstacleDistanceMoveit
 {
 public:
@@ -58,6 +57,8 @@ private:
 
     cob_control_msgs::ObstacleDistance getDistanceInfo(const boost::shared_ptr<fcl::CollisionObject> object_a,
                                                        const boost::shared_ptr<fcl::CollisionObject> object_b);
+
+    collision_detection::AllowedCollisionMatrix acm_;
 };
 
 #endif  // COB_OBSTACLE_DISTANCE_MOVEIT__OBSTACLE_DISTANCE_H
