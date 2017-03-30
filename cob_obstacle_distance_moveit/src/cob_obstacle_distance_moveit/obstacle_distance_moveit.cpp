@@ -55,7 +55,7 @@ void ObstacleDistanceMoveit::updatedScene(planning_scene_monitor::PlanningSceneM
     for (unsigned int i = 0; i < robot_obj.size(); i++)
     {
         const collision_detection::CollisionGeometryData *robot_link =
-        		static_cast<const collision_detection::CollisionGeometryData *>(robot_obj[i]->collisionGeometry()->getUserData());
+                static_cast<const collision_detection::CollisionGeometryData *>(robot_obj[i]->collisionGeometry()->getUserData());
         this->robot_links_[robot_link->getID()] = robot_obj[i];
     }
 
@@ -163,7 +163,7 @@ void ObstacleDistanceMoveit::calculateDistanceTimerCallback(const ros::TimerEven
 
             if(acm_.getEntry(robot_link_name, robot_self_name, type))
             {
-                if(type == collision_detection::AllowedCollision::ALWAYS)
+                if(type == collision_detection::AllowedCollision::NEVER)
                 {
                     const boost::shared_ptr<fcl::CollisionObject> robot_self_object = robot_links[robot_self_name];
                     ROS_DEBUG_STREAM("CollisionLink: " << robot_self_name << ", Type: " << robot_self_object->getObjectType());
@@ -347,6 +347,7 @@ ObstacleDistanceMoveit::ObstacleDistanceMoveit()
     std::string register_service = "/register_links";
     std::string unregister_service = "/unregister_links";
     std::string distance_topic = "/obstacle_distances";
+
 
     // Get AllowedCollisionMatrix
     robot_model_loader::RobotModelLoader robot_model_loader("robot_description", "robot_description_semantic");
