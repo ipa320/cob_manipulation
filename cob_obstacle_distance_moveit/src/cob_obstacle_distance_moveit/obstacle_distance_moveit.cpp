@@ -15,7 +15,6 @@ public:
         for (it; it != fcl_objs_.end(); ++it)
         {
             obj.push_back(it->second.collision_objects_[0]);
-
         }
     }
 };
@@ -57,7 +56,7 @@ void ObstacleDistanceMoveit::updatedScene(planning_scene_monitor::PlanningSceneM
     {
         const collision_detection::CollisionGeometryData *robot_link =
         		static_cast<const collision_detection::CollisionGeometryData *>(robot_obj[i]->collisionGeometry()->getUserData());
-            this->robot_links_[robot_link->getID()] = robot_obj[i];
+        this->robot_links_[robot_link->getID()] = robot_obj[i];
     }
 
     for (unsigned int i = 0; i < world_obj.size(); i++)
@@ -132,16 +131,6 @@ void ObstacleDistanceMoveit::calculateDistanceTimerCallback(const ros::TimerEven
         const boost::shared_ptr<fcl::CollisionObject> robot_object = robot_links[robot_link_name];
         ROS_DEBUG_STREAM("RobotLink: " << robot_link_name << ", Type: " << robot_object->getObjectType());
 
-        ///// testing
-        //std::string robot_link_name = "test_primitive";
-        //if (collision_objects.find(robot_link_name) == collision_objects.end())
-        //{
-            //ROS_INFO("Object not yet available");
-            //return;
-        //}
-        //const boost::shared_ptr<fcl::CollisionObject> robot_object = collision_objects[robot_link_name];
-        //ROS_DEBUG_STREAM("RobotLink: " << robot_link_name << ", Type: " << robot_object->getObjectType());
-
         std::map<std::string, boost::shared_ptr<fcl::CollisionObject> >::iterator obj_it;
         for (obj_it = collision_objects.begin(); obj_it != collision_objects.end(); ++obj_it)
         {
@@ -166,19 +155,18 @@ void ObstacleDistanceMoveit::calculateDistanceTimerCallback(const ros::TimerEven
             distance_infos.distances.push_back(info);
         }
 
-        acm_.print(std::cout);
         std::map<std::string, boost::shared_ptr<fcl::CollisionObject> >::iterator selfcollision_it;
         for (selfcollision_it = robot_links.begin(); selfcollision_it != robot_links.end(); ++selfcollision_it)
         {
             std::string robot_self_name = selfcollision_it->first;
             collision_detection::AllowedCollision::Type type;
-//            acm.print(std::cout);
+
             if(acm_.getEntry(robot_link_name, robot_self_name, type))
             {
                 if(type == collision_detection::AllowedCollision::ALWAYS)
                 {
                     const boost::shared_ptr<fcl::CollisionObject> robot_self_object = robot_links[robot_self_name];
-//                    ROS_WARN_STREAM("CollisionLink: " << robot_self_name << ", Type: " << robot_self_object->getObjectType());
+                    ROS_DEBUG_STREAM("CollisionLink: " << robot_self_name << ", Type: " << robot_self_object->getObjectType());
 
                     cob_control_msgs::ObstacleDistance info;
                     info = getDistanceInfo(robot_object, robot_self_object);
@@ -189,7 +177,6 @@ void ObstacleDistanceMoveit::calculateDistanceTimerCallback(const ros::TimerEven
                     info.obstacle_id = robot_self_name;
 
                     distance_infos.distances.push_back(info);
-
                 }
                 else
                 {
