@@ -1,6 +1,8 @@
 <launch>
+
   <arg name="robot" default="$(optenv ROBOT !!NO_ROBOT_SET!!)"/>
   <arg name="config_path" default="$(find cob_moveit_config)/$(arg robot)/config"/>
+  
   <!-- Stomp Plugin for MoveIt! -->
   <arg name="planning_plugin" value="stomp_moveit/StompPlannerManager" />
 
@@ -16,6 +18,7 @@
   <param name="planning_plugin" value="$(arg planning_plugin)" />
   <param name="request_adapters" value="$(arg planning_adapters)" />
   <param name="start_state_max_bounds_error" value="$(arg start_state_max_bounds_error)" />
+  
   <rosparam command="load" file="$(arg config_path)/stomp_config.yaml"/>
 
 </launch>

@@ -14,8 +14,7 @@
   <arg unless="$(arg info)" name="command_args" value="" />
   <arg     if="$(arg info)" name="command_args" value="--debug" />
 
-  <!-- move_group settings -->
-  
+  <!-- move_group settings -->  
   <arg name="allow_trajectory_execution" default="true"/>
   <arg name="fake_execution" default="false"/>
   <arg name="max_safe_path_cost" default="1"/>
@@ -37,8 +36,8 @@
 
   <!-- Trajectory Execution Functionality -->
   <include ns="move_group" file="$(find cob_moveit_bringup)/launch/controller_manager.xml" if="$(arg allow_trajectory_execution)">
-    <arg name="fake_execution" value="$(arg fake_execution)"/>
     <arg name="config_path" value="$(arg config_path)"/>
+    <arg name="fake_execution" value="$(arg fake_execution)"/>
   </include>
 
   <!-- Sensors Functionality -->
