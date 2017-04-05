@@ -1,1 +1,4 @@
-# empty
+- git:
+    uri: 'https://github.com/ros-industrial/industrial_moveit.git'
+    local-name: industrial_moveit
+    version: indigo-devel
