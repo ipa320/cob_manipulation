@@ -12,7 +12,7 @@
   <arg name="robot_description" default="robot_description"/>
 
   <!-- Load universal robotic description format (URDF) -->
-  <include file="$(find cob_hardware_config)/common/upload_robot.launch" if="$(arg load_robot_description)">
+  <include file="$(find cob_hardware_config)/upload_robot.launch" if="$(arg load_robot_description)">
     <arg name="robot" value="$(arg robot)" />
   </include>
 
