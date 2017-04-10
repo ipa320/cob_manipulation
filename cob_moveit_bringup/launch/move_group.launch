@@ -1,7 +1,8 @@
 <?xml version="1.0"?>
 <launch>
   <arg name="robot" default="$(optenv ROBOT !!NO_ROBOT_SET!!)"/>
-  <arg name="config_path" default="$(find cob_moveit_config)/$(arg robot)/config"/>
+  <arg name="pkg_moveit_config" default="$(find cob_moveit_config)"/>
+  <arg name="config_path" default="$(arg pkg_moveit_config)/robots/$(arg robot)/moveit/config"/>
   <arg name="load_robot_description" default="false"/>
 
   <!-- GDB Debug Option -->

@@ -3,7 +3,7 @@
 robot=$1
 
 moveit_config=`rospack find cob_moveit_config`
-config_pkg=$moveit_config/$robot
+config_pkg=$moveit_config/robots/$robot/moveit
 
 echo "Updating collisions in "$config_pkg
 
