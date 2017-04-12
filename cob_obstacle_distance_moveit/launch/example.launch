@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="robot" default="$(env ROBOT)"/>
+
+  <!-- upload robot description -->
+  <include file="$(find cob_hardware_config)/upload_robot.launch">
+    <arg name="robot" value="$(arg robot)"/>
+  </include>
+  <!-- upload semantic description -->
+  <include file="$(find cob_moveit_config)/launch/upload_config.launch">
+    <arg name="robot" value="$(arg robot)"/>
+    <arg name="load_semantic_description" value="true"/>
+    <arg name="load_planning_context" value="false"/>
+  </include>
+
+  <!-- fake joint_states -->
+  <node pkg="joint_state_publisher" type="joint_state_publisher" name="joint_state_publisher" output="screen">
+    <remap from="robot_description" to="/robot_description"/>
+    <remap from="joint_states" to="/joint_states"/>
+    <param name="use_gui" value="true"/>
+  </node>
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen"/>
+
+  <!-- obstacle distance moveit node -->
+  <include file="$(find cob_obstacle_distance_moveit)/launch/obstacle_distance.launch">
+    <arg name="robot" value="$(arg robot)"/>
+    <arg name="visualize_distances" value="true"/>
+  </include>
+
+  <!-- rviz visualization -->
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find cob_obstacle_distance_moveit)/launch/rviz_config.rviz" />
+
+</launch>
