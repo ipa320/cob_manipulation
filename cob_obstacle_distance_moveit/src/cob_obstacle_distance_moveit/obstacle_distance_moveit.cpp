@@ -128,6 +128,12 @@ void ObstacleDistanceMoveit::calculateDistanceTimerCallback(const ros::TimerEven
     {
         std::string robot_link_name = *link_it;
 
+        if(std::find(skip_links_.begin(), skip_links_.end(), robot_link_name) != skip_links_.end())
+        {
+            ROS_DEBUG_STREAM("Skip computation for robot_link: " << robot_link_name);
+            continue;
+        }
+
         const boost::shared_ptr<fcl::CollisionObject> robot_object = robot_links[robot_link_name];
         ROS_DEBUG_STREAM("RobotLink: " << robot_link_name << ", Type: " << robot_object->getObjectType());
 
@@ -161,9 +167,15 @@ void ObstacleDistanceMoveit::calculateDistanceTimerCallback(const ros::TimerEven
             std::string robot_self_name = selfcollision_it->first;
             collision_detection::AllowedCollision::Type type;
 
+            if(std::find(skip_links_.begin(), skip_links_.end(), robot_self_name) != skip_links_.end())
+            {
+                ROS_DEBUG_STREAM("Skip computation for self_collision_link: " << robot_self_name);
+                continue;
+            }
+
             if(acm_.getEntry(robot_link_name, robot_self_name, type))
             {
-                if(type == collision_detection::AllowedCollision::NEVER)
+                if(type != collision_detection::AllowedCollision::ALWAYS)
                 {
                     const boost::shared_ptr<fcl::CollisionObject> robot_self_object = robot_links[robot_self_name];
                     ROS_DEBUG_STREAM("CollisionLink: " << robot_self_name << ", Type: " << robot_self_object->getObjectType());
@@ -180,7 +192,7 @@ void ObstacleDistanceMoveit::calculateDistanceTimerCallback(const ros::TimerEven
                 }
                 else
                 {
-                    // This is diagonal of allowed collision matrix
+                    ROS_INFO_STREAM("CollisionLink: " << robot_self_name << ", Allowed: " << type);
                 }
             }
         }
@@ -368,6 +380,8 @@ ObstacleDistanceMoveit::ObstacleDistanceMoveit()
     planning_scene_monitor_->addUpdateCallback(boost::bind(&ObstacleDistanceMoveit::updatedScene, this, _1));
 
     registered_links_.clear();
+    skip_links_.clear();
+    ros::NodeHandle("~").getParam("skip_links", skip_links_);
 
     calculate_obstacle_distance_ = nh_.advertiseService(distance_service, &ObstacleDistanceMoveit::calculateDistanceServiceCallback, this);
     register_server_ = nh_.advertiseService(register_service, &ObstacleDistanceMoveit::registerCallback, this);

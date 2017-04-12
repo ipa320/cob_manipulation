@@ -26,7 +26,7 @@ public:
     ObstacleDistanceMoveit();
 
 private:
-    ros::NodeHandle nh_;    
+    ros::NodeHandle nh_;
     float MAXIMAL_MINIMAL_DISTANCE;
 
     planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
@@ -41,6 +41,7 @@ private:
     std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > robot_links_;
     std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > collision_objects_;
     std::set< std::string > registered_links_;
+    std::vector< std::string > skip_links_;
     boost::mutex registered_links_mutex_;
 
     ros::ServiceServer calculate_obstacle_distance_;

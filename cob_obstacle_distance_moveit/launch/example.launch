@@ -25,6 +25,7 @@
   <include file="$(find cob_obstacle_distance_moveit)/launch/obstacle_distance.launch">
     <arg name="robot" value="$(arg robot)"/>
     <arg name="visualize_distances" value="true"/>
+    <arg name="skip_links" value="true"/>
   </include>
 
   <!-- rviz visualization -->
