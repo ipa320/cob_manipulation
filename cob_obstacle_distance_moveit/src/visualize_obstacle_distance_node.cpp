@@ -38,15 +38,21 @@ ros::NodeHandle nh_;
 ros::Publisher marker_pub_;
 ros::Subscriber obstacle_distances_sub_;
 
+double dist_threshold_, dist_critical_, dist_mid_;
+
 public:
 
     int init()
     {
+        dist_threshold_ = 0.5;
+        dist_critical_ = 0.1;
+        dist_mid_ = (dist_threshold_ + dist_critical_)/2.0;
+
         marker_pub_ = this->nh_.advertise<visualization_msgs::MarkerArray>("obstacle_distance/distance_markers", 1, true);
         obstacle_distances_sub_ = this->nh_.subscribe("obstacle_distances", 1, &DebugObstacleDistance::obstacleDistancesCallback, this);
 
         ros::Duration(1.0).sleep();
-        ROS_WARN("Debug initialized.");
+        ROS_WARN("Distance visualization initialized.");
         return 0;
     }
 
@@ -54,10 +60,19 @@ public:
     void obstacleDistancesCallback(const cob_control_msgs::ObstacleDistances::ConstPtr& msg)
     {
         visualization_msgs::MarkerArray marker_array;
+        visualization_msgs::MarkerArray arrows, texts;
+
+        double min_distance = std::numeric_limits<double>::max();
+        unsigned int min_index = 0;
 
         for(unsigned int i = 0; i < msg->distances.size(); i++)
         {
             cob_control_msgs::ObstacleDistance info = msg->distances[i];
+            if (info.distance < min_distance)
+            {
+                min_distance = info.distance;
+                min_index = i;
+            }
             
             //show distance vector as arrow
             visualization_msgs::Marker marker_vector;
@@ -81,12 +96,11 @@ public:
             end.y = info.nearest_point_frame_vector.y;
             end.z = info.nearest_point_frame_vector.z;
 
-            marker_vector.color.a = 1.0;
-            marker_vector.color.g = 1.0;
+            marker_vector.color = dist_to_color(info.distance);
 
             marker_vector.points.push_back(start);
             marker_vector.points.push_back(end);
-            marker_array.markers.push_back(marker_vector);
+            arrows.markers.push_back(marker_vector);
 
 
             //show distance as text
@@ -99,9 +113,9 @@ public:
             marker_distance.header.frame_id = info.header.frame_id;
             marker_distance.text = boost::lexical_cast<std::string>(boost::format("%.3f") % info.distance);
 
-            marker_distance.scale.x = 0.1;
-            marker_distance.scale.y = 0.1;
-            marker_distance.scale.z = 0.1;
+            marker_distance.scale.x = 0.05;
+            marker_distance.scale.y = 0.05;
+            marker_distance.scale.z = 0.05;
 
             marker_distance.color.a = 1.0;
             //marker_distance.color.r = 1.0;
@@ -111,14 +125,77 @@ public:
             marker_distance.color.g = 0.0;
             marker_distance.color.b = 0.0;
 
-            marker_distance.pose.position.x = info.nearest_point_frame_vector.x;
-            marker_distance.pose.position.y = info.nearest_point_frame_vector.y + 0.05;
-            marker_distance.pose.position.z = info.nearest_point_frame_vector.z;
+            marker_distance.pose.position.x = 0.5*(info.nearest_point_frame_vector.x+info.nearest_point_obstacle_vector.x);
+            marker_distance.pose.position.y = 0.5*(info.nearest_point_frame_vector.y+info.nearest_point_obstacle_vector.y);
+            marker_distance.pose.position.z = 0.5*(info.nearest_point_frame_vector.z+info.nearest_point_obstacle_vector.z);
 
-            marker_array.markers.push_back(marker_distance);
+            texts.markers.push_back(marker_distance);
         }
 
+        //show distance severity and min_distance
+        visualization_msgs::Marker marker;
+        marker.header.frame_id = "base_footprint";
+        marker.ns = "severity";
+        marker.id = 0;
+        marker.type = visualization_msgs::Marker::SPHERE;
+        marker.action = visualization_msgs::Marker::ADD;
+        marker.pose.position.x = 0.0;
+        marker.pose.position.y = 0.0;
+        marker.pose.position.z = 1.5;
+        marker.scale.x = 0.1;
+        marker.scale.y = 0.1;
+        marker.scale.z = 0.1;
+        marker.color = dist_to_color(min_distance);
+        marker_array.markers.push_back(marker);
+
+        marker.ns = "min_distance";
+        marker.id = 0;
+        marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+        marker.action = visualization_msgs::Marker::ADD;
+        marker.text = boost::lexical_cast<std::string>(boost::format("%.3f") % min_distance);
+        marker.pose.position.z = 1.6;
+        marker.scale.x = 0.1;
+        marker.scale.y = 0.1;
+        marker.scale.z = 0.1;
+        marker.color.a = 1.0;
+        marker.color.r = 0.0;
+        marker.color.g = 0.0;
+        marker.color.b = 0.0;
+        marker_array.markers.push_back(marker);
+
+        marker_array.markers.insert(marker_array.markers.end(), arrows.markers.begin(), arrows.markers.end());
+        marker_array.markers.insert(marker_array.markers.end(), texts.markers.begin(), texts.markers.end());
+
         marker_pub_.publish(marker_array);
+    }
+
+    std_msgs::ColorRGBA dist_to_color(double distance)
+    {
+        std_msgs::ColorRGBA color;
+        color.a = 1.0;
+        if (distance < dist_critical_)
+        {
+            color.r = 1.0;
+            color.g = 0.0;
+        }
+        else if (distance <= dist_mid_)
+        {
+            color.r = 1.0;
+            color.g = (distance-dist_critical_)/(dist_mid_-dist_critical_);
+        }
+        else if (distance <= dist_threshold_)
+        {
+            color.r = (dist_threshold_-distance)/(dist_threshold_-dist_mid_);
+            color.g = 1.0;
+        }
+        else if (distance > dist_threshold_)
+        {
+            color.r = 0.0;
+            color.g = 1.0;
+        }
+        color.b = 0.0;
+
+        return color;
     }
 };
 
