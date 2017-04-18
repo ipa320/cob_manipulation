@@ -29,37 +29,30 @@ private:
     ros::NodeHandle nh_;
     float MAXIMAL_MINIMAL_DISTANCE;
 
+    collision_detection::AllowedCollisionMatrix acm_;
     planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
     void updatedScene(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType type);
 
     ros::Timer planning_scene_timer_;
     ros::Publisher monitored_scene_pub_;
     ros::ServiceServer monitored_scene_server_;
-    bool planningSceneCallback(moveit_msgs::GetPlanningScene::Request &req, moveit_msgs::GetPlanningScene::Response &res);
     void planningSceneTimerCallback(const ros::TimerEvent& event);
+    bool planningSceneCallback(moveit_msgs::GetPlanningScene::Request &req, moveit_msgs::GetPlanningScene::Response &res);
 
+    std::vector< std::string > skip_links_;
     std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > robot_links_;
     std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > collision_objects_;
-    std::set< std::string > registered_links_;
-    std::vector< std::string > skip_links_;
-    boost::mutex registered_links_mutex_;
 
-    ros::ServiceServer calculate_obstacle_distance_;
+    ros::Timer distance_timer_;
+    ros::Publisher distance_pub_;
+    ros::ServiceServer distance_server_;
+    void calculateDistanceTimerCallback(const ros::TimerEvent& event);
     bool calculateDistanceServiceCallback(cob_control_msgs::GetObstacleDistance::Request &req,
                                           cob_control_msgs::GetObstacleDistance::Response &res);
 
-    ros::Publisher distance_pub_;
-    ros::ServiceServer register_server_, unregister_server_;
-    bool registerCallback(cob_srvs::SetString::Request &req, cob_srvs::SetString::Response &res);
-    bool unregisterCallback(cob_srvs::SetString::Request &req, cob_srvs::SetString::Response &res);
-
-    ros::Timer distance_timer_;
-    void calculateDistanceTimerCallback(const ros::TimerEvent& event);
-
-    cob_control_msgs::ObstacleDistance getDistanceInfo(const boost::shared_ptr<fcl::CollisionObject> object_a,
-                                                       const boost::shared_ptr<fcl::CollisionObject> object_b);
-
-    collision_detection::AllowedCollisionMatrix acm_;
+    cob_control_msgs::ObstacleDistances getObstacleDistances();
+    cob_control_msgs::ObstacleDistance getObstacleDistance(const boost::shared_ptr<fcl::CollisionObject> object_a,
+                                                           const boost::shared_ptr<fcl::CollisionObject> object_b);
 };
 
 #endif  // COB_OBSTACLE_DISTANCE_MOVEIT__OBSTACLE_DISTANCE_H
