@@ -6,6 +6,8 @@
 
   <arg name="load_semantic_description" default="true"/>
   <arg name="load_planning_context" default="false"/>
+
+  <arg name="verbose" default="false"/>
   
   <!-- Load SRDF -->
   <include file="$(arg pkg_moveit_config)/launch/upload_config.launch">
@@ -17,6 +19,11 @@
 
   <node pkg="cob_collision_monitor" type="cob_collision_monitor_node" name="cob_collision_monitor_node" output="screen">
     <!--remap from="/cob_collision_monitor_node/state_is_valid" to="/safety_controller/state_is_valid"/-->  <!--only needed for the cob4 specific configuration-->
+    <param name="verbose" value="$(arg verbose)"/>
+    <param name="max_age" value="1.0"/>
+    <param name="ground_link" value="base_link"/>
+    <param name="ground_size" value="10.0"/>
+    <param name="ground_height" value="-0.001"/>
   </node>
 
 </launch>
