@@ -23,7 +23,6 @@
   <exec_depend>cob_moveit_interface</exec_depend>
   <exec_depend>cob_obstacle_distance_moveit</exec_depend>
   <exec_depend>cob_pick_place_action</exec_depend>
-  <exec_depend>moveit_planner_chomp</exec_depend>
 
  <export>
   <metapackage/>
