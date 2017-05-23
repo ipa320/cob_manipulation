@@ -1,8 +1,12 @@
 #ifndef COB_COLLISION_MONITOR_VALID_STATE_PUBLISHER_H
 #define COB_COLLISION_MONITOR_VALID_STATE_PUBLISHER_H
 
+#include <exception>
+
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <std_msgs/Bool.h>
+
+#include <moveit/collision_detection/collision_common.h>
 
 namespace cob_collision_monitor{
 class ValidStatePublisher{
@@ -20,7 +24,7 @@ public:
       max_age_(nh.param("max_age", 1.0)),
       pub_(nh.advertise<std_msgs::Bool>("state_is_valid", 1)),
       data_(),
-      verbose_(nh.param("verbose", true))
+      verbose_(nh.param("verbose", false))
     {
         double ground_size = nh.param("ground_size", 10.0);
          
@@ -58,17 +62,48 @@ public:
 
 
     void updatedScene(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType type){
-        planning_scene_monitor::CurrentStateMonitorPtr csm = planning_scene_monitor_->getStateMonitor();
-        bool complete = max_age_.isZero() ? csm->haveCompleteState() : csm->haveCompleteState(max_age_);
-        if(complete){
-            was_complete_ = true;
-            planning_scene_monitor::LockedPlanningSceneRO ps(planning_scene_monitor_);
-            planning_scene::PlanningScenePtr diff_ps = ps->diff(diff_msg_);
-            data_.data = !diff_ps->isStateColliding("", verbose_);
-        }else if(was_complete_){
-            data_.data = false;
+        try
+        {
+            planning_scene_monitor::CurrentStateMonitorPtr csm = planning_scene_monitor_->getStateMonitor();
+            bool complete = max_age_.isZero() ? csm->haveCompleteState() : csm->haveCompleteState(max_age_);
+            if(complete){
+                was_complete_ = true;
+                planning_scene_monitor::LockedPlanningSceneRO ps(planning_scene_monitor_);
+                planning_scene::PlanningScenePtr diff_ps = ps->diff(diff_msg_);
+                data_.data = !diff_ps->isStateColliding("", verbose_);
+                pub_.publish(data_);
+
+                if(verbose_)
+                {
+                    /// debug
+                    collision_detection::CollisionResult::ContactMap contacts;
+                    diff_ps->getCollidingPairs(contacts);
+                    ROS_DEBUG("#Collisions: %zu", contacts.size());
+                    for (collision_detection::CollisionResult::ContactMap::iterator map_it=contacts.begin(); map_it!=contacts.end(); ++map_it)
+                    {
+                        ROS_ERROR("Collision between %s and %s", map_it->first.first.c_str(), map_it->first.second.c_str());
+                        ROS_DEBUG("#Contacts: %zu", map_it->second.size());
+                        for (std::vector<collision_detection::Contact>::iterator vec_it=map_it->second.begin(); vec_it!=map_it->second.end(); ++vec_it)
+                        {
+                            ROS_DEBUG("Depth: %f", vec_it->depth);
+                        }
+                    }
+                }
+            }else if(was_complete_){
+                ROS_DEBUG("was not complete");
+                data_.data = false;
+                pub_.publish(data_);
+            }
         }
-        pub_.publish(data_);
+        catch(std::exception &ex)
+        {
+            ROS_DEBUG("std::exception: %s", ex.what());
+            return;
+        }
+        catch (...) {
+            ROS_DEBUG("Exception occurred");
+            return;
+        }
     }
 };
 }
