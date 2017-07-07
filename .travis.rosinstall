@@ -1,10 +1,10 @@
 - git:
-    uri: 'https://github.com/ipa320/cob_calibration_data.git'
-    local-name: cob_calibration_data
-    version: indigo_dev
-- git:
     uri: 'https://github.com/ipa320/cob_android.git'
     local-name: cob_android
+    version: indigo_dev
+- git:
+    uri: 'https://github.com/ipa320/cob_calibration_data.git'
+    local-name: cob_calibration_data
     version: indigo_dev
 - git:
     uri: 'https://github.com/ipa320/cob_command_tools.git'
@@ -65,14 +65,10 @@
     local-name: sick_visionary_t
     version: indigo-devel
 - git:
-    uri: 'https://github.com/ros-industrial/ros_canopen.git'
-    local-name: ros_canopen
-    version: jade-devel
+    uri: 'https://github.com/ros-industrial/industrial_moveit.git'
+    local-name: industrial_moveit
+    version: kinetic-devel
 - git:
     uri: 'https://github.com/ros-industrial/universal_robot.git'
     local-name: universal_robot
     version: kinetic-devel
-- git:
-    uri: 'https://github.com/bosch-ros-pkg/usb_cam.git'
-    local-name: usb_cam
-    version: develop

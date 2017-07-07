@@ -5,6 +5,7 @@
   <arg name="robot" default="$(optenv ROBOT !!NO_ROBOT_SET!!)"/>
   <arg name="debug" default="false"/>
   <arg name="use_sensors" default="true"/>
+  <arg name="pipeline" default="ompl"/>
 
   # The planning and execution components of MoveIt! configured to
   # publish the current configuration of the robot (simulated or real)
@@ -12,6 +13,7 @@
   <include file="$(find cob_moveit_bringup)/launch/move_group.launch">
     <arg name="robot" value="$(arg robot)" />
     <arg name="debug" value="$(arg debug)" />
+    <arg name="pipeline" value="$(arg pipeline)"/>
     <arg name="use_sensors" default="$(arg use_sensors)"/>
   </include>
 

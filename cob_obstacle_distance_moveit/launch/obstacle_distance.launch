@@ -1,21 +1,11 @@
 <?xml version="1.0"?>
 <launch>
   <arg name="robot" default="$(env ROBOT)"/>
-  <arg name="config_path" default="$(find cob_moveit_config)/$(arg robot)/config"/>
+  <arg name="pkg_moveit_config" default="$(find cob_moveit_config)"/>
+  <arg name="config_path" default="$(arg pkg_moveit_config)/robots/$(arg robot)/moveit/config"/>
 
-  <arg name="load_semantic_description" default="true"/>
-  <arg name="load_planning_context" default="false"/>
-
-  <arg name="use_sensors" default="true"/>
+  <arg name="use_sensors" default="false"/>
   <arg name="node_name" value="obstacle_distance_moveit"/>
-  
-  <!-- Load SRDF -->
-  <include file="$(find cob_moveit_config)/launch/upload_config.launch">
-    <arg name="robot" value="$(arg robot)" />
-    <arg name="config_path" value="$(arg config_path)" />
-    <arg name="load_semantic_description" value="$(arg load_semantic_description)" />
-    <arg name="load_planning_context" value="$(arg load_planning_context)" />
-  </include>
 
   <!-- Load Sensor Input Information -->
   <include ns="$(arg node_name)" file="$(find cob_moveit_bringup)/launch/sensor_manager.xml">

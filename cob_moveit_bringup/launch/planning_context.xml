@@ -1,7 +1,8 @@
 <launch>
 
   <arg name="robot" default="$(optenv ROBOT !!NO_ROBOT_SET!!)"/>
-  <arg name="config_path" default="$(find cob_moveit_config)/$(arg robot)/config"/>
+  <arg name="pkg_moveit_config" default="$(find cob_moveit_config)"/>
+  <arg name="config_path" default="$(arg pkg_moveit_config)/robots/$(arg robot)/moveit/config"/>
 
   <!-- By default we do not overwrite the URDF. Change the following to true to change the default behavior -->
   <arg name="load_robot_description" default="false"/>
@@ -12,7 +13,7 @@
   <arg name="robot_description" default="robot_description"/>
 
   <!-- Load universal robotic description format (URDF) -->
-  <include file="$(find cob_hardware_config)/common/upload_robot.launch" if="$(arg load_robot_description)">
+  <include file="$(find cob_hardware_config)/upload_robot.launch" if="$(arg load_robot_description)">
     <arg name="robot" value="$(arg robot)" />
   </include>
 

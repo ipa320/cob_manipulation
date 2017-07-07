@@ -1,7 +1,8 @@
 <?xml version="1.0"?>
 <launch>
   <arg name="robot" default="$(optenv ROBOT !!NO_ROBOT_SET!!)"/>
-  <arg name="config_path" default="$(find cob_moveit_config)/$(arg robot)/config"/>
+  <arg name="pkg_moveit_config" default="$(find cob_moveit_config)"/>
+  <arg name="config_path" default="$(arg pkg_moveit_config)/robots/$(arg robot)/moveit/config"/>
   <arg name="load_robot_description" default="false"/>
 
   <!-- GDB Debug Option -->
@@ -14,7 +15,7 @@
   <arg unless="$(arg info)" name="command_args" value="" />
   <arg     if="$(arg info)" name="command_args" value="--debug" />
 
-  <!-- move_group settings -->
+  <!-- move_group settings -->  
   <arg name="allow_trajectory_execution" default="true"/>
   <arg name="fake_execution" default="false"/>
   <arg name="max_safe_path_cost" default="1"/>
@@ -54,7 +55,8 @@
     <param name="allow_trajectory_execution" value="$(arg allow_trajectory_execution)"/>
     <param name="max_safe_path_cost" value="$(arg max_safe_path_cost)"/>
     <param name="jiggle_fraction" value="$(arg jiggle_fraction)" />
-
+    <param name="collision_detector" value="IndustrialFCL" />
+	
     <!-- MoveGroup capabilities to load -->
     <param name="capabilities" value="move_group/MoveGroupCartesianPathService
                                       move_group/MoveGroupExecuteService
@@ -65,6 +67,7 @@
                                       move_group/MoveGroupQueryPlannersService
                                       move_group/MoveGroupStateValidationService
                                       move_group/MoveGroupGetPlanningSceneService
+                                      move_group/ClearOctomapService
                                       " />
                                       <!-- you can add 'cob_collision_monitor/CollisionMonitor' to the list above
                                            however, it is recommended to use the standalone-node in cob_collision_monitor -->
