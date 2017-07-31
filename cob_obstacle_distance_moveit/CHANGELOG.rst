@@ -2,6 +2,15 @@
 Changelog for package cob_obstacle_distance_moveit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* merge with indigo_release_candidate
+* remove obsolete dependencies to cmake_modules
+* Merge branch 'indigo_dev' of https://github.com/ipa320/cob_manipulation into kinetic_dev
+* kinetic migration for cob_obstacle_distance_moveit
+* fcl for kinetic
+* Contributors: Richard Bormann, ipa-fxm
+
 0.6.5 (2017-07-31)
 ------------------
 * Merge pull request `#110 <https://github.com/ipa320/cob_manipulation/issues/110>`_ from ipa320/ipa-fxm-refactor_configuration_structure

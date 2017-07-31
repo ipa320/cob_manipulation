@@ -2,6 +2,12 @@
 Changelog for package cob_manipulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* merge with indigo_release_candidate
+* remove cob_kinematics
+* Contributors: Richard Bormann, ipa-fxm
+
 0.6.5 (2017-07-31)
 ------------------
 * Revert "Adding chomp planning pipeline"

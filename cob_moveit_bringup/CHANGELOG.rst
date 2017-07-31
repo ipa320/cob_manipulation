@@ -2,6 +2,13 @@
 Changelog for package cob_moveit_bringup
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* remove stomp configuration
+  Conflicts:
+  .travis.rosinstall
+* Contributors: ipa-fxm
+
 0.6.5 (2017-07-31)
 ------------------
 * remove stomp configuration

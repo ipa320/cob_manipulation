@@ -2,6 +2,9 @@
 Changelog for package cob_lookat_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.6.5 (2017-07-31)
 ------------------
 * fix install tags
