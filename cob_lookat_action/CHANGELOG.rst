@@ -2,6 +2,12 @@
 Changelog for package cob_lookat_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix install tags
+* rework package: now using virtual KDL chain and FJT action client
+* Contributors: Felix Messmer, ipa-fxm
+
 0.6.4 (2016-04-01)
 ------------------
 

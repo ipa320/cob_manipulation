@@ -2,6 +2,22 @@
 Changelog for package cob_obstacle_distance_moveit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#110 <https://github.com/ipa320/cob_manipulation/issues/110>`_ from ipa320/ipa-fxm-refactor_configuration_structure
+  Refactor configuration structure
+* restructure moveit config
+* ;)
+* deleted some whitespaces
+* Added SRDF for AllowedCollisionMatrix computation
+* Changed launchfile accourding to new cob structure
+* do not load robot_description in cob_moveit_config/upload_config.launch
+* minor launch adjustments
+* add remaps for cob4 as comments
+* move scripts to proper folder
+* add install tags
+* Contributors: Christoph Mark, Felix Messmer, ipa-fxm, ipa-nhg
+
 0.6.4 (2016-04-01)
 ------------------
 * use messages and services from new package cob_control_msgs

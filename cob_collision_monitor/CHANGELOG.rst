@@ -2,6 +2,19 @@
 Changelog for package cob_collision_monitor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* parameters via launch file
+* default verbosity set to false
+* catch runtime exception
+* add debug info to collision_monitor
+* restructure moveit config
+* do not load robot_description in cob_moveit_config/upload_config.launch
+* minor launch adjustments
+* update cob_collision_monitor
+* add remaps for cob4 as comments
+* Contributors: ipa-fxm, ipa-nhg
+
 0.6.4 (2016-04-01)
 ------------------
 * explicit name for the collision_monitor plugin
