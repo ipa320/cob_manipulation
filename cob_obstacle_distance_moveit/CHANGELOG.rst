@@ -2,8 +2,8 @@
 Changelog for package cob_obstacle_distance_moveit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.0 (2017-07-31)
+------------------
 * merge with indigo_release_candidate
 * remove obsolete dependencies to cmake_modules
 * Merge branch 'indigo_dev' of https://github.com/ipa320/cob_manipulation into kinetic_dev

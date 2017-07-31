@@ -2,8 +2,8 @@
 Changelog for package cob_pick_place_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.0 (2017-07-31)
+------------------
 * merge with indigo_release_candidate
 * MoveGroup deprecation warning
 * add_definition c++11

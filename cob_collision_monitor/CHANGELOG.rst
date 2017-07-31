@@ -2,8 +2,8 @@
 Changelog for package cob_collision_monitor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.0 (2017-07-31)
+------------------
 * c+11 support
 * Contributors: ipa-fxm
 

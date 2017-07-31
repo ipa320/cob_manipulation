@@ -2,8 +2,8 @@
 Changelog for package cob_manipulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.0 (2017-07-31)
+------------------
 * merge with indigo_release_candidate
 * remove cob_kinematics
 * Contributors: Richard Bormann, ipa-fxm
