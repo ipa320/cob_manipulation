@@ -2,8 +2,8 @@
 Changelog for package cob_moveit_bringup
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.5 (2017-07-31)
+------------------
 * remove stomp configuration
 * Revert "Adding chomp planning pipeline"
 * chomp planning pipeline file added robot argument

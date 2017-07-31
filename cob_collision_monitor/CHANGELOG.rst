@@ -2,8 +2,8 @@
 Changelog for package cob_collision_monitor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.5 (2017-07-31)
+------------------
 * parameters via launch file
 * default verbosity set to false
 * catch runtime exception

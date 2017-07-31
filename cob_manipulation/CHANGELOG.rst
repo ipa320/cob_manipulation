@@ -2,8 +2,8 @@
 Changelog for package cob_manipulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.5 (2017-07-31)
+------------------
 * Revert "Adding chomp planning pipeline"
 * added exec_depend to chomp
 * remove obsolete packages due to unsupported robots

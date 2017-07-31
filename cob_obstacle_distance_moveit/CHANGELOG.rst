@@ -2,8 +2,8 @@
 Changelog for package cob_obstacle_distance_moveit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.5 (2017-07-31)
+------------------
 * Merge pull request `#110 <https://github.com/ipa320/cob_manipulation/issues/110>`_ from ipa320/ipa-fxm-refactor_configuration_structure
   Refactor configuration structure
 * restructure moveit config

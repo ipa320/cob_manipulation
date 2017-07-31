@@ -2,8 +2,8 @@
 Changelog for package cob_pick_place_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.5 (2017-07-31)
+------------------
 * fix script - missing import and assimp error
 * make pick and grasp more robot-agnostic
 * Contributors: ipa-fxm
