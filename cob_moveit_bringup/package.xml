@@ -5,7 +5,7 @@
      MoveIt launch files
   </description>
   <author email="fxm@ipa.fhg.de">Felix Messmer</author>
-  <maintainer email="mdl@ipa.fhg.de">Mathias Luedtke</maintainer>
+  <author email="mathias.luedtke@ipa.fraunhofer.de">Mathias Lüdtke</author>
   <maintainer email="fxm@ipa.fhg.de">Felix Messmer</maintainer>
 
   <license>Apache 2.0</license>
