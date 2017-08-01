@@ -1,6 +1,7 @@
 <launch>
 
   <arg name="robot" default="$(optenv ROBOT !!NO_ROBOT_SET!!)"/>
+  <arg name="pkg_hardware_config" default="$(find cob_hardware_config)"/>
   <arg name="pkg_moveit_config" default="$(find cob_moveit_config)"/>
   <arg name="config_path" default="$(arg pkg_moveit_config)/robots/$(arg robot)/moveit/config"/>
 
@@ -13,7 +14,7 @@
   <arg name="robot_description" default="robot_description"/>
 
   <!-- Load universal robotic description format (URDF) -->
-  <include file="$(find cob_hardware_config)/upload_robot.launch" if="$(arg load_robot_description)">
+  <include file="$(arg pkg_hardware_config)/upload_robot.launch" if="$(arg load_robot_description)">
     <arg name="robot" value="$(arg robot)" />
   </include>
 
