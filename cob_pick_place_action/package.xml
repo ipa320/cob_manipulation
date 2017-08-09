@@ -4,6 +4,7 @@
   <description>
      An action interface to MoveIt!'s pick-and-place for Care-O-bot
   </description>
+
   <author email="fxm@ipa.fhg.de">Felix Messmer</author>
   <maintainer email="fxm@ipa.fhg.de">Felix Messmer</maintainer>
 
