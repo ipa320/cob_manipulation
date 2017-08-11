@@ -30,8 +30,8 @@ def setup_environment():
 	psi = smi_.get_planning_scene_interface()
 	rospy.sleep(1.0)
 
-	smi_.clear_objects("arm_7_link")
-	#smi_.clear_objects("arm_left_7_link")
+	#smi_.clear_objects("arm_7_link")
+	smi_.clear_objects("arm_left_7_link")
 
 	### Add a floor
 	smi_.add_ground()
@@ -47,6 +47,7 @@ def setup_environment():
 	pose.pose.orientation.y = 0
 	pose.pose.orientation.z = 0
 	pose.pose.orientation.w = 1
+
 	psi.add_box("bookcase", pose, size=(0.5, 1.5, 0.78))
 
 	rospy.sleep(1.0)
@@ -79,10 +80,12 @@ def cob_pick_action_client():
 	#goal.object_pose.pose.orientation.x, goal.object_pose.pose.orientation.y, goal.object_pose.pose.orientation.z, goal.object_pose.pose.orientation.w = quaternion_from_euler(random.uniform(-pi/2, pi/2),random.uniform(-pi/2, pi/2),random.uniform(-pi/2, pi/2))
 	#goal.gripper_type = "sdh"
 	### cob4
-	goal.object_pose.pose.position.x = random.uniform(0.4, 0.6)
-	goal.object_pose.pose.position.y = random.uniform(0.5, 0.7)
-	goal.object_pose.pose.position.z = random.uniform(0.8, 1.0)
+
+	goal.object_pose.pose.position.x = 0.617 + random.uniform(-0.1, 0.1)
+	goal.object_pose.pose.position.y = 0.589 + random.uniform(-0.1, 0.1)
+	goal.object_pose.pose.position.z = 0.979 + random.uniform(-0.1, 0.1)
 	goal.object_pose.pose.orientation.x, goal.object_pose.pose.orientation.y, goal.object_pose.pose.orientation.z, goal.object_pose.pose.orientation.w = quaternion_from_euler(random.uniform(-pi/2, pi/2),random.uniform(-pi/2, pi/2),random.uniform(-pi/2, pi/2))
+	#goal.object_pose.pose.orientation.x, goal.object_pose.pose.orientation.y, goal.object_pose.pose.orientation.z, goal.object_pose.pose.orientation.w = quaternion_from_euler(-1.571, -0.000, -1.400)
 	goal.gripper_type = "sdhx"
 
 	#goal.grasp_database = "KIT"
@@ -100,14 +103,15 @@ def cob_pick_action_client():
 	if finished_before_timeout:
 		state=pick_action_client.get_state()
 		print "Action finished: %s"%state
-	# Prints out the result of executing the action
-	return state  # State after waiting for PickupAction
+	else:
+		print "Action did not finish within timeout"
+	return
 
 if __name__ == '__main__':
 	try:
 		# Initializes a rospy node so that the SimpleActionClient can
 		# publish and subscribe over ROS.
 		rospy.init_node('CobPickAction_client_py')
-		result = cob_pick_action_client()
+		cob_pick_action_client()
 	except rospy.ROSInterruptException:
 		print "program interrupted before completion"
