@@ -26,6 +26,11 @@ install(DIRECTORY files launch
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
-install(PROGRAMS scripts/cob_grasp_generation_action_server.py scripts/generate_grasps_client.py scripts/query_grasps_client.py scripts/show_grasps_client.py
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/scripts
+install(PROGRAMS
+        scripts/cob_grasp_generation_action_server.py
+        scripts/cob_grasp_query_action_server.py
+        scripts/generate_grasps_client.py
+        scripts/query_grasps_client.py
+        scripts/show_grasps_client.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
