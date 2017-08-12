@@ -22,7 +22,7 @@ import moveit_msgs.msg
 import cob_grasp_generation.msg
 
 def show_grasps_client():
-    client = actionlib.SimpleActionClient('show_grasps', cob_grasp_generation.msg.ShowGraspsAction)
+    client = actionlib.SimpleActionClient('show_grasps_or', cob_grasp_generation.msg.ShowGraspsAction)
     client.wait_for_server()
 
     #object_name = raw_input("Insert object name: ")
