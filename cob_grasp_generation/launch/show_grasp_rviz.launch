@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<launch>
+
+	<arg name="gripper"/>
+	<arg name="object"/>
+
+	<!-- upload robot description -->
+	<param name="robot_description" command="$(find xacro)/xacro --inorder '$(find cob_grasp_generation)/files/urdf/$(arg gripper).urdf.xacro'"/>
+	<node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen"/>
+
+  <node pkg="cob_grasp_generation" type="show_grasps_rviz_server.py" name="show_grasps_rviz_server" output="screen"/>
+
+	<!-- rviz visualization -->
+	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find cob_grasp_generation)/launch/show_grasp.rviz" required="true" />
+
+</launch>

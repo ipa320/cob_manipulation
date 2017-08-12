@@ -33,5 +33,7 @@ install(PROGRAMS
         scripts/query_grasps_server.py
         scripts/show_grasps_or_client.py
         scripts/show_grasps_or_server.py
+        scripts/show_grasps_rviz_client.py
+        scripts/show_grasps_rviz_server.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
