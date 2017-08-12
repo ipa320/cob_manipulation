@@ -34,8 +34,11 @@ class ShowGraspsRvizServer(object):
   def __init__(self):
     self.joint_names = []
     self.joint_positions = []
+    self.joint_mimic = []
     for joint in URDF.from_parameter_server().joints:
-      if joint.type == 'revolute':
+      if joint.mimic:
+        self.joint_mimic.append(joint)
+      elif joint.type == 'revolute':
         self.joint_names.append(joint.name)
         if joint.limit.lower < 0.0 and 0.0 < joint.limit.upper:
           self.joint_positions.append(0.0)
@@ -75,7 +78,6 @@ class ShowGraspsRvizServer(object):
 
     print("ShowGraspsRvizServer: action started...")
 
-
   def show_cb(self, goal):
     success = False
 
@@ -85,11 +87,15 @@ class ShowGraspsRvizServer(object):
       self.marker.mesh_resource = "package://cob_grasp_generation/files/meshes/"+goal.object_name+".stl"
       grasp_list = grasp_query_utils.get_grasps(goal.object_name, goal.gripper_type, goal.grasp_id, 1)
       if grasp_list:
-        print grasp_list
-        #self.js.name = grasp_list[0].pre_grasp_posture.joint_names              #TODO: joint names in urdf are "side-independend"
-        self.js.position = grasp_list[0].grasp_posture.points[0].positions       #TODO: has problems with sdh mimic joint
+        #print grasp_list
+        self.js.name = grasp_list[0].pre_grasp_posture.joint_names              #TODO: joint names in urdf are "side-independend"
+        self.js.position = grasp_list[0].grasp_posture.points[0].positions
+        for joint in self.joint_mimic:
+          idx = grasp_list[0].pre_grasp_posture.joint_names.index(joint.mimic.joint)
+          self.js.name.append(joint.name)
+          self.js.position.append(grasp_list[0].grasp_posture.points[0].positions[idx])
         self.t.transform.translation = grasp_list[0].grasp_pose.pose.position
-        #self.t.transform.rotation = grasp_list[0].grasp_pose.pose.orientation   #TODO: quaternions seem to be wrong, i.e. not normalized
+        self.t.transform.rotation = grasp_list[0].grasp_pose.pose.orientation
         success = True
       else:
         success = False
