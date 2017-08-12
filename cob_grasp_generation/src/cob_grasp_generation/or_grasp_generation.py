@@ -44,13 +44,13 @@ class ORGraspGeneration:
 			print "Not using a viewer for OpenRAVE"
 
 		if self.target == None:
-			self.target = self.env.ReadKinBodyURI(roslib.packages.get_pkg_dir('cob_pick_place_action')+'/files/meshes/'+str(object_name)+'.stl')
+			self.target = self.env.ReadKinBodyURI(roslib.packages.get_pkg_dir('cob_grasp_generation')+'/files/meshes/'+str(object_name)+'.stl')
 			self.env.Add(self.target,True)
 
 		if self.target.GetName() != object_name:
 			print "Changing the target object"
 			self.env.Remove(self.target)
-			self.target = self.env.ReadKinBodyURI(roslib.packages.get_pkg_dir('cob_pick_place_action')+'/files/meshes/'+str(object_name)+'.stl')
+			self.target = self.env.ReadKinBodyURI(roslib.packages.get_pkg_dir('cob_grasp_generation')+'/files/meshes/'+str(object_name)+'.stl')
 			self.env.Add(self.target,True)
 
 		print "Environment set up!"

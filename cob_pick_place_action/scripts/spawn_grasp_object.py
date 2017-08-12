@@ -39,7 +39,7 @@ if __name__ == '__main__':
 	### ADDING OBJECT
 	object_name = "pringles"
 	pose = gen_pose(frame_id="base_footprint", pos=[-0.7, 0.5, 1.05], euler=[0, 0, 0])
-	filename = roslib.packages.get_pkg_dir('cob_pick_place_action')+'/files/meshes/'+object_name+'.stl'
+	filename = roslib.packages.get_pkg_dir('cob_grasp_generation')+'/files/meshes/'+object_name+'.stl'
 	#psi.add_mesh(object_name, pose, filename)	#assimp error
 	psi.add_box(object_name, pose, size=(0.1, 0.1, 0.1))
 

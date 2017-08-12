@@ -327,7 +327,7 @@ void CobPickPlaceActionServer::insertObject(std::string object_name, unsigned in
 	std::transform(mesh_name.begin(), mesh_name.end(), mesh_name.begin(), ::tolower);
 
 	boost::scoped_ptr<shapes::Mesh> mesh;
-	mesh.reset(shapes::createMeshFromResource("package://cob_pick_place_action/files/meshes/"+mesh_name+".stl"));
+	mesh.reset(shapes::createMeshFromResource("package://cob_grasp_generation/files/meshes/"+mesh_name+".stl"));
 	shapes::ShapeMsg shape_msg;
 	shapes::constructMsgFromShape(mesh.get(), shape_msg);
 	co.meshes.push_back(boost::get<shape_msgs::Mesh>(shape_msg));
@@ -352,7 +352,7 @@ void CobPickPlaceActionServer::fillAllGraspsKIT(unsigned int objectClassId, std:
 	Grasp *current_grasp = NULL;
 
 	///Initialize GraspTable
-	std::string path = ros::package::getPath("cob_pick_place_action")+std::string("/files/")+gripper_type+std::string("_grasptable.txt");
+	std::string path = ros::package::getPath("cob_grasp_generation")+std::string("/files/")+gripper_type+std::string("_grasptable_kit.txt");
 	GraspTableIniFile = const_cast<char*>(path.c_str());
 	m_GraspTable = new GraspTable();
 	int error = m_GraspTable->Init(GraspTableIniFile);
@@ -382,7 +382,7 @@ void CobPickPlaceActionServer::fillSingleGraspKIT(unsigned int objectClassId, st
 	Grasp *current_grasp = NULL;
 
 	///Initialize GraspTable
-	std::string path = ros::package::getPath("cob_pick_place_action")+std::string("/files/")+gripper_type+std::string("_grasptable.txt");
+	std::string path = ros::package::getPath("cob_grasp_generation")+std::string("/files/")+gripper_type+std::string("_grasptable_kit.txt");
 	GraspTableIniFile = const_cast<char*>(path.c_str());
 	m_GraspTable = new GraspTable();
 	int error = m_GraspTable->Init(GraspTableIniFile);
