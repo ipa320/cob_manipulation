@@ -5,12 +5,11 @@
   <description>The collision monitor uses the planning scene monitor to read the state of the robot and check it for collision with itselt or the environment. It addition a ground plane is added in any case. Can be used as a stand-aloan node or a move_group capability.</description>
 
   <maintainer email="fxm@ipa.fhg.de">Felix Messmer</maintainer>
+  <author email="mathias.luedtke@ipa.fraunhofer.de">Mathias Lüdtke</author>
 
   <license>Apache 2.0</license>
 
   <url type="website">http://wiki.ros.org/cob_collision_monitor</url>
-
-  <author email="mathias.luedtke@ipa.fraunhofer.de">Mathias Lüdtke</author>
 
   <buildtool_depend>catkin</buildtool_depend>
   <depend>moveit_ros_move_group</depend>

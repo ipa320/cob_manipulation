@@ -4,6 +4,7 @@
   <description>
      MoveIt launch files
   </description>
+
   <author email="fxm@ipa.fhg.de">Felix Messmer</author>
   <author email="mathias.luedtke@ipa.fraunhofer.de">Mathias Lüdtke</author>
   <maintainer email="fxm@ipa.fhg.de">Felix Messmer</maintainer>
