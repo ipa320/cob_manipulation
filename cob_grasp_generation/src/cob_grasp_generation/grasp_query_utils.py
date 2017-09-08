@@ -57,15 +57,15 @@ def get_grasp_list(object_name, gripper_type, sort_by_quality=False):
 		return sorted(reader, key=lambda d: float(d['id']), reverse=False)
 
 #get the grasps
-def get_grasps(object_name, gripper_type, grasp_id=0, num_grasps=0, threshold=0):
+def get_grasps(object_name, gripper_type, gripper_side="", grasp_id=0, num_grasps=0, threshold=0):
 	#open database
 	grasp_list = get_grasp_list(object_name, gripper_type)
 
 	#check for grasp_id and return
 	if grasp_id > 0:
 		if grasp_id < len(grasp_list):
-			#print _fill_grasp_msg(gripper_type, grasp_list[grasp_id])
-			return [_fill_grasp_msg(gripper_type, grasp_list[grasp_id])]
+			#print _fill_grasp_msg(gripper_type, gripper_side, grasp_list[grasp_id])
+			return [_fill_grasp_msg(gripper_type, gripper_side, grasp_list[grasp_id])]
 		else:
 			print "Grasp not available"
 			return []
@@ -83,9 +83,9 @@ def get_grasps(object_name, gripper_type, grasp_id=0, num_grasps=0, threshold=0)
 	selected_grasp_list = []
 	for i in range(0,max_grasps):
 		if threshold > 0 and float(sorted_list[i]['eps_l1']) >= threshold:
-			selected_grasp_list.append(_fill_grasp_msg(gripper_type, sorted_list[i]))
+			selected_grasp_list.append(_fill_grasp_msg(gripper_type, gripper_side, sorted_list[i]))
 		elif threshold == 0:
-			selected_grasp_list.append(_fill_grasp_msg(gripper_type, sorted_list[i]))
+			selected_grasp_list.append(_fill_grasp_msg(gripper_type, gripper_side, sorted_list[i]))
 		else:
 			pass
 
@@ -93,14 +93,14 @@ def get_grasps(object_name, gripper_type, grasp_id=0, num_grasps=0, threshold=0)
 	return selected_grasp_list
 
 #fill the grasp message of ROS
-def _fill_grasp_msg(gripper_type, grasp):
+def _fill_grasp_msg(gripper_type, gripper_side, grasp):
 
 	#grasp posture
 	joint_config = JointTrajectory()
 	#joint_config.header.stamp = rospy.Time.now()
 	#joint_config.header.frame_id = ""
 
-	#ToDo: get rid of this hardcoded-joint names
+	#entries in the grasp table are side-independend
 	if gripper_type == "sdh":
 		joint_config.joint_names = ['sdh_knuckle_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint']
 	elif gripper_type == "sdhx":
@@ -109,7 +109,7 @@ def _fill_grasp_msg(gripper_type, grasp):
 		rospy.logerr("Gripper not supported")
 		return Grasp()
 
-	#print "Optimize grasp_configuration"
+	#get grasp joint configuration
 	point = JointTrajectoryPoint()
 	for joint_name in joint_config.joint_names:
 		point.positions.append(float(grasp[joint_name]))
@@ -118,10 +118,27 @@ def _fill_grasp_msg(gripper_type, grasp):
 		point.effort.append(0.0)
 		point.time_from_start = rospy.Duration(3.0)
 	joint_config.points.append(point)
-	## WARNING: in hydro the message format has changed, thus the following does not work anymore
-	##joint_config.position = [float(grasp['sdh_knuckle_joint']), float(grasp['sdh_finger_12_joint']), float(grasp['sdh_finger_13_joint']), float(grasp['sdh_finger_22_joint']), float(grasp['sdh_finger_23_joint']), float(grasp['sdh_thumb_2_joint']), float(grasp['sdh_thumb_3_joint'])]
-	##print joint_config.position
-	#joint_config.position = [float(grasp['sdh_knuckle_joint']), 0.92*float(grasp['sdh_finger_12_joint']), float(grasp['sdh_finger_13_joint']), 0.92*float(grasp['sdh_finger_22_joint']), float(grasp['sdh_finger_23_joint']), 0.92*float(grasp['sdh_thumb_2_joint']), float(grasp['sdh_thumb_3_joint'])]
+
+	#side-specific joint_name correction
+	#ToDo: get rid of this hardcoded-joint names
+	if gripper_type == "sdh":
+		if gripper_side == "left":
+			joint_config.joint_names = ['sdh_left_knuckle_joint', 'sdh_left_finger_12_joint', 'sdh_left_finger_13_joint', 'sdh_left_finger_22_joint', 'sdh_left_finger_23_joint', 'sdh_left_thumb_2_joint', 'sdh_left_thumb_3_joint']
+		elif gripper_side == "right":
+			joint_config.joint_names = ['sdh_right_knuckle_joint', 'sdh_right_finger_12_joint', 'sdh_right_finger_13_joint', 'sdh_right_finger_22_joint', 'sdh_right_finger_23_joint', 'sdh_right_thumb_2_joint', 'sdh_right_thumb_3_joint']
+		else:
+			joint_config.joint_names = ['sdh_knuckle_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint']
+	elif gripper_type == "sdhx":
+		if gripper_side == "left":
+			joint_config.joint_names = ['gripper_left_finger_1_joint', 'gripper_left_finger_2_joint']
+		elif gripper_side == "right":
+			joint_config.joint_names = ['gripper_right_finger_1_joint', 'gripper_right_finger_2_joint']
+		else:
+			joint_config.joint_names = ['gripper_finger_1_joint', 'gripper_finger_2_joint']
+	else:
+		rospy.logerr("Gripper not supported")
+		return Grasp()
+
 	#print joint_config
 
 	#pregrasp posture
@@ -131,11 +148,22 @@ def _fill_grasp_msg(gripper_type, grasp):
 
 	#ToDo: get rid of this hardcoded-joint names and open_config
 	if gripper_type == "sdh":
-		pre_joint_config.joint_names = ['sdh_knuckle_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint']
+		if gripper_side == "left":
+			pre_joint_config.joint_names = ['sdh_left_knuckle_joint', 'sdh_left_finger_12_joint', 'sdh_left_finger_13_joint', 'sdh_left_finger_22_joint', 'sdh_left_finger_23_joint', 'sdh_left_thumb_2_joint', 'sdh_left_thumb_3_joint']
+		elif gripper_side == "right":
+			pre_joint_config.joint_names = ['sdh_right_knuckle_joint', 'sdh_right_finger_12_joint', 'sdh_right_finger_13_joint', 'sdh_right_finger_22_joint', 'sdh_right_finger_23_joint', 'sdh_right_thumb_2_joint', 'sdh_right_thumb_3_joint']
+		else:
+			pre_joint_config.joint_names = ['sdh_knuckle_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint']
 		open_config = [0.0, -0.9854, 0.9472, -0.9854, 0.9472, -0.9854, 0.9472]
 	elif gripper_type == "sdhx":
-		pre_joint_config.joint_names = ['gripper_finger_1_joint', 'gripper_finger_2_joint']
-		open_config = [0.85, -1.4]
+		if gripper_side == "left":
+			pre_joint_config.joint_names = ['gripper_left_finger_1_joint', 'gripper_left_finger_2_joint']
+		elif gripper_side == "right":
+			pre_joint_config.joint_names = ['gripper_right_finger_1_joint', 'gripper_right_finger_2_joint']
+		else:
+			pre_joint_config.joint_names = ['gripper_finger_1_joint', 'gripper_finger_2_joint']
+		open_config = [-0.85, -0.5]
+
 	else:
 		rospy.logerr("Gripper not supported")
 		return Grasp()

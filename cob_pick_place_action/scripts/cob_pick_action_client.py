@@ -62,31 +62,34 @@ def cob_pick_action_client():
 
 	# Creates a goal to send to the action server.
 	goal = cob_pick_place_action.msg.CobPickGoal()
-	goal.object_class = 18
-	goal.object_name = "yellowsaltcube"
+	#goal.object_class = 18
+	#goal.object_name = "yellowsaltcube"
 	#goal.object_class = 50
 	#goal.object_name = "instantsoup"
 	#goal.object_class = 103
 	#goal.object_name = "instanttomatosoup"
-	#goal.object_class = 5001
-	#goal.object_name = "pringles"
-
+	goal.object_class = 5001
+	goal.object_name = "pringles"
 	goal.object_pose.header.stamp = rospy.Time.now()
 	goal.object_pose.header.frame_id = "base_footprint"
+
 	### cob3
 	#goal.object_pose.pose.position.x = random.uniform(-0.8, -0.6)
 	#goal.object_pose.pose.position.y = random.uniform(-0.3,  0.3)
 	#goal.object_pose.pose.position.z = random.uniform( 0.8,  1.1)
 	#goal.object_pose.pose.orientation.x, goal.object_pose.pose.orientation.y, goal.object_pose.pose.orientation.z, goal.object_pose.pose.orientation.w = quaternion_from_euler(random.uniform(-pi/2, pi/2),random.uniform(-pi/2, pi/2),random.uniform(-pi/2, pi/2))
 	#goal.gripper_type = "sdh"
-	### cob4
+	#goal.gripper_side = ""
 
+	### cob4
 	goal.object_pose.pose.position.x = 0.617 + random.uniform(-0.1, 0.1)
 	goal.object_pose.pose.position.y = 0.589 + random.uniform(-0.1, 0.1)
 	goal.object_pose.pose.position.z = 0.979 + random.uniform(-0.1, 0.1)
 	goal.object_pose.pose.orientation.x, goal.object_pose.pose.orientation.y, goal.object_pose.pose.orientation.z, goal.object_pose.pose.orientation.w = quaternion_from_euler(random.uniform(-pi/2, pi/2),random.uniform(-pi/2, pi/2),random.uniform(-pi/2, pi/2))
 	#goal.object_pose.pose.orientation.x, goal.object_pose.pose.orientation.y, goal.object_pose.pose.orientation.z, goal.object_pose.pose.orientation.w = quaternion_from_euler(-1.571, -0.000, -1.400)
 	goal.gripper_type = "sdhx"
+	#goal.gripper_side = ""
+	goal.gripper_side = "left"
 
 	#goal.grasp_database = "KIT"
 	goal.grasp_database = "OpenRAVE"

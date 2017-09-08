@@ -85,7 +85,7 @@ class ShowGraspsRvizServer(object):
 
     if grasp_query_utils.check_database(goal.object_name, goal.gripper_type):
       self.marker.mesh_resource = "package://cob_grasp_generation/files/meshes/"+goal.object_name+".stl"
-      grasp_list = grasp_query_utils.get_grasps(goal.object_name, goal.gripper_type, goal.grasp_id, 1)
+      grasp_list = grasp_query_utils.get_grasps(goal.object_name, goal.gripper_type, goal.gripper_side, goal.grasp_id, 1)
       if grasp_list:
         #print grasp_list
         self.js.name = grasp_list[0].pre_grasp_posture.joint_names              #TODO: joint names in urdf are "side-independend"

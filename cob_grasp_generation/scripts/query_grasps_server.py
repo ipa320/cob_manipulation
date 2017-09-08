@@ -40,7 +40,7 @@ class QueryGraspsServer(object):
     if grasp_query_utils.check_database(goal.object_name, goal.gripper_type):
         rospy.loginfo('GraspTable for object %s exist in the database.', goal.object_name)
         rospy.loginfo('Returning grasp list for selected object.')
-        grasp_list = grasp_query_utils.get_grasps(goal.object_name, goal.gripper_type, goal.grasp_id, goal.num_grasps, goal.threshold)
+        grasp_list = grasp_query_utils.get_grasps(goal.object_name, goal.gripper_type, goal.gripper_side, goal.grasp_id, goal.num_grasps, goal.threshold)
     else:
         rospy.logwarn('GraspTable for object %s does not exist!',goal.object_name)
 
