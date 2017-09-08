@@ -5,8 +5,8 @@
 (2) Export  Files as.. -> cob_manipulatiuon/cob_grasp_generation/files/meshes/[object_name].stl (Form: .stl)
  
 #### 2. prepare grasp table: sdh_[object_name].csv/sdhx_[object_name].csv
- (1) cob_manipulation/cob_grasp_generation/files/database: 
- (2) copy one ordner, paste, change the name ([object_name])
+ (1) change the directory: cob_manipulation/cob_grasp_generation/files/database
+ (2) copy one ordner in database (strg+c), paste (strg+v), change the name of the pasted order ([object_name])
  (3) change the directory to the ordner ([object_name]),change the name (sdh_[object_name].csv/sdhx_[object_name].csv)
  (4) open the dokument (sdh_[object_name].csv/sdhx_[object_name].csv), delete the 3,4,... lines
  
@@ -23,7 +23,8 @@
  ```take care of the normalization```
 
 #### 4. visualize in rviz: check collisions
- (1) roslaunch cob_grasp_generation show_grasp_rviz.launch gripper:=sdh (or sdhx)
- (2) rosrun cob_grasp_generation show_grasps_rviz_client.py (then enter object_name and gripper_type)
- (3) check the collisions, change the parameter in .csv (including the gripper parameter)
- (4) generate more points
+ (1) run the command in Terminator: roslaunch cob_grasp_generation show_grasp_rviz.launch gripper:=sdh (or sdhx) 
+ (2) run the command in Terminator: rosrun cob_grasp_generation show_grasps_rviz_client.py (then enter object_name and gripper_type)
+ (3) check collisions in rviz, change the parameter in .csv (including the gripper parameter)
+ (4) run the two commands again and check collisions again
+ (5) generate more points
