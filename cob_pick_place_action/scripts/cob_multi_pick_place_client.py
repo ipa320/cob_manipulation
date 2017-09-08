@@ -73,6 +73,8 @@ def cob_pick_action_client(object_class, object_name, object_pose):
 	goal.object_pose = object_pose
 
 	goal.gripper_type = "sdh"
+	#goal.gripper_side = ""
+	goal.gripper_side = "left"
 
 	#goal.grasp_id = 21
 	#goal.grasp_database = "KIT"
@@ -134,7 +136,7 @@ if __name__ == '__main__':
 		psi = smi_.get_planning_scene_interface()
 		rospy.sleep(1.0)
 
-		filename = roslib.packages.get_pkg_dir('cob_pick_place_action')+"/files/meshes/yellowsaltcube.stl"
+		filename = roslib.packages.get_pkg_dir('cob_grasp_generation')+"/files/meshes/yellowsaltcube.stl"
 		pose1 = gen_pose(pos=[-0.7, 0.0, 0.85], euler=[random.uniform(-pi, pi), random.uniform(-pi, pi), random.uniform(-pi, pi)])
 		psi.add_mesh("cube1", pose1, filename)
 		rospy.sleep(1.0)

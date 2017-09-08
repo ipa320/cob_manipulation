@@ -24,12 +24,21 @@
   <depend>moveit_msgs</depend>
 
   <exec_depend>actionlib</exec_depend>
+  <exec_depend>cob_description</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>python-scipy</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
   <exec_depend>roslib</exec_depend>
   <exec_depend>rospy</exec_depend>
+  <exec_depend>rviz</exec_depend>
+  <exec_depend>schunk_description</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
   <exec_depend>tf</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
   <exec_depend>trajectory_msgs</exec_depend>
+  <exec_depend>visualization_msgs</exec_depend>
+  <exec_depend>xacro</exec_depend>
   <!--<exec_depend>openrave</exec_depend>-->
 
 </package>
