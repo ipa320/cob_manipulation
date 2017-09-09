@@ -1,9 +1,9 @@
 ### MANUAL GENERATION OF GRASP TABLE
 
 #### 1. Provide a collision mesh of the target object (as `*.stl`)
-Most likely there already is a collada mesh (`*.dae`) available in `cob_gazebo_objects`. Thus you simply have to convert the mesh from `*.dae` to `*.stl` using MeshLab for example.
-(1) Open MeshLab -> File -> Import Mesh ... -> select respective mesh `[object_name].dae` from `cob_simulation/cob_gazebo_objects/media/models`
-(2) File -> Export Mesh As ... -> Save it as `[object_name].stl` within `cob_manipulatiuon/cob_grasp_generation/files/meshes`
+Most likely there already is a collada mesh (`*.dae`) available in `cob_gazebo_objects`. Thus you simply have to convert the mesh from `*.dae` to `*.stl` using MeshLab for example.  
+  1. Open MeshLab -> File -> Import Mesh ... -> select respective mesh `[object_name].dae` from `cob_simulation/cob_gazebo_objects/media/models`
+  2. File -> Export Mesh As ... -> Save it as `[object_name].stl` within `cob_manipulatiuon/cob_grasp_generation/files/meshes`
 
 #### 2. Prepare a new grasp table
 You need to provide a `*.csv` file of the name `[gripper_type]_[object_name].csv` at `cob_manipulation/cob_grasp_generation/files/database/[object_name]`, where `[object_name]` is the same as for the collision mesh and `[gripper_type]` could e.g. be either `sdh` or `sdhx` (cob4-gripper).
@@ -21,19 +21,19 @@ Notes:
  - you can initialize a grasptable by copying from an existing database entry
  
 #### 3. Use blender for generating initial grasp poses easily
- (1) Open the Blender
- (2) Clear the scene by removing all objects: press `a` (select all the objects), `Entf` (delete), `Enter` (confirm)
- (3) Load the object: File -> Import -> STL (.stl) -> select `[object_name].stl` from `cob_manipulatiuon/cob_grasp_generation/files/meshes` (see step (1))
- (4) Load the gripper: File -> Import -> STL (.stl) -> select `[gripper].stl`, e.g. `palm.stl` from `cob_common/cob_descriptions/meshes/cob4_gripper` for sdhx (cob4-gripper)
- (5) Move the gripper to various grasp poses (**do not move the object**) by either using
+1. Open the Blender
+2. Clear the scene by removing all objects: press `a` (select all the objects), `Entf` (delete), `Enter` (confirm)
+3. Load the object: File -> Import -> STL (.stl) -> select `[object_name].stl` from `cob_manipulatiuon/cob_grasp_generation/files/meshes` (see step (1))
+4. Load the gripper: File -> Import -> STL (.stl) -> select `[gripper].stl`, e.g. `palm.stl` from `cob_common/cob_descriptions/meshes/cob4_gripper` for sdhx (cob4-gripper)
+5. Move the gripper to various grasp poses (**do not move the object**) by either using
      - ```g+x,g+y,g+z: for translation along x,y,z```
      - ```r+x,r+y,r+z: for rotation around x,y,z```
      - ```enter values directly```
- (6) Transfer the values from the Blender (position in [m], use the Quaternion-Display!) to the grasp table (pos in [mm]
+6. Transfer the values from the Blender (position in [m], use the Quaternion RotationMode from the Dropdown menue!) to the grasp table (pos in [mm]!)
 
 #### 4. Visualization of the grasps  in rviz
- (1) `roslaunch cob_grasp_generation show_grasp_rviz.launch gripper:=[gripper_type]`
- (2) `rosrun cob_grasp_generation show_grasps_rviz_client.py` (then enter [object_name] and [gripper_type] when prompted)
+1. `roslaunch cob_grasp_generation show_grasp_rviz.launch gripper:=[gripper_type]`
+2. `rosrun cob_grasp_generation show_grasps_rviz_client.py` (then enter [object_name] and [gripper_type] when prompted)
 
 ### 5. Tune grasps 
 Optimize the grasp entries in the table by modifying the grasp pose and/or grasp joint config based on the rviz visualization. Add more grasps
