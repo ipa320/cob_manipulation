@@ -20,6 +20,7 @@ moveit_setup_assistant_config:
   URDF:
     package: PKG_HARDWARE_CONFIG_NAME
     relative_path: robots/ROBOT/urdf/ROBOT.urdf.xacro
+    use_jade_xacro: true
   SRDF:
     relative_path: config/ROBOT.srdf
 CONFIG_TEMPLATE
