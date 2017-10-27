@@ -513,7 +513,7 @@ protected:
 }
 #include <pluginlib/class_list_macros.h>
 
-#define ADD_TYPED_PLUGIN(type,name) PLUGINLIB_DECLARE_CLASS(cob_kinematics, type##name, IKFAST_NAMESPACE::IKFastPlugin, kinematics::KinematicsBase)
+#define ADD_TYPED_PLUGIN(type,name) PLUGINLIB_EXPORT_CLASS(IKFAST_NAMESPACE::IKFastPlugin, kinematics::KinematicsBase)
 #define ADD_IKFAST_PLUGIN(name) ADD_TYPED_PLUGIN(IKFast_, name)
 ADD_IKFAST_PLUGIN(IKFAST_NAMESPACE)
 ;
