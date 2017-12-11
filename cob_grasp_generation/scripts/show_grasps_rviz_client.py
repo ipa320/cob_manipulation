@@ -18,32 +18,38 @@
 import rospy
 
 import actionlib
-import moveit_msgs.msg
 import cob_grasp_generation.msg
 
-def query_grasps_client():
-    client = actionlib.SimpleActionClient('query_grasps', cob_grasp_generation.msg.QueryGraspsAction)
+def show_grasps_client():
+    client = actionlib.SimpleActionClient('show_grasps_rviz', cob_grasp_generation.msg.ShowGraspsAction)
     client.wait_for_server()
 
-    goal = cob_grasp_generation.msg.QueryGraspsGoal()
-    #goal.object_name="peanuts"
-    #goal.gripper_type = "sdh"
-    goal.object_name="pringles"
-    goal.gripper_type = "sdhx"
-    #goal.grasp_id = 2
-    goal.num_grasps = 0
-    goal.threshold = 0
+    object_name = raw_input("Insert object name: ")
+    gripper_type = raw_input("Insert gripper_type: ")
+    gripper_side = ""
+    grasp_id = 0
 
-    client.send_goal(goal)
-    client.wait_for_result()
-    return client.get_result()
+    while not rospy.is_shutdown():
+        print grasp_id
+
+        # Set the goal here: object_name, grasp_id, sort-by-quality
+        goal = cob_grasp_generation.msg.ShowGraspsGoal(object_name, gripper_type, gripper_side, grasp_id, True)
+
+        client.send_goal(goal)
+        client.wait_for_result()
+        success = client.get_result().success
+        if not success:
+            break
+
+        raw_input("Enter for next grasp...")
+        grasp_id = grasp_id + 1
+    
+    print "no more grasps"
+
 
 if __name__ == '__main__':
     try:
-        rospy.init_node('query_grasps_client')
-        result = query_grasps_client()
-        print "Result:"
-        print result
-        #print len(result.grasp_list)
+        rospy.init_node('show_grasp_client')
+        result = show_grasps_client()
     except rospy.ROSInterruptException:
         print "program interrupted before completion"
