@@ -13,18 +13,17 @@
     <buildtool_depend>catkin</buildtool_depend>
 
     <depend>boost</depend>
-    <depend>cmake_modules</depend>
     <depend>cob_control_msgs</depend>
     <depend>cob_srvs</depend>
-    <depend>eigen</depend>
     <depend>eigen_conversions</depend>
-    <depend>fcl</depend>
     <depend>geometric_shapes</depend>
     <depend>geometry_msgs</depend>
+    <depend>libfcl-dev</depend>
     <depend>moveit_core</depend>
     <depend>moveit_msgs</depend>
     <depend>moveit_ros_perception</depend>
     <depend>moveit_ros_planning_interface</depend>
+    <depend>pkg-config</depend>
     <depend>roscpp</depend>
     <depend>tf</depend>
     <depend>tf_conversions</depend>

@@ -24,7 +24,7 @@ public:
             CollisionWorldFCL(world)
     {}
 
-    void getCollisionObject(std::vector<boost::shared_ptr<fcl::CollisionObject> > &obj)
+    void getCollisionObject(std::vector<std::shared_ptr<fcl::CollisionObject> > &obj)
     {
         std::map<std::string, collision_detection::FCLObject>::iterator it = fcl_objs_.begin();
         obj.reserve(fcl_objs_.size());
@@ -44,7 +44,7 @@ public:
     {}
 
     void getCollisionObject(const robot_state::RobotState &state,
-                            std::vector<boost::shared_ptr<fcl::CollisionObject> > &obj)
+                            std::vector<std::shared_ptr<fcl::CollisionObject> > &obj)
     {
         collision_detection::FCLObject fcl_obj;
         constructFCLObject(state, fcl_obj);
@@ -57,7 +57,7 @@ void ObstacleDistanceMoveit::updatedScene(planning_scene_monitor::PlanningSceneM
     planning_scene_monitor::LockedPlanningSceneRO ps(planning_scene_monitor_);
     planning_scene::PlanningScenePtr planning_scene_ptr = ps->diff();
 
-    std::vector<boost::shared_ptr<fcl::CollisionObject> > robot_obj, world_obj;
+    std::vector<std::shared_ptr<fcl::CollisionObject> > robot_obj, world_obj;
     robot_state::RobotState robot_state(planning_scene_ptr->getCurrentState());
 
     CreateCollisionWorld collision_world(planning_scene_ptr->getWorldNonConst());
@@ -75,7 +75,6 @@ void ObstacleDistanceMoveit::updatedScene(planning_scene_monitor::PlanningSceneM
                 static_cast<const collision_detection::CollisionGeometryData *>(robot_obj[i]->collisionGeometry()->getUserData());
         this->robot_links_[robot_link->getID()] = robot_obj[i];
     }
-
     for (unsigned int i = 0; i < world_obj.size(); i++)
     {
         const collision_detection::CollisionGeometryData *collision_object =
@@ -129,8 +128,8 @@ bool ObstacleDistanceMoveit::unregisterCallback(cob_srvs::SetString::Request &re
 
 void ObstacleDistanceMoveit::calculateDistanceTimerCallback(const ros::TimerEvent& event)
 {
-    std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > robot_links = this->robot_links_;
-    std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > collision_objects = this->collision_objects_;
+    std::map<std::string, std::shared_ptr<fcl::CollisionObject> > robot_links = this->robot_links_;
+    std::map<std::string, std::shared_ptr<fcl::CollisionObject> > collision_objects = this->collision_objects_;
 
     boost::mutex::scoped_lock lock(registered_links_mutex_);
     cob_control_msgs::ObstacleDistances distance_infos;
@@ -144,15 +143,14 @@ void ObstacleDistanceMoveit::calculateDistanceTimerCallback(const ros::TimerEven
     for (link_it = registered_links_.begin(); link_it!=registered_links_.end(); ++link_it)
     {
         std::string robot_link_name = *link_it;
-
-        const boost::shared_ptr<fcl::CollisionObject> robot_object = robot_links[robot_link_name];
+        const std::shared_ptr<fcl::CollisionObject> robot_object = robot_links[robot_link_name];
         ROS_DEBUG_STREAM("RobotLink: " << robot_link_name << ", Type: " << robot_object->getObjectType());
 
-        std::map<std::string, boost::shared_ptr<fcl::CollisionObject> >::iterator obj_it;
+        std::map<std::string, std::shared_ptr<fcl::CollisionObject> >::iterator obj_it;
         for (obj_it = collision_objects.begin(); obj_it != collision_objects.end(); ++obj_it)
         {
             std::string collision_object_name = obj_it->first;
-            const boost::shared_ptr<fcl::CollisionObject> collision_object = collision_objects[collision_object_name];
+            const std::shared_ptr<fcl::CollisionObject> collision_object = collision_objects[collision_object_name];
             ROS_DEBUG_STREAM("CollisionLink: " << collision_object_name << ", Type: " << collision_object->getObjectType());
 
             if(collision_object->getObjectType() == fcl::OT_OCTREE)
@@ -172,7 +170,7 @@ void ObstacleDistanceMoveit::calculateDistanceTimerCallback(const ros::TimerEven
             distance_infos.distances.push_back(info);
         }
 
-        std::map<std::string, boost::shared_ptr<fcl::CollisionObject> >::iterator selfcollision_it;
+        std::map<std::string, std::shared_ptr<fcl::CollisionObject> >::iterator selfcollision_it;
         for (selfcollision_it = robot_links.begin(); selfcollision_it != robot_links.end(); ++selfcollision_it)
         {
             std::string robot_self_name = selfcollision_it->first;
@@ -182,7 +180,7 @@ void ObstacleDistanceMoveit::calculateDistanceTimerCallback(const ros::TimerEven
             {
                 if(type == collision_detection::AllowedCollision::NEVER)
                 {
-                    const boost::shared_ptr<fcl::CollisionObject> robot_self_object = robot_links[robot_self_name];
+                    const std::shared_ptr<fcl::CollisionObject> robot_self_object = robot_links[robot_self_name];
                     ROS_DEBUG_STREAM("CollisionLink: " << robot_self_name << ", Type: " << robot_self_object->getObjectType());
 
                     cob_control_msgs::ObstacleDistance info;
@@ -219,8 +217,8 @@ void ObstacleDistanceMoveit::planningSceneTimerCallback(const ros::TimerEvent& e
 bool ObstacleDistanceMoveit::calculateDistanceServiceCallback(cob_control_msgs::GetObstacleDistance::Request &req,
                                                               cob_control_msgs::GetObstacleDistance::Response &resp)
 {
-    std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > robot_links = this->robot_links_;
-    std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > collision_objects = this->collision_objects_;
+    std::map<std::string, std::shared_ptr<fcl::CollisionObject> > robot_links = this->robot_links_;
+    std::map<std::string, std::shared_ptr<fcl::CollisionObject> > collision_objects = this->collision_objects_;
     
     // Links
     for (unsigned int i=0; i< req.links.size(); ++i)
@@ -228,10 +226,10 @@ bool ObstacleDistanceMoveit::calculateDistanceServiceCallback(cob_control_msgs::
         if (req.objects.size() == 0)
         {
             // All objects
-            std::map<std::string, boost::shared_ptr<fcl::CollisionObject> >::iterator it;
+            std::map<std::string, std::shared_ptr<fcl::CollisionObject> >::iterator it;
             for (it = collision_objects.begin(); it != collision_objects.end(); ++it)
             {
-                const boost::shared_ptr<fcl::CollisionObject> collision_object = collision_objects[it->first];
+                const std::shared_ptr<fcl::CollisionObject> collision_object = collision_objects[it->first];
                 if(collision_object->getObjectType() == fcl::OT_OCTREE)
                 {
                     ROS_WARN_THROTTLE(1, "Consideration of <octomap> not yet implemented");
@@ -246,7 +244,7 @@ bool ObstacleDistanceMoveit::calculateDistanceServiceCallback(cob_control_msgs::
             // Specific objects
             for (int y = 0; y < req.objects.size(); y++)
             {
-                const boost::shared_ptr<fcl::CollisionObject> collision_object = collision_objects[req.objects[y]];
+                const std::shared_ptr<fcl::CollisionObject> collision_object = collision_objects[req.objects[y]];
                 if(collision_object->getObjectType() == fcl::OT_OCTREE)
                 {
                     ROS_WARN_THROTTLE(1, "Consideration of <octomap> not yet implemented");
@@ -260,8 +258,8 @@ bool ObstacleDistanceMoveit::calculateDistanceServiceCallback(cob_control_msgs::
     return true;
 }
 
-cob_control_msgs::ObstacleDistance ObstacleDistanceMoveit::getDistanceInfo(const boost::shared_ptr<fcl::CollisionObject> object_a,
-                                                                           const boost::shared_ptr<fcl::CollisionObject> object_b)
+cob_control_msgs::ObstacleDistance ObstacleDistanceMoveit::getDistanceInfo(const std::shared_ptr<fcl::CollisionObject> object_a,
+                                                                           const std::shared_ptr<fcl::CollisionObject> object_b)
 {
     fcl::DistanceRequest req(true);  // enable_nearest_points
     fcl::DistanceResult res;
@@ -373,7 +371,7 @@ ObstacleDistanceMoveit::ObstacleDistanceMoveit()
 
     //Initialize planning scene monitor
     boost::shared_ptr<tf::TransformListener> tf_listener_(new tf::TransformListener(ros::Duration(2.0)));
-    planning_scene_monitor_ = boost::make_shared<planning_scene_monitor::PlanningSceneMonitor>(robot_description, tf_listener_);
+    planning_scene_monitor_ = std::make_shared<planning_scene_monitor::PlanningSceneMonitor>(robot_description, tf_listener_);
 
     planning_scene_monitor_->setStateUpdateFrequency(update_frequency);
     planning_scene_monitor_->startSceneMonitor(planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_TOPIC);

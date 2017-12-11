@@ -15,7 +15,6 @@
 
   <exec_depend>cob_collision_monitor</exec_depend>
   <exec_depend>cob_grasp_generation</exec_depend>
-  <exec_depend>cob_kinematics</exec_depend>
   <exec_depend>cob_lookat_action</exec_depend>
   <exec_depend>cob_moveit_bringup</exec_depend>
   <exec_depend>cob_moveit_interface</exec_depend>

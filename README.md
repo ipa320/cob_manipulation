@@ -11,7 +11,7 @@ cob_manipulation
 
 ## Travis - Continuous Integration
 
-Status: [![Build Status](https://travis-ci.org/ipa320/cob_manipulation.svg?branch=indigo_dev)](https://travis-ci.org/ipa320/cob_manipulation)
+Status: [![Build Status](https://travis-ci.org/ipa320/cob_manipulation.svg?branch=kinetic_dev)](https://travis-ci.org/ipa320/cob_manipulation)
 
 ## ROS Buildfarm
 
