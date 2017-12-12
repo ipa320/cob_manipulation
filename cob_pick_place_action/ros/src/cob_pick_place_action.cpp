@@ -180,22 +180,24 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 
 	///Call Pick
 	group.setPlanningTime(300.0);	//default is 5.0 s
-	success = group.pick(goal->object_name, grasps);
+	moveit::planning_interface::MoveItErrorCode error_code = group.pick(goal->object_name, grasps);
 
-	if(success)
+	if(error_code == moveit_msgs::MoveItErrorCodes::SUCCESS)
 	{
-		ROS_INFO("Pick successfull!");
+		std::string msg = "PICK SUCCEEDED: " + boost::lexical_cast<std::string>(error_code);
+		ROS_INFO(msg);
 		result.success.data=true;
-		response="Pick successfull!";
+		response=msg;
 		as_pick->setSucceeded(result, response);
 		last_grasp_valid = true;
 		last_object_name = goal->object_name;
 	}
 	else
 	{
-		ROS_ERROR("Pick failed: Could not plan!");
+		std::string msg = "PICK FAILED: " + boost::lexical_cast<std::string>(error_code);
+		ROS_ERROR(msg);
 		result.success.data=false;
-		response="Pick failed: Could not plan!";
+		response=msg;
 		as_pick->setAborted(result, response);
 		last_grasp_valid = false;
 		last_object_name.clear();
@@ -285,21 +287,24 @@ void CobPickPlaceActionServer::place_goal_cb(const cob_pick_place_action::CobPla
 	}
 	group.setPlanningTime(300.0);	//default is 5.0 s
 
-	success = group.place(goal->object_name, locations);
+	moveit::planning_interface::MoveItErrorCode error_code = group.place(goal->object_name, locations);
 
-	///Setting result
-	if(success)
+	if(error_code == moveit_msgs::MoveItErrorCodes::SUCCESS)
 	{
+		std::string msg = "PLACE SUCCEEDED: " + boost::lexical_cast<std::string>(error_code);
+		ROS_INFO(msg.c_str());
 		result.success.data=true;
-		response="PLACE SUCCEEDED";
+		response=msg;
 		as_place->setSucceeded(result, response);
 		last_grasp_valid = false;
 		last_object_name.clear();
 	}
 	else
 	{
+		std::string msg = "PLACE FAILED: " + boost::lexical_cast<std::string>(error_code);
+		ROS_ERROR(msg.c_str());
 		result.success.data=false;
-		response="PLACE FAILED";
+		response=msg;
 		as_place->setAborted(result, response);
 		last_grasp_valid = false;
 		last_object_name.clear();
