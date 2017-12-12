@@ -185,7 +185,7 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 	if(error_code == moveit_msgs::MoveItErrorCodes::SUCCESS)
 	{
 		std::string msg = "PICK SUCCEEDED: " + boost::lexical_cast<std::string>(error_code);
-		ROS_INFO(msg);
+		ROS_INFO_STREAM(msg);
 		result.success.data=true;
 		response=msg;
 		as_pick->setSucceeded(result, response);
@@ -195,7 +195,7 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 	else
 	{
 		std::string msg = "PICK FAILED: " + boost::lexical_cast<std::string>(error_code);
-		ROS_ERROR(msg);
+		ROS_ERROR_STREAM(msg);
 		result.success.data=false;
 		response=msg;
 		as_pick->setAborted(result, response);
@@ -292,7 +292,7 @@ void CobPickPlaceActionServer::place_goal_cb(const cob_pick_place_action::CobPla
 	if(error_code == moveit_msgs::MoveItErrorCodes::SUCCESS)
 	{
 		std::string msg = "PLACE SUCCEEDED: " + boost::lexical_cast<std::string>(error_code);
-		ROS_INFO(msg.c_str());
+		ROS_INFO_STREAM(msg);
 		result.success.data=true;
 		response=msg;
 		as_place->setSucceeded(result, response);
@@ -302,7 +302,7 @@ void CobPickPlaceActionServer::place_goal_cb(const cob_pick_place_action::CobPla
 	else
 	{
 		std::string msg = "PLACE FAILED: " + boost::lexical_cast<std::string>(error_code);
-		ROS_ERROR(msg.c_str());
+		ROS_ERROR_STREAM(msg);
 		result.success.data=false;
 		response=msg;
 		as_place->setAborted(result, response);
