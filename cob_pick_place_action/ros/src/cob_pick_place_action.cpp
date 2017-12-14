@@ -1,37 +1,20 @@
-/*!
- *****************************************************************
- * \file
+/*
+ * Copyright 2017 Fraunhofer Institute for Manufacturing Engineering and Automation (IPA)
  *
- * \note
- *   Copyright (c) 2013 \n
- *   Fraunhofer Institute for Manufacturing Engineering
- *   and Automation (IPA) \n\n
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *****************************************************************
- *
- * \note
- *   Project name: care-o-bot
- * \note
- *   ROS stack name: cob_manipulation
- * \note
- *   ROS package name: cob_pick_place_action
- *
- * \author
- *   Author: Rohit Chandra, email:rohit.chandra@ipa.fhg.de
- *   Author: Felix Messmer, email:felix.messmer@ipa.fhg.de
- *   Author: Jan Fischer, email:jan.fischer@ipa.fhg.de
- *
- * \maintainer
- *   Author: Felix Messmer, email:felix.messmer@ipa.fhg.de
- *
- * \date Date of creation: March, 2013
- *
- * \brief
- *	 This package provides pick place action
- *   It takes object id and choosed grasp from the graspList.
- *	 It does pick and place depending on the request
- *
- ****************************************************************/
+ *   http://www.apache.org/licenses/LICENSE-2.0
+
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+ 
+ 
 #include <ros/ros.h>
 #include <iostream>
 #include <fstream>
@@ -143,14 +126,14 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 	else if(goal->grasp_database=="OpenRAVE")
 	{
 		ROS_INFO("Using OpenRAVE grasp table");
-		fillGraspsOR(goal->object_class, goal->gripper_type, goal->grasp_id, goal->object_pose, grasps);
+		fillGraspsOR(goal->object_class, goal->gripper_type, goal->gripper_side, goal->grasp_id, goal->object_pose, grasps);
 	}
 	else if(goal->grasp_database=="ALL")
 	{
 		ROS_INFO("Using all available databases");
 		std::vector<moveit_msgs::Grasp> grasps_OR, grasps_KIT;
 		fillAllGraspsKIT(goal->object_class, goal->gripper_type, goal->object_pose, grasps_KIT);
-		fillGraspsOR(goal->object_class, goal->gripper_type, goal->grasp_id, goal->object_pose, grasps_OR);
+		fillGraspsOR(goal->object_class, goal->gripper_type, goal->gripper_side, goal->grasp_id, goal->object_pose, grasps_OR);
 
 		grasps = grasps_KIT;
 		std::vector<moveit_msgs::Grasp>::iterator it = grasps.end();
@@ -172,7 +155,7 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 		ROS_INFO("PickGoalCB: Found %lu grasps for this object", grasps.size());
 		for(unsigned int i=0; i<grasps.size(); i++)
 		{
-			ROS_INFO_STREAM("Grasp "<< i << ": " << grasps[i]);
+			ROS_DEBUG_STREAM("Grasp "<< i << ": " << grasps[i]);
 		}
 	}
 	else
@@ -197,22 +180,24 @@ void CobPickPlaceActionServer::pick_goal_cb(const cob_pick_place_action::CobPick
 
 	///Call Pick
 	group.setPlanningTime(300.0);	//default is 5.0 s
-	success = group.pick(goal->object_name, grasps);
+	moveit::planning_interface::MoveItErrorCode error_code = group.pick(goal->object_name, grasps);
 
-	if(success)
+	if(error_code == moveit_msgs::MoveItErrorCodes::SUCCESS)
 	{
-		ROS_INFO("Pick successfull!");
+		std::string msg = "PICK SUCCEEDED: " + boost::lexical_cast<std::string>(error_code);
+		ROS_INFO_STREAM(msg);
 		result.success.data=true;
-		response="Pick successfull!";
+		response=msg;
 		as_pick->setSucceeded(result, response);
 		last_grasp_valid = true;
 		last_object_name = goal->object_name;
 	}
 	else
 	{
-		ROS_ERROR("Pick failed: Could not plan!");
+		std::string msg = "PICK FAILED: " + boost::lexical_cast<std::string>(error_code);
+		ROS_ERROR_STREAM(msg);
 		result.success.data=false;
-		response="Pick failed: Could not plan!";
+		response=msg;
 		as_pick->setAborted(result, response);
 		last_grasp_valid = false;
 		last_object_name.clear();
@@ -302,21 +287,24 @@ void CobPickPlaceActionServer::place_goal_cb(const cob_pick_place_action::CobPla
 	}
 	group.setPlanningTime(300.0);	//default is 5.0 s
 
-	success = group.place(goal->object_name, locations);
+	moveit::planning_interface::MoveItErrorCode error_code = group.place(goal->object_name, locations);
 
-	///Setting result
-	if(success)
+	if(error_code == moveit_msgs::MoveItErrorCodes::SUCCESS)
 	{
+		std::string msg = "PLACE SUCCEEDED: " + boost::lexical_cast<std::string>(error_code);
+		ROS_INFO_STREAM(msg);
 		result.success.data=true;
-		response="PLACE SUCCEEDED";
+		response=msg;
 		as_place->setSucceeded(result, response);
 		last_grasp_valid = false;
 		last_object_name.clear();
 	}
 	else
 	{
+		std::string msg = "PLACE FAILED: " + boost::lexical_cast<std::string>(error_code);
+		ROS_ERROR_STREAM(msg);
 		result.success.data=false;
-		response="PLACE FAILED";
+		response=msg;
 		as_place->setAborted(result, response);
 		last_grasp_valid = false;
 		last_object_name.clear();
@@ -344,7 +332,7 @@ void CobPickPlaceActionServer::insertObject(std::string object_name, unsigned in
 	std::transform(mesh_name.begin(), mesh_name.end(), mesh_name.begin(), ::tolower);
 
 	boost::scoped_ptr<shapes::Mesh> mesh;
-	mesh.reset(shapes::createMeshFromResource("package://cob_pick_place_action/files/meshes/"+mesh_name+".stl"));
+	mesh.reset(shapes::createMeshFromResource("package://cob_grasp_generation/files/meshes/"+mesh_name+".stl"));
 	shapes::ShapeMsg shape_msg;
 	shapes::constructMsgFromShape(mesh.get(), shape_msg);
 	co.meshes.push_back(boost::get<shape_msgs::Mesh>(shape_msg));
@@ -369,7 +357,7 @@ void CobPickPlaceActionServer::fillAllGraspsKIT(unsigned int objectClassId, std:
 	Grasp *current_grasp = NULL;
 
 	///Initialize GraspTable
-	std::string path = ros::package::getPath("cob_pick_place_action")+std::string("/files/")+gripper_type+std::string("_grasptable.txt");
+	std::string path = ros::package::getPath("cob_grasp_generation")+std::string("/files/")+gripper_type+std::string("_grasptable_kit.txt");
 	GraspTableIniFile = const_cast<char*>(path.c_str());
 	m_GraspTable = new GraspTable();
 	int error = m_GraspTable->Init(GraspTableIniFile);
@@ -399,7 +387,7 @@ void CobPickPlaceActionServer::fillSingleGraspKIT(unsigned int objectClassId, st
 	Grasp *current_grasp = NULL;
 
 	///Initialize GraspTable
-	std::string path = ros::package::getPath("cob_pick_place_action")+std::string("/files/")+gripper_type+std::string("_grasptable.txt");
+	std::string path = ros::package::getPath("cob_grasp_generation")+std::string("/files/")+gripper_type+std::string("_grasptable_kit.txt");
 	GraspTableIniFile = const_cast<char*>(path.c_str());
 	m_GraspTable = new GraspTable();
 	int error = m_GraspTable->Init(GraspTableIniFile);
@@ -560,7 +548,7 @@ void CobPickPlaceActionServer::convertGraspKIT(Grasp* current_grasp, geometry_ms
 
 
 
-void CobPickPlaceActionServer::fillGraspsOR(unsigned int objectClassId, std::string gripper_type, unsigned int grasp_id, geometry_msgs::PoseStamped object_pose, std::vector<moveit_msgs::Grasp> &grasps)
+void CobPickPlaceActionServer::fillGraspsOR(unsigned int objectClassId, std::string gripper_type, std::string gripper_side, unsigned int grasp_id, geometry_msgs::PoseStamped object_pose, std::vector<moveit_msgs::Grasp> &grasps)
 {
 	bool finished_before_timeout;
 	grasps.clear();
@@ -576,6 +564,7 @@ void CobPickPlaceActionServer::fillGraspsOR(unsigned int objectClassId, std::str
 	cob_grasp_generation::QueryGraspsGoal goal_query_grasps;
 	goal_query_grasps.object_name = map_classid_to_classname.find(objectClassId)->second;
 	goal_query_grasps.gripper_type = gripper_type;
+	goal_query_grasps.gripper_side = gripper_side;
 	goal_query_grasps.grasp_id = grasp_id;
 	goal_query_grasps.num_grasps = 0;
 	goal_query_grasps.threshold = 0;//0.012;
@@ -757,8 +746,8 @@ tf::Transform CobPickPlaceActionServer::transformPose(tf::Transform transform_O_
 	{
 		try{
 			/// ToDo: get palm-link name from robot!
-			tf_listener_.lookupTransform("/sdh_palm_link", group.getEndEffectorLink(), ros::Time(0), transform_SDH_from_ARM7);
-			//tf_listener_.lookupTransform("/gripper_left_palm_link", group.getEndEffectorLink(), ros::Time(0), transform_SDH_from_ARM7);
+			//tf_listener_.lookupTransform("/sdh_palm_link", group.getEndEffectorLink(), ros::Time(0), transform_SDH_from_ARM7);
+			tf_listener_.lookupTransform("/gripper_left_palm_link", group.getEndEffectorLink(), ros::Time(0), transform_SDH_from_ARM7);
 			transform_available = true;
 		}
 		catch (tf::TransformException ex){

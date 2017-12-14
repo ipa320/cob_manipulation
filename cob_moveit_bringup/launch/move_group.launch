@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <launch>
   <arg name="robot" default="$(optenv ROBOT !!NO_ROBOT_SET!!)"/>
+  <arg name="pkg_hardware_config" default="$(find cob_hardware_config)"/>
   <arg name="pkg_moveit_config" default="$(find cob_moveit_config)"/>
   <arg name="config_path" default="$(arg pkg_moveit_config)/robots/$(arg robot)/moveit/config"/>
   <arg name="load_robot_description" default="false"/>
@@ -27,11 +28,14 @@
   <!-- Planning Functionality -->
   <include file="$(find cob_moveit_bringup)/launch/planning_context.xml">
     <arg name="robot" value="$(arg robot)"/>
+    <arg name="pkg_hardware_config" value="$(arg pkg_hardware_config)"/>
+    <arg name="pkg_moveit_config" value="$(arg pkg_moveit_config)"/>
     <arg name="load_robot_description" value="$(arg load_robot_description)"/>
   </include>
 
   <include ns="move_group" file="$(find cob_moveit_bringup)/launch/planning_pipeline.xml">
     <arg name="robot" value="$(arg robot)"/>
+    <arg name="pkg_moveit_config" value="$(arg pkg_moveit_config)"/>
     <arg name="pipeline" value="$(arg pipeline)"/>
   </include>
 

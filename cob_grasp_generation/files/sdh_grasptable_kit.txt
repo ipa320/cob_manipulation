@@ -1,0 +1,24 @@
+23
+11, /grasptables_kit/Sauerkraut_SDH.xml
+13, /grasptables_kit/FruitTea_SDH.xml
+16, /grasptables_kit/OrangeMarmelade_SDH.xml
+18, /grasptables_kit/YellowSaltCube_SDH.xml
+27, /grasptables_kit/HotPot_SDH.xml
+30, /grasptables_kit/BlueSaltCube_SDH.xml
+31, /grasptables_kit/YellowSaltCylinder_SDH.xml
+44, /grasptables_kit/Knaeckebrot_SDH.xml
+46, /grasptables_kit/LivioSunflowerOil_SDH.xml
+50, /grasptables_kit/InstantSoup_SDH.xml
+52, /grasptables_kit/HotPot2_SDH.xml
+57, /grasptables_kit/MuesliBars_SDH.xml
+65, /grasptables_kit/FruitDrink_SDH.xml
+99, /grasptables_kit/RuskWholemeal_SDH.xml
+101, /grasptables_kit/KoalaCandy_SDH.xml
+103, /grasptables_kit/InstantTomatoSoup_SDH.xml
+106, /grasptables_kit/BakingSoda_SDH.xml
+107, /grasptables_kit/Sweetener_SDH.xml
+109, /grasptables_kit/ChocoIcing_SDH.xml
+119, /grasptables_kit/TomatoHerbSauce_SDH.xml
+122, /grasptables_kit/Peanuts_SDH.xml
+126, /grasptables_kit/HerbSalt_SDH.xml
+128, /grasptables_kit/BathDetergent_SDH.xml

@@ -1,0 +1,6 @@
+id,object,gripper_finger_1_joint,gripper_finger_2_joint,direction,qw,qx,qy,qz,pos-x,pos-y,pos-z,eps_l1,vol_l1,
+0,corn_flakes_package,-0.7,0.1,SIDE,0.5,0.5,-0.5,0.5,10,206,-10,0.01,0.0005,0
+1,corn_flakes_package,-0.7,0.1,SIDE,0.5,0.5,-0.5,0.5,10,206,-5,0.01,0.0005,1
+2,corn_flakes_package,-0.7,0.1,SIDE,0.5,0.5,-0.5,0.5,10,206,0,0.01,0.0005,2
+3,corn_flakes_package,-0.7,0.1,SIDE,0.5,0.5,-0.5,0.5,10,206,5,0.01,0.0005,3
+4,corn_flakes_package,-0.7,0.1,SIDE,0.5,0.5,-0.5,0.5,10,206,10,0.01,0.0005,4
