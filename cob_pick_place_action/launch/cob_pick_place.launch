@@ -2,6 +2,6 @@
 <launch>
    <arg name="manipulator_group"/>
 
-   <include file="$(find cob_grasp_generation)/launch/grasp_generation.launch"/>
+   <node name="query_grasps_server" pkg="cob_grasp_generation" type="query_grasps_server.py" respawn="false" output="screen"/>
    <node name="cob_pick_place_action" pkg="cob_pick_place_action" type="cob_pick_place_action" args="$(arg manipulator_group)" respawn="false" output="screen"/>
 </launch>

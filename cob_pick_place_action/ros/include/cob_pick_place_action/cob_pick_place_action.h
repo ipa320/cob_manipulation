@@ -1,32 +1,20 @@
-/*!
- *****************************************************************
- * \file
+/*
+ * Copyright 2017 Fraunhofer Institute for Manufacturing Engineering and Automation (IPA)
  *
- * \note
- *   Copyright (c) 2013 \n
- *   Fraunhofer Institute for Manufacturing Engineering
- *   and Automation (IPA) \n\n
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *****************************************************************
- *
- * \note
- *   Project name: care-o-bot
- * \note
- *   ROS stack name: cob_manipulation
- * \note
- *   ROS package name: cob_pick_place_action
- *
- * \author
- *   Author: Rohit Chandra, email:Rohit.Chandra@ipa.fraunhofer.de
- *
- * \date Date of creation: March, 2013
- *
- * \brief
- *	 This package provides pick place action
- *   It takes object id and choosed grasp from the graspList.
- *	 It does pick and place depending on the request
- *
- ****************************************************************/
+ *   http://www.apache.org/licenses/LICENSE-2.0
+
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+ 
+ 
 #ifndef COB_PICK_ACTION_H
 #define COB_PICK_ACTION_H
 
@@ -96,7 +84,7 @@ public:
 	void fillSingleGraspKIT(unsigned int objectClassId, std::string gripper_type, unsigned int grasp_id, geometry_msgs::PoseStamped object_pose, std::vector<moveit_msgs::Grasp> &grasps);
 	void convertGraspKIT(Grasp* current_grasp, geometry_msgs::PoseStamped object_pose, std::vector<moveit_msgs::Grasp> &grasps);
 
-	void fillGraspsOR(unsigned int objectClassId, std::string gripper_type, unsigned int grasp_id, geometry_msgs::PoseStamped object_pose, std::vector<moveit_msgs::Grasp> &grasps);
+	void fillGraspsOR(unsigned int objectClassId, std::string gripper_type, std::string gripper_side, unsigned int grasp_id, geometry_msgs::PoseStamped object_pose, std::vector<moveit_msgs::Grasp> &grasps);
 
 	trajectory_msgs::JointTrajectory MapHandConfiguration(sensor_msgs::JointState table_config);
 	tf::Transform transformPose(tf::Transform transform_O_from_SDH, tf::Transform transform_HEADER_from_OBJECT, std::string object_frame_id);

@@ -2,6 +2,19 @@
 Changelog for package cob_manipulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.6 (2018-01-07)
+------------------
+* Merge pull request `#133 <https://github.com/ipa320/cob_manipulation/issues/133>`_ from ipa320/indigo_release_candidate
+  Indigo release candidate
+* Merge pull request `#124 <https://github.com/ipa320/cob_manipulation/issues/124>`_ from ipa-fxm/update_maintainer
+  update maintainer
+* update maintainer
+* Merge pull request `#120 <https://github.com/ipa320/cob_manipulation/issues/120>`_ from ipa-fxm/APACHE_license
+  use license apache 2.0
+* updated author/maintainer
+* use license apache 2.0
+* Contributors: Felix Messmer, Mathias Lüdtke, Richard Bormann, ipa-fxm, ipa-uhr-mk
+
 0.6.5 (2017-07-31)
 ------------------
 * Revert "Adding chomp planning pipeline"

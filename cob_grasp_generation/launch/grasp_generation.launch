@@ -4,6 +4,8 @@
   <!-- OPENRAVE ENV VARIABLE -->
   <env name="OPENRAVE_DATA" value="$(find cob_grasp_generation)/files:$(optenv OPENRAVE_DATA)"/>
 
-  <node name="cob_grasp_generation_OR" pkg="cob_grasp_generation" type="cob_grasp_generation_action_server.py" respawn="false" output="screen"/>
+  <node name="generate_grasps_server" pkg="cob_grasp_generation" type="generate_grasps_server.py" respawn="false" output="screen"/>
+  <node name="show_grasps_or_server" pkg="cob_grasp_generation" type="show_grasps_or_server.py" respawn="false" output="screen"/>
+  <node name="query_grasps_server" pkg="cob_grasp_generation" type="query_grasps_server.py" respawn="false" output="screen"/>
 
 </launch>

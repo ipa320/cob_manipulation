@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro"
+       name="sdh" >
+
+  <xacro:include filename="$(find schunk_description)/urdf/sdh/sdh.urdf.xacro" />
+
+  <link name="grasp_link"/>
+
+  <xacro:schunk_sdh name="sdh" parent="grasp_link">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+  </xacro:schunk_sdh>
+
+</robot>

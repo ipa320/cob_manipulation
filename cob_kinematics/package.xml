@@ -1,14 +1,13 @@
 <package format="2">
   <name>cob_kinematics</name>
-  <version>0.6.5</version>
+  <version>0.6.6</version>
   <description>
      IK solvers and utilities for Care-O-bot
   </description>
-  <author email="mdl@ipa.fhg.de">Mathias Luedtke</author>
-  <maintainer email="mdl@ipa.fhg.de">Mathias Luedtke</maintainer>
+  <author email="mathias.luedtke@ipa.fraunhofer.de">Mathias Lüdtke</author>
   <maintainer email="fxm@ipa.fhg.de">Felix Messmer</maintainer>
 
-  <license>LGPL</license>
+  <license>Apache 2.0</license>
 
   <url type="website">http://ros.org/wiki/cob_manipulation/</url>
   <url type="bugtracker">https://github.com/ipa320/cob_manipulation/issues</url>
