@@ -2,6 +2,14 @@
 Changelog for package cob_kinematics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.5 (2017-07-31)
+------------------
+* Fix ikfast cmake
+  * do not write plugins.xml in source space
+  * added install tags
+* use xacro --inorder
+* Contributors: Mathias Lüdtke, ipa-fxm
+
 0.6.4 (2016-04-01)
 ------------------
 
