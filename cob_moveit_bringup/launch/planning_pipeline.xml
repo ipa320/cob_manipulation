@@ -4,10 +4,12 @@
        It is assumed that all planning pipelines are named XXX_planning_pipeline.launch  -->
 
   <arg name="robot" default="$(optenv ROBOT !!NO_ROBOT_SET!!)"/>
+  <arg name="pkg_moveit_config" default="$(find cob_moveit_config)"/>
   <arg name="pipeline" default="ompl"/>
 
   <include file="$(find cob_moveit_bringup)/launch/$(arg pipeline)_planning_pipeline.xml">
     <arg name="robot" value="$(arg robot)"/>
+    <arg name="pkg_moveit_config" value="$(arg pkg_moveit_config)"/>
   </include>
 
 </launch>

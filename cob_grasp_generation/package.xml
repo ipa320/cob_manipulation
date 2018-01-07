@@ -1,14 +1,15 @@
 <package format="2">
   <name>cob_grasp_generation</name>
-  <version>0.7.0</version>
+  <version>0.7.1</version>
   <description>
      Grasp generation for Care-O-bot based on OpenRAVE
   </description>
+
   <author>Witalij Siebert</author>
   <author>Felix Messmer</author>
   <maintainer email="fxm@ipa.fhg.de">Felix Messmer</maintainer>
 
-  <license>BSD</license>
+  <license>Apache 2.0</license>
 
   <url type="website">http://ros.org/wiki/cob_manipulation/</url>
   <url type="bugtracker">https://github.com/ipa320/cob_manipulation/issues</url>
@@ -23,12 +24,21 @@
   <depend>moveit_msgs</depend>
 
   <exec_depend>actionlib</exec_depend>
+  <exec_depend>cob_description</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>python-scipy</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
   <exec_depend>roslib</exec_depend>
   <exec_depend>rospy</exec_depend>
+  <exec_depend>rviz</exec_depend>
+  <exec_depend>schunk_description</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
   <exec_depend>tf</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
   <exec_depend>trajectory_msgs</exec_depend>
+  <exec_depend>visualization_msgs</exec_depend>
+  <exec_depend>xacro</exec_depend>
   <!--<exec_depend>openrave</exec_depend>-->
 
 </package>

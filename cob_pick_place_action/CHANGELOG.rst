@@ -2,6 +2,39 @@
 Changelog for package cob_pick_place_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.1 (2018-01-07)
+------------------
+* Merge pull request `#134 <https://github.com/ipa320/cob_manipulation/issues/134>`_ from ipa320/kinetic_release_candidate
+  Kinetic release candidate
+* Merge pull request `#132 <https://github.com/ipa320/cob_manipulation/issues/132>`_ from ipa-fxm/kinetic_dev
+  [kinetic] updates from indigo_dev
+* fix ROS_INFO
+* fix move_group return value handling
+* Merge branch 'indigo_dev' of github.com:ipa320/cob_manipulation into kinetic_dev
+  Conflicts:
+  .travis.yml
+  cob_kinematics/ikfast/src/ikfast_lbr.cpp
+  cob_kinematics/ikfast/src/ikfast_ur10.cpp
+  cob_kinematics/ikfast/src/ikfast_ur5.cpp
+  cob_kinematics/package.xml
+  cob_kinematics/ros/bin/genikfast.py
+  cob_kinematics/ros/src/ikfast_plugin.cpp
+  cob_kinematics/ros/src/urdf_openrave.cpp
+* Merge pull request `#126 <https://github.com/ipa320/cob_manipulation/issues/126>`_ from ipa-fxm/revive_pick_place
+  separate openrave independent part query_grasp
+* resolve side-dependend joint_names and tune grasp-open config
+* move meshes and kit grasptables
+* more consistent naming
+* tweaks for cob4
+* separate openrave independent part query_grasp
+* Merge pull request `#124 <https://github.com/ipa320/cob_manipulation/issues/124>`_ from ipa-fxm/update_maintainer
+  update maintainer
+* update maintainer
+* Merge pull request `#120 <https://github.com/ipa320/cob_manipulation/issues/120>`_ from ipa-fxm/APACHE_license
+  use license apache 2.0
+* use license apache 2.0
+* Contributors: Felix Messmer, Richard Bormann, ipa-fxm, ipa-uhr-mk
+
 0.7.0 (2017-07-31)
 ------------------
 * merge with indigo_release_candidate

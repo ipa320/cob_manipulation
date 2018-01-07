@@ -3,6 +3,7 @@ string object_name
 
 #gripper used on the robot
 string gripper_type
+string gripper_side
 
 int32 grasp_id
 bool sort_by_quality

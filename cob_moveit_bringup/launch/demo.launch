@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <launch>
   <arg name="robot" default="$(optenv ROBOT !!NO_ROBOT_SET!!)"/>
+  <arg name="pkg_hardware_config" default="$(find cob_hardware_config)"/>
   <arg name="pkg_moveit_config" default="$(find cob_moveit_config)"/>
   <arg name="with_db" default="false"/>
   <arg name="debug" default="false"/>
@@ -17,6 +18,8 @@
 
   <include file="$(find cob_moveit_bringup)/launch/move_group.launch">
     <arg name="robot" value="$(arg robot)"/>
+    <arg name="pkg_hardware_config" value="$(arg pkg_hardware_config)"/>
+    <arg name="pkg_moveit_config" value="$(arg pkg_moveit_config)"/>
     <arg name="load_robot_description" value="true"/>
     <arg name="allow_trajectory_execution" value="true"/>
     <arg name="fake_execution" value="true"/>
@@ -28,6 +31,7 @@
 
   <include file="$(find cob_moveit_bringup)/launch/rviz.launch">
     <arg name="robot" value="$(arg robot)"/>
+    <arg name="pkg_moveit_config" value="$(arg pkg_moveit_config)"/>
     <arg name="config" value="true"/>
     <arg name="debug" value="$(arg debug)"/>
   </include>

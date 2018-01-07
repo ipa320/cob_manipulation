@@ -51,6 +51,6 @@ install(PROGRAMS scripts/cob_multi_pick_place_client.py scripts/cob_pick_action_
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/scripts
 )
 
-install(DIRECTORY files launch
+install(DIRECTORY launch
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
