@@ -2,6 +2,34 @@
 Changelog for package cob_grasp_generation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.6 (2018-01-07)
+------------------
+* Merge pull request `#133 <https://github.com/ipa320/cob_manipulation/issues/133>`_ from ipa320/indigo_release_candidate
+  Indigo release candidate
+* document manual generation of grasp table (`#127 <https://github.com/ipa320/cob_manipulation/issues/127>`_)
+  * document manual generation of grasp table
+  * document manual generation of grasp table 2
+  * Update README.md
+  * Update README.md
+* Merge pull request `#126 <https://github.com/ipa320/cob_manipulation/issues/126>`_ from ipa-fxm/revive_pick_place
+  separate openrave independent part query_grasp
+* add trivial grasp table for corn_flakes_package
+* add coordinates systems to rviz config
+* resolve side-dependend joint_names and tune grasp-open config
+* tune grasptable
+* fix mimic joints and quaternion normalization
+* add show_grasp_rviz
+* move meshes and kit grasptables
+* more consistent naming
+* separate openrave independent part query_grasp
+* Merge pull request `#124 <https://github.com/ipa320/cob_manipulation/issues/124>`_ from ipa-fxm/update_maintainer
+  update maintainer
+* update maintainer
+* Merge pull request `#120 <https://github.com/ipa320/cob_manipulation/issues/120>`_ from ipa-fxm/APACHE_license
+  use license apache 2.0
+* use license apache 2.0
+* Contributors: Felix Messmer, Richard Bormann, ipa-fxm, ipa-rmb-pz, ipa-uhr-mk
+
 0.6.5 (2017-07-31)
 ------------------
 * make pick and grasp more robot-agnostic
