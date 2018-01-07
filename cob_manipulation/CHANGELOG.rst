@@ -2,6 +2,21 @@
 Changelog for package cob_manipulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.0 (2017-07-31)
+------------------
+* merge with indigo_release_candidate
+* remove cob_kinematics
+* Contributors: Richard Bormann, ipa-fxm
+
+0.6.5 (2017-07-31)
+------------------
+* Revert "Adding chomp planning pipeline"
+* added exec_depend to chomp
+* remove obsolete packages due to unsupported robots
+* moved cob_moveit_config
+* new package cob_moveit_bringup
+* Contributors: Felix Messmer, fau-mjp, ipa-fxm
+
 0.6.4 (2016-04-01)
 ------------------
 * update meta-package

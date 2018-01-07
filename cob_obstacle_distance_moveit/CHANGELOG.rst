@@ -2,6 +2,31 @@
 Changelog for package cob_obstacle_distance_moveit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.0 (2017-07-31)
+------------------
+* merge with indigo_release_candidate
+* remove obsolete dependencies to cmake_modules
+* Merge branch 'indigo_dev' of https://github.com/ipa320/cob_manipulation into kinetic_dev
+* kinetic migration for cob_obstacle_distance_moveit
+* fcl for kinetic
+* Contributors: Richard Bormann, ipa-fxm
+
+0.6.5 (2017-07-31)
+------------------
+* Merge pull request `#110 <https://github.com/ipa320/cob_manipulation/issues/110>`_ from ipa320/ipa-fxm-refactor_configuration_structure
+  Refactor configuration structure
+* restructure moveit config
+* ;)
+* deleted some whitespaces
+* Added SRDF for AllowedCollisionMatrix computation
+* Changed launchfile accourding to new cob structure
+* do not load robot_description in cob_moveit_config/upload_config.launch
+* minor launch adjustments
+* add remaps for cob4 as comments
+* move scripts to proper folder
+* add install tags
+* Contributors: Christoph Mark, Felix Messmer, ipa-fxm, ipa-nhg
+
 0.6.4 (2016-04-01)
 ------------------
 * use messages and services from new package cob_control_msgs

@@ -2,6 +2,20 @@
 Changelog for package cob_pick_place_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.0 (2017-07-31)
+------------------
+* merge with indigo_release_candidate
+* MoveGroup deprecation warning
+* add_definition c++11
+* shape_tools migration
+* Contributors: Richard Bormann, ipa-fxm
+
+0.6.5 (2017-07-31)
+------------------
+* fix script - missing import and assimp error
+* make pick and grasp more robot-agnostic
+* Contributors: ipa-fxm
+
 0.6.4 (2016-04-01)
 ------------------
 

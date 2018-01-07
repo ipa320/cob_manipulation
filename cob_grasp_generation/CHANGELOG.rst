@@ -2,6 +2,14 @@
 Changelog for package cob_grasp_generation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.0 (2017-07-31)
+------------------
+
+0.6.5 (2017-07-31)
+------------------
+* make pick and grasp more robot-agnostic
+* Contributors: ipa-fxm
+
 0.6.4 (2016-04-01)
 ------------------
 
