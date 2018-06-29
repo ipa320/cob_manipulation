@@ -73,7 +73,10 @@ void ObstacleDistanceMoveit::updatedScene(planning_scene_monitor::PlanningSceneM
     {
         const collision_detection::CollisionGeometryData *robot_link =
                 static_cast<const collision_detection::CollisionGeometryData *>(robot_obj[i]->collisionGeometry()->getUserData());
-        this->robot_links_[robot_link->getID()] = robot_obj[i];
+        if (std::find(skip_links_.begin(), skip_links_.end(), robot_link->getID()) == skip_links_.end())
+        {
+            this->robot_links_[robot_link->getID()] = robot_obj[i];
+        }
     }
 
     for (unsigned int i = 0; i < world_obj.size(); i++)
@@ -82,127 +85,6 @@ void ObstacleDistanceMoveit::updatedScene(planning_scene_monitor::PlanningSceneM
                 static_cast<const collision_detection::CollisionGeometryData *>(world_obj[i]->collisionGeometry()->getUserData());
         this->collision_objects_[collision_object->getID()] = world_obj[i];
     }
-}
-
-bool ObstacleDistanceMoveit::planningSceneCallback(moveit_msgs::GetPlanningScene::Request &req, moveit_msgs::GetPlanningScene::Response &res)
-{
-    planning_scene_monitor::LockedPlanningSceneRO ps(planning_scene_monitor_);
-    planning_scene::PlanningScenePtr planning_scene_ptr = ps->diff();
-
-    planning_scene_ptr->getPlanningSceneMsg(res.scene, req.components);
-
-    return true;
-}
-
-bool ObstacleDistanceMoveit::registerCallback(cob_srvs::SetString::Request &req,
-                                              cob_srvs::SetString::Response &res)
-{
-    boost::mutex::scoped_lock lock(registered_links_mutex_);
-    std::pair<std::set<std::string>::iterator, bool> ret = registered_links_.insert(req.data);
-
-    res.success = true;
-    res.message = (ret.second) ? (req.data + " successfully registered") : (req.data + " already registered");
-    return true;
-}
-
-bool ObstacleDistanceMoveit::unregisterCallback(cob_srvs::SetString::Request &req,
-                                                cob_srvs::SetString::Response &res)
-{
-    boost::mutex::scoped_lock lock(registered_links_mutex_);
-    std::set<std::string>::iterator it = registered_links_.find(req.data);
-    
-    if (it != registered_links_.end())
-    {
-        registered_links_.erase(it);
-
-        res.success = true;
-        res.message = req.data + " successfully unregistered";
-    }
-    else
-    {
-        res.success = true;
-        res.message = req.data + " has not been registered before";
-    }
-
-    return true;
-}
-
-void ObstacleDistanceMoveit::calculateDistanceTimerCallback(const ros::TimerEvent& event)
-{
-    std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > robot_links = this->robot_links_;
-    std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > collision_objects = this->collision_objects_;
-
-    boost::mutex::scoped_lock lock(registered_links_mutex_);
-    cob_control_msgs::ObstacleDistances distance_infos;
-    
-    planning_scene_monitor::LockedPlanningSceneRO ps(planning_scene_monitor_);
-    planning_scene::PlanningScenePtr planning_scene_ptr = ps->diff();
-
-    std::string planning_frame = planning_scene_ptr->getPlanningFrame();
-
-    std::set<std::string>::iterator link_it;
-    for (link_it = registered_links_.begin(); link_it!=registered_links_.end(); ++link_it)
-    {
-        std::string robot_link_name = *link_it;
-
-        const boost::shared_ptr<fcl::CollisionObject> robot_object = robot_links[robot_link_name];
-        ROS_DEBUG_STREAM("RobotLink: " << robot_link_name << ", Type: " << robot_object->getObjectType());
-
-        std::map<std::string, boost::shared_ptr<fcl::CollisionObject> >::iterator obj_it;
-        for (obj_it = collision_objects.begin(); obj_it != collision_objects.end(); ++obj_it)
-        {
-            std::string collision_object_name = obj_it->first;
-            const boost::shared_ptr<fcl::CollisionObject> collision_object = collision_objects[collision_object_name];
-            ROS_DEBUG_STREAM("CollisionLink: " << collision_object_name << ", Type: " << collision_object->getObjectType());
-
-            if(collision_object->getObjectType() == fcl::OT_OCTREE)
-            {
-                ROS_WARN_THROTTLE(1, "Consideration of <octomap> not yet implemented");
-                continue;
-            }
-
-            cob_control_msgs::ObstacleDistance info;
-            info = getDistanceInfo(robot_object, collision_object);
-
-            info.header.frame_id = planning_frame;
-            info.header.stamp = event.current_real;
-            info.link_of_interest = robot_link_name;
-            info.obstacle_id = collision_object_name;
-
-            distance_infos.distances.push_back(info);
-        }
-
-        std::map<std::string, boost::shared_ptr<fcl::CollisionObject> >::iterator selfcollision_it;
-        for (selfcollision_it = robot_links.begin(); selfcollision_it != robot_links.end(); ++selfcollision_it)
-        {
-            std::string robot_self_name = selfcollision_it->first;
-            collision_detection::AllowedCollision::Type type;
-
-            if(acm_.getEntry(robot_link_name, robot_self_name, type))
-            {
-                if(type == collision_detection::AllowedCollision::NEVER)
-                {
-                    const boost::shared_ptr<fcl::CollisionObject> robot_self_object = robot_links[robot_self_name];
-                    ROS_DEBUG_STREAM("CollisionLink: " << robot_self_name << ", Type: " << robot_self_object->getObjectType());
-
-                    cob_control_msgs::ObstacleDistance info;
-                    info = getDistanceInfo(robot_object, robot_self_object);
-
-                    info.header.frame_id = planning_frame;
-                    info.header.stamp = event.current_real;
-                    info.link_of_interest = robot_link_name;
-                    info.obstacle_id = robot_self_name;
-
-                    distance_infos.distances.push_back(info);
-                }
-                else
-                {
-                    // This is diagonal of allowed collision matrix
-                }
-            }
-        }
-    }
-    distance_pub_.publish(distance_infos);
 }
 
 void ObstacleDistanceMoveit::planningSceneTimerCallback(const ros::TimerEvent& event)
@@ -215,53 +97,110 @@ void ObstacleDistanceMoveit::planningSceneTimerCallback(const ros::TimerEvent& e
     monitored_scene_pub_.publish(scene);
 }
 
+bool ObstacleDistanceMoveit::planningSceneCallback(moveit_msgs::GetPlanningScene::Request &req, moveit_msgs::GetPlanningScene::Response &res)
+{
+    planning_scene_monitor::LockedPlanningSceneRO ps(planning_scene_monitor_);
+    planning_scene::PlanningScenePtr planning_scene_ptr = ps->diff();
+
+    planning_scene_ptr->getPlanningSceneMsg(res.scene, req.components);
+
+    return true;
+}
+
+void ObstacleDistanceMoveit::calculateDistanceTimerCallback(const ros::TimerEvent& event)
+{
+    distance_pub_.publish(getObstacleDistances());
+}
 
 bool ObstacleDistanceMoveit::calculateDistanceServiceCallback(cob_control_msgs::GetObstacleDistance::Request &req,
                                                               cob_control_msgs::GetObstacleDistance::Response &resp)
 {
-    std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > robot_links = this->robot_links_;
-    std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > collision_objects = this->collision_objects_;
-    
-    // Links
-    for (unsigned int i=0; i< req.links.size(); ++i)
-    {
-        if (req.objects.size() == 0)
-        {
-            // All objects
-            std::map<std::string, boost::shared_ptr<fcl::CollisionObject> >::iterator it;
-            for (it = collision_objects.begin(); it != collision_objects.end(); ++it)
-            {
-                const boost::shared_ptr<fcl::CollisionObject> collision_object = collision_objects[it->first];
-                if(collision_object->getObjectType() == fcl::OT_OCTREE)
-                {
-                    ROS_WARN_THROTTLE(1, "Consideration of <octomap> not yet implemented");
-                    continue;
-                }
-                resp.link_to_object.push_back(req.links[i] + "_to_" + it->first);
-                resp.distances.push_back(getDistanceInfo(robot_links[req.links[i]], collision_object).distance);
-            }
-        }
-        else
-        {
-            // Specific objects
-            for (int y = 0; y < req.objects.size(); y++)
-            {
-                const boost::shared_ptr<fcl::CollisionObject> collision_object = collision_objects[req.objects[y]];
-                if(collision_object->getObjectType() == fcl::OT_OCTREE)
-                {
-                    ROS_WARN_THROTTLE(1, "Consideration of <octomap> not yet implemented");
-                    continue;
-                }
-                resp.link_to_object.push_back(req.links[i] + " to " + req.objects[y]);
-                resp.distances.push_back(getDistanceInfo(robot_links[req.links[i]], collision_object).distance);
-            }
-        }
-    }
+    resp.result = getObstacleDistances();
     return true;
 }
 
-cob_control_msgs::ObstacleDistance ObstacleDistanceMoveit::getDistanceInfo(const boost::shared_ptr<fcl::CollisionObject> object_a,
-                                                                           const boost::shared_ptr<fcl::CollisionObject> object_b)
+cob_control_msgs::ObstacleDistances ObstacleDistanceMoveit::getObstacleDistances()
+{
+    cob_control_msgs::ObstacleDistances distance_infos;
+    ros::Time now = ros::Time::now();
+
+    std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > robot_links = this->robot_links_;
+    std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > robot_self_links = this->robot_links_;
+    std::map<std::string, boost::shared_ptr<fcl::CollisionObject> > collision_objects = this->collision_objects_;
+
+    planning_scene_monitor::LockedPlanningSceneRO ps(planning_scene_monitor_);
+    planning_scene::PlanningScenePtr planning_scene_ptr = ps->diff();
+
+    std::string planning_frame = planning_scene_ptr->getPlanningFrame();
+
+    std::map<std::string, boost::shared_ptr<fcl::CollisionObject> >::iterator link_it;
+    for (link_it = robot_links.begin(); link_it!=robot_links.end(); ++link_it)
+    {
+        std::string link_name = link_it->first;
+
+        const boost::shared_ptr<fcl::CollisionObject> link_object = robot_links[link_name];
+        ROS_DEBUG_STREAM("RobotLink: " << link_name << ", Type: " << link_object->getObjectType());
+
+        std::map<std::string, boost::shared_ptr<fcl::CollisionObject> >::iterator obj_it;
+        for (obj_it = collision_objects.begin(); obj_it != collision_objects.end(); ++obj_it)
+        {
+            std::string obj_name = obj_it->first;
+            const boost::shared_ptr<fcl::CollisionObject> obj_object = collision_objects[obj_name];
+            ROS_DEBUG_STREAM("CollisionLink: " << obj_name << ", Type: " << obj_object->getObjectType());
+
+            if(obj_object->getObjectType() == fcl::OT_OCTREE)
+            {
+                ROS_WARN_THROTTLE(1, "Consideration of <octomap> not yet implemented");
+                continue;
+            }
+
+            cob_control_msgs::ObstacleDistance info;
+            info = getObstacleDistance(link_object, obj_object);
+
+            info.header.frame_id = planning_frame;
+            info.header.stamp = now;
+            info.link_of_interest = link_name;
+            info.obstacle_id = obj_name;
+
+            distance_infos.distances.push_back(info);
+        }
+
+        std::map<std::string, boost::shared_ptr<fcl::CollisionObject> >::iterator self_it;
+        robot_self_links.erase(link_name);
+        for (self_it = robot_self_links.begin(); self_it != robot_self_links.end(); ++self_it)
+        {
+            std::string self_name = self_it->first;
+            collision_detection::AllowedCollision::Type type;
+
+            if(acm_.getEntry(link_name, self_name, type))
+            {
+                if(type != collision_detection::AllowedCollision::ALWAYS)
+                {
+                    const boost::shared_ptr<fcl::CollisionObject> self_object = robot_self_links[self_name];
+                    ROS_DEBUG_STREAM("CollisionLink: " << self_name << ", Type: " << self_object->getObjectType());
+
+                    cob_control_msgs::ObstacleDistance info;
+                    info = getObstacleDistance(link_object, self_object);
+
+                    info.header.frame_id = planning_frame;
+                    info.header.stamp = now;
+                    info.link_of_interest = link_name;
+                    info.obstacle_id = self_name;
+
+                    distance_infos.distances.push_back(info);
+                }
+                else
+                {
+                    ROS_DEBUG_STREAM("CollisionLink: " << self_name << ", Allowed: " << type);
+                }
+            }
+        }
+    }
+    return distance_infos;
+}
+
+cob_control_msgs::ObstacleDistance ObstacleDistanceMoveit::getObstacleDistance(const boost::shared_ptr<fcl::CollisionObject> object_a,
+                                                                               const boost::shared_ptr<fcl::CollisionObject> object_b)
 {
     fcl::DistanceRequest req(true);  // enable_nearest_points
     fcl::DistanceResult res;
@@ -355,16 +294,13 @@ cob_control_msgs::ObstacleDistance ObstacleDistanceMoveit::getDistanceInfo(const
 
 ObstacleDistanceMoveit::ObstacleDistanceMoveit()
 {
-    MAXIMAL_MINIMAL_DISTANCE = 5.0; //m
+    MAXIMAL_MINIMAL_DISTANCE = 1.0; //m
     double update_frequency = 50.0; //Hz
 
     std::string robot_description = "/robot_description";
     std::string robot_description_semantic = "/robot_description_semantic";
-    std::string distance_service = "/calculate_distance";
-    std::string register_service = "/register_links";
-    std::string unregister_service = "/unregister_links";
     std::string distance_topic = "/obstacle_distances";
-
+    std::string distance_service = "/calculate_distances";
 
     // Get AllowedCollisionMatrix
     robot_model_loader::RobotModelLoader robot_model_loader("robot_description", "robot_description_semantic");
@@ -384,15 +320,14 @@ ObstacleDistanceMoveit::ObstacleDistanceMoveit()
                                                planning_scene_monitor::PlanningSceneMonitor::DEFAULT_ATTACHED_COLLISION_OBJECT_TOPIC);
     planning_scene_monitor_->addUpdateCallback(boost::bind(&ObstacleDistanceMoveit::updatedScene, this, _1));
 
-    registered_links_.clear();
+    skip_links_.clear();
+    ros::NodeHandle("~").getParam("skip_links", skip_links_);
 
-    calculate_obstacle_distance_ = nh_.advertiseService(distance_service, &ObstacleDistanceMoveit::calculateDistanceServiceCallback, this);
-    register_server_ = nh_.advertiseService(register_service, &ObstacleDistanceMoveit::registerCallback, this);
-    unregister_server_ = nh_.advertiseService(unregister_service, &ObstacleDistanceMoveit::unregisterCallback, this);
     distance_timer_ = nh_.createTimer(ros::Duration(1.0/update_frequency), &ObstacleDistanceMoveit::calculateDistanceTimerCallback, this);
     distance_pub_ = nh_.advertise<cob_control_msgs::ObstacleDistances>(distance_topic, 1);
+    distance_server_ = nh_.advertiseService(distance_service, &ObstacleDistanceMoveit::calculateDistanceServiceCallback, this);
 
+    planning_scene_timer_ = nh_.createTimer(ros::Duration(1.0/update_frequency), &ObstacleDistanceMoveit::planningSceneTimerCallback, this);
     monitored_scene_pub_ = nh_.advertise<moveit_msgs::PlanningScene>("/monitored_planning_scene", 1);
     monitored_scene_server_ = nh_.advertiseService("/get_planning_scene", &ObstacleDistanceMoveit::planningSceneCallback, this);
-    planning_scene_timer_ = nh_.createTimer(ros::Duration(1.0/update_frequency), &ObstacleDistanceMoveit::planningSceneTimerCallback, this);
 }

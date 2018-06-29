@@ -1,9 +1,11 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="robot" default="$(env ROBOT)"/>
+  <arg name="robot" default="cob4-5"/>
   <arg name="pkg_moveit_config" default="$(find cob_moveit_config)"/>
   <arg name="config_path" default="$(arg pkg_moveit_config)/robots/$(arg robot)/moveit/config"/>
 
+  <arg name="visualize_distances" default="false"/>
+  <arg name="skip_links" default="true"/>
   <arg name="use_sensors" default="false"/>
   <arg name="node_name" value="obstacle_distance_moveit"/>
 
@@ -15,5 +17,9 @@
 
   <node pkg="cob_obstacle_distance_moveit" type="obstacle_distance_node" name="$(arg node_name)" output="screen">
     <!--remap from="/obstacle_distances" to="/obstacle_distances"/-->  <!--only needed for the cob4 specific configuration-->
+    <rosparam if="$(arg skip_links)" command="load" file="$(find cob_obstacle_distance_moveit)/config/example_skip_links.yaml"/>
   </node>
+
+  <node if="$(arg visualize_distances)" pkg="cob_obstacle_distance_moveit" type="visualize_obstacle_distance_node" name="visualize_obstacle_distance_node" output="screen"/>
+
 </launch>
