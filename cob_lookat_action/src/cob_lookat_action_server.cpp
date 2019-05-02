@@ -176,7 +176,30 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     fk_solver_pos_main_.reset(new KDL::ChainFkSolverPos_recursive(chain_main_));
     fk_solver_pos_.reset(new KDL::ChainFkSolverPos_recursive(chain_full));
     ik_solver_vel_.reset(new KDL::ChainIkSolverVel_pinv(chain_full));
-    ik_solver_pos_.reset(new KDL::ChainIkSolverPos_NR(chain_full, *fk_solver_pos_, *ik_solver_vel_));
+
+    KDL::JntArray q_min(chain_full.getNrOfJoints());
+    KDL::JntArray q_max(chain_full.getNrOfJoints());
+    if ( goal->base_active )
+    {
+        q_min(0)=-M_PI_2;
+        q_min(1)=-M_PI_2;
+        q_min(2)=-M_PI_2;
+        q_min(3)=0.0; //lookat_lin
+        q_min(4)=-M_PI;
+        q_min(5)=-M_PI;
+        q_min(6)=-M_PI;
+    }
+    else
+    {
+        q_max(0)=M_PI_2;
+        q_max(1)=M_PI_2;
+        q_max(2)=M_PI_2;
+        q_min(3)=100.0; //lookat_lin
+        q_min(4)=M_PI;
+        q_min(5)=M_PI;
+        q_min(6)=M_PI;
+    }
+    ik_solver_pos_.reset(new KDL::ChainIkSolverPos_NR_JL(chain_full, q_min, q_max, *fk_solver_pos_, *ik_solver_vel_));
 
     /// transform target_frame to p_in
     KDL::Frame p_in;
