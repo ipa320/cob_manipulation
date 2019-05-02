@@ -73,7 +73,7 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     std::string message;
 
     /// set up lookat chain
-    KDL::Chain chain_lookat, chain_full;
+    KDL::Chain chain_base, chain_lookat, chain_full;
     KDL::Vector lookat_lin_axis(0.0, 0.0, 0.0);
     switch (goal->pointing_axis_type)
     {
@@ -135,6 +135,7 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     tf::transformTFToKDL(offset_transform, offset);
     //tf::transformMsgToKDL(goal->pointing_offset, offset);
 
+    //chain_lookat
     KDL::Segment lookat_rotx_link("lookat_rotx_link", lookat_lin_joint, offset);
     chain_lookat.addSegment(lookat_rotx_link);
 
@@ -153,7 +154,22 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     KDL::Segment lookat_focus_frame("lookat_focus_frame", lookat_rotz_joint);
     chain_lookat.addSegment(lookat_focus_frame);
 
-    chain_full = chain_main_;
+    //chain_base
+    KDL::Vector base_rotz_axis(0.0, 0.0, 1.0);
+    KDL::Joint base_rotz_joint("base_rotz_joint", KDL::Vector(), base_rotz_axis, KDL::Joint::RotAxis);
+    KDL::Segment base_rotz_link("base_rotz_link", base_rotz_joint, KDL::Frame());
+    chain_base.addSegment(base_rotz_link);
+
+    //chain composition
+    if ( goal->base_active )
+    {
+        chain_full = chain_base;
+        chain_full.addChain(chain_main_);
+    }
+    else
+    {
+        chain_full = chain_main_;
+    }
     chain_full.addChain(chain_lookat);
 
     /// set up solver
@@ -251,9 +267,12 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     //ToDo: check FK based on main + offset
     KDL::Frame p_out_main;
     KDL::JntArray q_out_main(chain_main_.getNrOfJoints());
+    unsigned int k;
+    if ( goal->base_active ) { k=1; }
+    else { k=0; }
     for(unsigned int i = 0; i < chain_main_.getNrOfJoints(); i++)
     {
-        q_out_main(i)=q_out(i);
+        q_out_main(i)=q_out(i+k);
     }
     int result_fk_main = fk_solver_pos_main_->JntToCart(q_out_main, p_out_main);
     KDL::Frame p_out_main_offset = p_out_main*offset;
@@ -283,38 +302,59 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     ROS_WARN_STREAM("p_diff_main: " << v_diff_main.x() << ", " << v_diff_main.y() << ", " << v_diff_main.z());
     ROS_WARN_STREAM("NORM v_diff_main: " << v_diff_main.Norm());
 
+    KDL::Frame tip2target_test(tip2target);
+    double q_lookat_lin = 0.0;
     switch (goal->pointing_axis_type)
     {
         case cob_lookat_action::LookAtGoal::X_POSITIVE:
-            tip2target.p.x(0.0);
+            q_lookat_lin = tip2target.p.x();
+            tip2target_test.p.x(0.0);
             break;
         case cob_lookat_action::LookAtGoal::Y_POSITIVE:
-            tip2target.p.y(0.0);
+            q_lookat_lin = tip2target.p.y();
+            tip2target_test.p.y(0.0);
             break;
         case cob_lookat_action::LookAtGoal::Z_POSITIVE:
-            tip2target.p.z(0.0);
+            q_lookat_lin = tip2target.p.z();
+            tip2target_test.p.z(0.0);
             break;
         case cob_lookat_action::LookAtGoal::X_NEGATIVE:
-            tip2target.p.x(0.0);
+            q_lookat_lin = tip2target.p.x();
+            tip2target_test.p.x(0.0);
             break;
         case cob_lookat_action::LookAtGoal::Y_NEGATIVE:
-            tip2target.p.y(0.0);
+            q_lookat_lin = tip2target.p.y();
+            tip2target_test.p.y(0.0);
             break;
         case cob_lookat_action::LookAtGoal::Z_NEGATIVE:
-            tip2target.p.z(0.0);
+            q_lookat_lin = tip2target.p.z();
+            tip2target_test.p.z(0.0);
             break;
         default:
             ROS_ERROR("PointingAxisType %d not defined! Using default: 'X_POSITIVE'!", goal->pointing_axis_type);
-            tip2target.p.x(0.0);
+            q_lookat_lin = tip2target.p.x();
+            tip2target_test.p.x(0.0);
             break;
     }
 
-    if ( tip2target.p.Norm() > 0.1 )
+    if ( tip2target_test.p.Norm() > 0.1 )
     {
         success = false;
         message = "Tip2Target is not lookat-conform";
         ROS_ERROR_STREAM(lookat_name_ << ": " << message);
-        ROS_WARN_STREAM("tip2target: " << tip2target.p.x() << ", " << tip2target.p.y() << ", " << tip2target.p.z());
+        ROS_WARN_STREAM("tip2target_test: " << tip2target_test.p.x() << ", " << tip2target_test.p.y() << ", " << tip2target_test.p.z());
+        lookat_res_.success = success;
+        lookat_res_.message = message;
+        lookat_as_->setAborted(lookat_res_);
+        return;
+    }
+
+    if ( q_lookat_lin < 0.0 )
+    {
+        success = false;
+        message = "q_lookat_lin is negative";
+        ROS_ERROR_STREAM(lookat_name_ << ": " << message);
+        ROS_WARN_STREAM("q_lookat_lin: " << q_lookat_lin);
         lookat_res_.success = success;
         lookat_res_.message = message;
         lookat_as_->setAborted(lookat_res_);
@@ -329,13 +369,14 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     trajectory_msgs::JointTrajectoryPoint traj_point;
     for(unsigned int i = 0; i < chain_main_.getNrOfJoints(); i++)
     {
-        traj_point.positions.push_back(q_out(i));
+        traj_point.positions.push_back(q_out(i+k));
     }
     traj_point.time_from_start = ros::Duration(3.0);
     lookat_traj.trajectory.points.push_back(traj_point);
 
     ROS_WARN_STREAM("LookatTraj: " << lookat_traj);
 
+/*
     fjt_ac_->sendGoal(lookat_traj);
 
     bool finished_before_timeout = fjt_ac_->waitForResult(ros::Duration(5.0));
@@ -365,7 +406,7 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
         lookat_as_->setAborted(lookat_res_);
         return;
     }
-
+*/
 
     /// lookat action successful?
     success = true;
