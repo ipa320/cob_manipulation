@@ -58,6 +58,7 @@ protected:
     std::string chain_tip_link_;
 
     KDL::Chain chain_main_;
+    boost::shared_ptr<KDL::ChainFkSolverPos_recursive> fk_solver_pos_main_;
     boost::shared_ptr<KDL::ChainFkSolverPos_recursive> fk_solver_pos_;
     boost::shared_ptr<KDL::ChainIkSolverVel_pinv> ik_solver_vel_;
     boost::shared_ptr<KDL::ChainIkSolverPos_NR> ik_solver_pos_;

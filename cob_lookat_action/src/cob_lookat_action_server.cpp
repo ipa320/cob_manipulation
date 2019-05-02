@@ -111,9 +111,7 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     {
         try
         {
-            ros::Time now = ros::Time::now();
-            tf_listener_.waitForTransform(chain_tip_link_, goal->pointing_frame, now, ros::Duration(0.1));
-            tf_listener_.lookupTransform(chain_tip_link_, goal->pointing_frame, now, offset_transform);
+            tf_listener_.lookupTransform(chain_tip_link_, goal->pointing_frame, ros::Time(0), offset_transform);
             transformed = true;
         }
         catch (tf::TransformException& ex)
@@ -121,7 +119,18 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
             ROS_ERROR("LookatAction: %s", ex.what());
             ros::Duration(0.1).sleep();
         }
-    } while (!transformed && ros::ok());
+    } while (!transformed && ros::ok() && !lookat_as_->isPreemptRequested());
+
+    if (lookat_as_->isPreemptRequested() )
+    {
+        success = false;
+        message = "Preempted after lookup 'pointing_frame'";
+        ROS_WARN_STREAM(lookat_name_ << ": " << message);
+        lookat_res_.success = success;
+        lookat_res_.message = message;
+        lookat_as_->setPreempted(lookat_res_);
+        return;
+    }
 
     tf::transformTFToKDL(offset_transform, offset);
     //tf::transformMsgToKDL(goal->pointing_offset, offset);
@@ -148,6 +157,7 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     chain_full.addChain(chain_lookat);
 
     /// set up solver
+    fk_solver_pos_main_.reset(new KDL::ChainFkSolverPos_recursive(chain_main_));
     fk_solver_pos_.reset(new KDL::ChainFkSolverPos_recursive(chain_full));
     ik_solver_vel_.reset(new KDL::ChainIkSolverVel_pinv(chain_full));
     ik_solver_pos_.reset(new KDL::ChainIkSolverPos_NR(chain_full, *fk_solver_pos_, *ik_solver_vel_));
@@ -161,9 +171,7 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     {
         try
         {
-            ros::Time now = ros::Time::now();
-            tf_listener_.waitForTransform(chain_base_link_, goal->target_frame, now, ros::Duration(0.1));
-            tf_listener_.lookupTransform(chain_base_link_, goal->target_frame, now, transform_in);
+            tf_listener_.lookupTransform(chain_base_link_, goal->target_frame, ros::Time(0), transform_in);
             transformed = true;
         }
         catch (tf::TransformException& ex)
@@ -171,19 +179,142 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
             ROS_ERROR("LookatAction: %s", ex.what());
             ros::Duration(0.1).sleep();
         }
-    } while (!transformed && ros::ok());
+    } while (!transformed && ros::ok() && !lookat_as_->isPreemptRequested());
+
+    if (lookat_as_->isPreemptRequested() )
+    {
+        success = false;
+        message = "Preempted after lookup 'target_frame'";
+        ROS_WARN_STREAM(lookat_name_ << ": " << message);
+        lookat_res_.success = success;
+        lookat_res_.message = message;
+        lookat_as_->setPreempted(lookat_res_);
+        return;
+    }
+
+    //ToDo: check age of transformation
+    ros::Time now = ros::Time::now();
+    ROS_INFO_STREAM("NOW: " << now << ", STAMP: " << transform_in.stamp_ << ", DIFF: " << (now - transform_in.stamp_).toSec());
 
     tf::transformTFToKDL(transform_in, p_in);
     KDL::JntArray q_init(chain_full.getNrOfJoints());
     KDL::JntArray q_out(chain_full.getNrOfJoints());
-    int result = ik_solver_pos_->CartToJnt(q_init, p_in, q_out);
+    int result_ik = ik_solver_pos_->CartToJnt(q_init, p_in, q_out);
+
+    ROS_WARN_STREAM("IK-Error: "<< ik_solver_pos_->getError() << " - " << ik_solver_pos_->strError(ik_solver_pos_->getError()));
+    
+    ROS_WARN_STREAM("q_init: " << q_init.data);
+    ROS_WARN_STREAM("p_in: " << p_in.p.x() << ", " << p_in.p.y() << ", " << p_in.p.z());
+    ROS_WARN_STREAM("q_out: " << q_out.data);
 
     /// solution valid?
-    if (result != KDL::SolverI::E_NOERROR)
+    if (ik_solver_pos_->getError() != KDL::SolverI::E_NOERROR)
     {
         success = false;
-        message = "Failed to find solution";
+        message = "Failed to find IK solution";
         ROS_ERROR_STREAM(lookat_name_ << ": " << message);
+        lookat_res_.success = success;
+        lookat_res_.message = message;
+        lookat_as_->setAborted(lookat_res_);
+        return;
+    }
+
+    //ToDo: check FK diff (target vs. q_out)
+    KDL::Frame p_out;
+    int result_fk = fk_solver_pos_->JntToCart(q_out, p_out);
+
+    ROS_WARN_STREAM("FK-Error: "<< fk_solver_pos_->getError() << " - " << fk_solver_pos_->strError(fk_solver_pos_->getError()));
+
+    ROS_WARN_STREAM("p_out: " << p_out.p.x() << ", " << p_out.p.y() << ", " << p_out.p.z());
+
+    /// solution valid?
+    if (fk_solver_pos_->getError() != KDL::SolverI::E_NOERROR)
+    {
+        success = false;
+        message = "Failed to find FK solution";
+        ROS_ERROR_STREAM(lookat_name_ << ": " << message);
+        lookat_res_.success = success;
+        lookat_res_.message = message;
+        lookat_as_->setAborted(lookat_res_);
+        return;
+    }
+
+    KDL::Vector v_diff = KDL::diff(p_in.p, p_out.p);
+    ROS_WARN_STREAM("p_diff: " << v_diff.x() << ", " << v_diff.y() << ", " << v_diff.z());
+    ROS_WARN_STREAM("NORM v_diff: " << v_diff.Norm());
+
+    if (!KDL::Equal(p_in, p_out, 1.0) )
+    {
+        ROS_WARN_STREAM("P_IN !Equal P_OUT");
+    }
+
+    //ToDo: check FK based on main + offset
+    KDL::Frame p_out_main;
+    KDL::JntArray q_out_main(chain_main_.getNrOfJoints());
+    for(unsigned int i = 0; i < chain_main_.getNrOfJoints(); i++)
+    {
+        q_out_main(i)=q_out(i);
+    }
+    int result_fk_main = fk_solver_pos_main_->JntToCart(q_out_main, p_out_main);
+    KDL::Frame p_out_main_offset = p_out_main*offset;
+    KDL::Frame tip2target = p_out_main_offset.Inverse()*p_in;
+
+    ROS_WARN_STREAM("FK-Error MAIN: "<< fk_solver_pos_main_->getError() << " - " << fk_solver_pos_main_->strError(fk_solver_pos_main_->getError()));
+
+    ROS_WARN_STREAM("q_out_main: " << q_out_main.data);
+    ROS_WARN_STREAM("p_out_main: " << p_out_main.p.x() << ", " << p_out_main.p.y() << ", " << p_out_main.p.z());
+    ROS_WARN_STREAM("offset: " << offset.p.x() << ", " << offset.p.y() << ", " << offset.p.z());
+    ROS_WARN_STREAM("p_out_main_offset: " << p_out_main_offset.p.x() << ", " << p_out_main_offset.p.y() << ", " << p_out_main_offset.p.z());
+    ROS_WARN_STREAM("tip2target: " << tip2target.p.x() << ", " << tip2target.p.y() << ", " << tip2target.p.z());
+
+    /// solution valid?
+    if (fk_solver_pos_main_->getError() != KDL::SolverI::E_NOERROR)
+    {
+        success = false;
+        message = "Failed to find FK solution MAIN";
+        ROS_ERROR_STREAM(lookat_name_ << ": " << message);
+        lookat_res_.success = success;
+        lookat_res_.message = message;
+        lookat_as_->setAborted(lookat_res_);
+        return;
+    }
+
+    KDL::Vector v_diff_main = KDL::diff(p_in.p, p_out_main_offset.p);
+    ROS_WARN_STREAM("p_diff_main: " << v_diff_main.x() << ", " << v_diff_main.y() << ", " << v_diff_main.z());
+    ROS_WARN_STREAM("NORM v_diff_main: " << v_diff_main.Norm());
+
+    switch (goal->pointing_axis_type)
+    {
+        case cob_lookat_action::LookAtGoal::X_POSITIVE:
+            tip2target.p.x(0.0);
+            break;
+        case cob_lookat_action::LookAtGoal::Y_POSITIVE:
+            tip2target.p.y(0.0);
+            break;
+        case cob_lookat_action::LookAtGoal::Z_POSITIVE:
+            tip2target.p.z(0.0);
+            break;
+        case cob_lookat_action::LookAtGoal::X_NEGATIVE:
+            tip2target.p.x(0.0);
+            break;
+        case cob_lookat_action::LookAtGoal::Y_NEGATIVE:
+            tip2target.p.y(0.0);
+            break;
+        case cob_lookat_action::LookAtGoal::Z_NEGATIVE:
+            tip2target.p.z(0.0);
+            break;
+        default:
+            ROS_ERROR("PointingAxisType %d not defined! Using default: 'X_POSITIVE'!", goal->pointing_axis_type);
+            tip2target.p.x(0.0);
+            break;
+    }
+
+    if ( tip2target.p.Norm() > 0.1 )
+    {
+        success = false;
+        message = "Tip2Target is not lookat-conform";
+        ROS_ERROR_STREAM(lookat_name_ << ": " << message);
+        ROS_WARN_STREAM("tip2target: " << tip2target.p.x() << ", " << tip2target.p.y() << ", " << tip2target.p.z());
         lookat_res_.success = success;
         lookat_res_.message = message;
         lookat_as_->setAborted(lookat_res_);
@@ -202,6 +333,8 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     }
     traj_point.time_from_start = ros::Duration(3.0);
     lookat_traj.trajectory.points.push_back(traj_point);
+
+    ROS_WARN_STREAM("LookatTraj: " << lookat_traj);
 
     fjt_ac_->sendGoal(lookat_traj);
 
