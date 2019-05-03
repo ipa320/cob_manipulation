@@ -35,9 +35,10 @@
 #include <tf_conversions/tf_kdl.h>
 #include <kdl_conversions/kdl_msg.h>
 #include <kdl_parser/kdl_parser.hpp>
+
 #include <kdl/chainfksolverpos_recursive.hpp>
-#include <kdl/chainiksolvervel_pinv.hpp>
-#include <kdl/chainiksolverpos_nr.hpp>
+#include <kdl/chainiksolverpos_lma.hpp>
+
 
 
 class CobLookAtAction
@@ -60,8 +61,7 @@ protected:
     KDL::Chain chain_main_;
     boost::shared_ptr<KDL::ChainFkSolverPos_recursive> fk_solver_pos_main_;
     boost::shared_ptr<KDL::ChainFkSolverPos_recursive> fk_solver_pos_;
-    boost::shared_ptr<KDL::ChainIkSolverVel_pinv> ik_solver_vel_;
-    boost::shared_ptr<KDL::ChainIkSolverPos_NR> ik_solver_pos_;
+    boost::shared_ptr<KDL::ChainIkSolverPos_LMA> ik_solver_pos_;
 
     tf::TransformListener tf_listener_;
 

@@ -105,6 +105,8 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     }
 
     tf::transformTFToKDL(offset_transform, offset);
+
+    //ToDo: implement offset mechanism
     //tf::transformMsgToKDL(goal->pointing_offset, offset);
 
     offset.M.GetRPY(roll, pitch, yaw);
@@ -185,8 +187,13 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     /// set up solver
     fk_solver_pos_main_.reset(new KDL::ChainFkSolverPos_recursive(chain_main_));
     fk_solver_pos_.reset(new KDL::ChainFkSolverPos_recursive(chain_full));
-    ik_solver_vel_.reset(new KDL::ChainIkSolverVel_pinv(chain_full));
-    ik_solver_pos_.reset(new KDL::ChainIkSolverPos_NR(chain_full, *fk_solver_pos_, *ik_solver_vel_));
+    ik_solver_pos_.reset(new KDL::ChainIkSolverPos_LMA(chain_full));
+    //ToDo: test other solvers
+    //ChainIkSolverPos_NR_NL: no
+    //ChainIkSolverPos_NR w. KDL::ChainIkSolverVel_pinv: no
+    //ChainIkSolverPos_NR w. KDL::ChainIkSolverVel_pinv_givens: ?
+    //ChainIkSolverPos_NR w. KDL::ChainIkSolverVel_pinv_nso: ?
+    //ChainIkSolverPos_NR w. KDL::ChainIkSolverVel_wdls: ?
 
     /// transform target_frame to p_in
     KDL::Frame p_in;
@@ -222,8 +229,6 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     ros::Time now = ros::Time::now();
     ROS_INFO_STREAM("NOW: " << now << ", STAMP: " << transform_in.stamp_ << ", DIFF: " << (now - transform_in.stamp_).toSec());
 
-    //ToDo: fix: orientation of p_in should not matter
-
     //ToDo: "upright"-constraint
 
     tf::transformTFToKDL(transform_in, p_in);
@@ -252,9 +257,9 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
         return;
     }
 
-    //ToDO. check joint_limits
+    //ToDo. check joint_limits
 
-    //ToDo: check FK diff (target vs. q_out)
+    /// check FK diff (target vs. q_out)
     KDL::Frame p_out;
     int result_fk = fk_solver_pos_->JntToCart(q_out, p_out);
 
@@ -284,7 +289,7 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
         ROS_WARN_STREAM("P_IN !Equal P_OUT");
     }
 
-    //ToDo: check FK based on main + offset
+    /// check FK based on main + offset
     KDL::Frame p_out_main;
     KDL::JntArray q_out_main(chain_main_.getNrOfJoints());
     unsigned int k;
@@ -362,19 +367,20 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
             break;
     }
 
+    /// check lin_axis value positive
     ROS_WARN_STREAM("q_lookat_lin: " << q_lookat_lin);
     if ( q_lookat_lin < 0.0 )
     {
         success = false;
         message = "q_lookat_lin is negative";
         ROS_ERROR_STREAM(lookat_name_ << ": " << message);
-        //lookat_res_.success = success;
-        //lookat_res_.message = message;
-        //lookat_as_->setAborted(lookat_res_);
-        //return;
+        lookat_res_.success = success;
+        lookat_res_.message = message;
+        lookat_as_->setAborted(lookat_res_);
+        return;
     }
 
-    //ToDo: check lookat error
+    /// check lookat offset from lin_axis
     ROS_WARN_STREAM("tip2target_test: " << tip2target_test.p.x() << ", " << tip2target_test.p.y() << ", " << tip2target_test.p.z());
     ROS_WARN_STREAM("tip2target_test.p.Norm: " << tip2target_test.p.Norm());
     if ( tip2target_test.p.Norm() > 0.1 )
@@ -382,10 +388,10 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
         success = false;
         message = "Tip2Target is not lookat-conform";
         ROS_ERROR_STREAM(lookat_name_ << ": " << message);
-        //lookat_res_.success = success;
-        //lookat_res_.message = message;
-        //lookat_as_->setAborted(lookat_res_);
-        //return;
+        lookat_res_.success = success;
+        lookat_res_.message = message;
+        lookat_as_->setAborted(lookat_res_);
+        return;
     }
 
     if ( goal->base_active )
@@ -401,13 +407,12 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     trajectory_msgs::JointTrajectoryPoint traj_point;
     for(unsigned int i = 0; i < chain_main_.getNrOfJoints(); i++)
     {
-        //ToDo: normalize angles?
         traj_point.positions.push_back(angles::normalize_angle(q_out(i+k)));
     }
     traj_point.time_from_start = ros::Duration(3.0);
     fjt_goal.trajectory.points.push_back(traj_point);
 
-    //ToDO. fill fjt_goal abortion criteria
+    /// disable FJT constraints
     //There are two special values for tolerances:
     // *  0 - The tolerance is unspecified and will remain at whatever the default is
     // * -1 - The tolerance is "erased".
