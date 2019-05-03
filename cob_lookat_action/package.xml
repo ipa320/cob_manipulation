@@ -21,6 +21,7 @@
 
   <depend>actionlib_msgs</depend>
   <depend>actionlib</depend>
+  <depend>angles</depend>
   <depend>boost</depend>
   <depend>control_msgs</depend>
   <depend>geometry_msgs</depend>
