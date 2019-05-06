@@ -412,52 +412,49 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
 
     ROS_WARN_STREAM("FJT-Goal: " << fjt_goal);
 
-    if ( goal->execute )
+    fjt_ac_->sendGoal(fjt_goal);
+
+    while ( !lookat_as_->isPreemptRequested() )
     {
-        fjt_ac_->sendGoal(fjt_goal);
+        bool finished_before_timeout = fjt_ac_->waitForResult(ros::Duration(0.1));
 
-        while ( !lookat_as_->isPreemptRequested() )
+        actionlib::SimpleClientGoalState fjt_state = fjt_ac_->getState();
+        message = "FJT State: " + fjt_state.toString();
+        ROS_DEBUG_STREAM(lookat_name_ << ": " << message);
+
+        /// fjt action successful?
+        if (finished_before_timeout)
         {
-            bool finished_before_timeout = fjt_ac_->waitForResult(ros::Duration(0.1));
+            message = "FJT finished - State: " + fjt_state.toString() + ", ErrorCode: " + std::to_string(fjt_ac_->getResult()->error_code);
 
-            actionlib::SimpleClientGoalState fjt_state = fjt_ac_->getState();
-            message = "FJT State: " + fjt_state.toString();
-            ROS_DEBUG_STREAM(lookat_name_ << ": " << message);
-
-            /// fjt action successful?
-            if (finished_before_timeout)
+            if(fjt_state == actionlib::SimpleClientGoalState::SUCCEEDED)
             {
-                message = "FJT finished - State: " + fjt_state.toString() + ", ErrorCode: " + std::to_string(fjt_ac_->getResult()->error_code);
-
-                if(fjt_state == actionlib::SimpleClientGoalState::SUCCEEDED)
-                {
-                    success = true;
-                    ROS_WARN_STREAM(lookat_name_ << ": " << message);
-                    break;
-                }
-                else
-                {
-                    success = false;
-                    ROS_ERROR_STREAM(lookat_name_ << ": " << message);
-                    lookat_res_.success = success;
-                    lookat_res_.message = message;
-                    lookat_as_->setAborted(lookat_res_);
-                    return;
-                }
+                success = true;
+                ROS_WARN_STREAM(lookat_name_ << ": " << message);
+                break;
+            }
+            else
+            {
+                success = false;
+                ROS_ERROR_STREAM(lookat_name_ << ": " << message);
+                lookat_res_.success = success;
+                lookat_res_.message = message;
+                lookat_as_->setAborted(lookat_res_);
+                return;
             }
         }
-        if (lookat_as_->isPreemptRequested() )
-        {
-            fjt_ac_->cancelGoal();
-            
-            success = false;
-            message = "Preempted during FJT execution";
-            ROS_ERROR_STREAM(lookat_name_ << ": " << message);
-            lookat_res_.success = success;
-            lookat_res_.message = message;
-            lookat_as_->setPreempted(lookat_res_);
-            return;
-        }
+    }
+    if (lookat_as_->isPreemptRequested() )
+    {
+        fjt_ac_->cancelGoal();
+        
+        success = false;
+        message = "Preempted during FJT execution";
+        ROS_ERROR_STREAM(lookat_name_ << ": " << message);
+        lookat_res_.success = success;
+        lookat_res_.message = message;
+        lookat_as_->setPreempted(lookat_res_);
+        return;
     }
 
     success = true;
