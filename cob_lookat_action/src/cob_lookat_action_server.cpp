@@ -115,35 +115,36 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
 
     /// compose lookat_lin joint
     KDL::Chain chain_base, chain_lookat, chain_full;
-    KDL::Vector lookat_lin_axis(0.0, 0.0, 0.0);
+    KDL::Joint::JointType lookat_lin_joint_type = KDL::Joint::None;
+    double mod_neg_factor = 1.0;
     switch (goal->pointing_axis_type)
     {
         case cob_lookat_action::LookAtGoal::X_POSITIVE:
-            lookat_lin_axis.x(1.0);
+            lookat_lin_joint_type = KDL::Joint::TransX;
             break;
         case cob_lookat_action::LookAtGoal::Y_POSITIVE:
-            lookat_lin_axis.y(1.0);
+            lookat_lin_joint_type = KDL::Joint::TransY;
             break;
         case cob_lookat_action::LookAtGoal::Z_POSITIVE:
-            lookat_lin_axis.z(1.0);
+            lookat_lin_joint_type = KDL::Joint::TransZ;
             break;
         case cob_lookat_action::LookAtGoal::X_NEGATIVE:
-            lookat_lin_axis.x(-1.0);
+            lookat_lin_joint_type = KDL::Joint::TransX;
+            mod_neg_factor = -1.0;
             break;
         case cob_lookat_action::LookAtGoal::Y_NEGATIVE:
-            lookat_lin_axis.y(-1.0);
+            lookat_lin_joint_type = KDL::Joint::TransY;
+            mod_neg_factor = -1.0;
             break;
         case cob_lookat_action::LookAtGoal::Z_NEGATIVE:
-            lookat_lin_axis.z(-1.0);
+            lookat_lin_joint_type = KDL::Joint::TransZ;
+            mod_neg_factor = -1.0;
             break;
         default:
             ROS_ERROR("PointingAxisType %d not defined! Using default: 'X_POSITIVE'!", goal->pointing_axis_type);
-            lookat_lin_axis.x(1.0);
+            lookat_lin_joint_type = KDL::Joint::TransX;
             break;
     }
-    ROS_WARN("PointingAxisType %d: %f, %f, %f", goal->pointing_axis_type, lookat_lin_axis.x(), lookat_lin_axis.y(), lookat_lin_axis.z());
-
-    //ToDo: fix negative axes
 
     //fixed pointing offset
     KDL::Joint offset_joint("offset_joint", KDL::Joint::None);
@@ -151,7 +152,7 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     chain_lookat.addSegment(offset_link);
 
     //chain_lookat
-    KDL::Joint lookat_lin_joint("lookat_lin_joint", KDL::Vector(), lookat_lin_axis, KDL::Joint::TransAxis);
+    KDL::Joint lookat_lin_joint("lookat_lin_joint", lookat_lin_joint_type);
     KDL::Segment lookat_rotx_link("lookat_rotx_link", lookat_lin_joint);
     chain_lookat.addSegment(lookat_rotx_link);
 
@@ -369,7 +370,7 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
 
     /// check lin_axis value positive
     ROS_WARN_STREAM("q_lookat_lin: " << q_lookat_lin);
-    if ( q_lookat_lin < 0.0 )
+    if ( mod_neg_factor*q_lookat_lin < 0.0 )
     {
         success = false;
         message = "q_lookat_lin is negative";
@@ -409,6 +410,7 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     {
         traj_point.positions.push_back(angles::normalize_angle(q_out(i+k)));
     }
+    //ToDo: better time_from_start
     traj_point.time_from_start = ros::Duration(3.0);
     fjt_goal.trajectory.points.push_back(traj_point);
 
