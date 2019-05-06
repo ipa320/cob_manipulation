@@ -30,7 +30,7 @@
 #include <trajectory_msgs/JointTrajectory.h>
 #include <trajectory_msgs/JointTrajectoryPoint.h>
 
-#include <tf/transform_listener.h>
+#include <tf2_ros/transform_listener.h>
 #include <tf/transform_datatypes.h>
 #include <tf_conversions/tf_kdl.h>
 #include <kdl_conversions/kdl_msg.h>
@@ -59,11 +59,13 @@ protected:
     std::string chain_tip_link_;
 
     KDL::Chain chain_main_;
-    boost::shared_ptr<KDL::ChainFkSolverPos_recursive> fk_solver_pos_main_;
-    boost::shared_ptr<KDL::ChainFkSolverPos_recursive> fk_solver_pos_;
-    boost::shared_ptr<KDL::ChainIkSolverPos_LMA> ik_solver_pos_;
+    std::shared_ptr<KDL::ChainFkSolverPos_recursive> fk_solver_pos_main_;
+    std::shared_ptr<KDL::ChainFkSolverPos_recursive> fk_solver_pos_;
+    std::shared_ptr<KDL::ChainIkSolverPos_LMA> ik_solver_pos_;
 
-    tf::TransformListener tf_listener_;
+    std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
+    std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+    ros::Duration buffer_duration_;
 
 public:
 

@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   roscpp
   tf
+  tf2_ros
   tf_conversions
   trajectory_msgs
 )

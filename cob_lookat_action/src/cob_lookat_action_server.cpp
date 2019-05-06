@@ -56,6 +56,9 @@ bool CobLookAtAction::init()
         return false;
     }
 
+    buffer_duration_ = ros::Duration(5.0);
+    tf_buffer_.reset(new tf2_ros::Buffer(buffer_duration_));
+    tf_listener_.reset(new tf2_ros::TransformListener(*tf_buffer_));
 
     ROS_WARN_STREAM("Waiting for ActionServer: " << fjt_name_);
     fjt_ac_ = new actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction>(nh_, fjt_name_, true);
@@ -76,22 +79,21 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
 
     /// transform pointing_frame to offset
     KDL::Frame offset;
-    tf::StampedTransform offset_transform;
-    bool transformed = false;
-
-    do
+    geometry_msgs::TransformStamped offset_transform_msg;
+    try
     {
-        try
-        {
-            tf_listener_.lookupTransform(chain_tip_link_, goal->pointing_frame, ros::Time(0), offset_transform);
-            transformed = true;
-        }
-        catch (tf::TransformException& ex)
-        {
-            ROS_ERROR("LookatAction: %s", ex.what());
-            ros::Duration(0.1).sleep();
-        }
-    } while (!transformed && ros::ok() && !lookat_as_->isPreemptRequested());
+        offset_transform_msg = tf_buffer_->lookupTransform(chain_tip_link_, goal->pointing_frame, ros::Time(0));
+    }
+    catch (tf2::TransformException& ex)
+    {
+        success = false;
+        message = "Failed to lookupTransform pointing_frame: " + std::string(ex.what());
+        ROS_ERROR_STREAM(lookat_name_ << ": " << message);
+        lookat_res_.success = success;
+        lookat_res_.message = message;
+        lookat_as_->setAborted(lookat_res_);
+        return;
+    }
 
     if (lookat_as_->isPreemptRequested() )
     {
@@ -104,7 +106,7 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
         return;
     }
 
-    tf::transformTFToKDL(offset_transform, offset);
+    tf::transformMsgToKDL(offset_transform_msg.transform, offset);
 
     //ToDo: implement offset mechanism
     //tf::transformMsgToKDL(goal->pointing_offset, offset);
@@ -185,22 +187,21 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
 
     /// transform target_frame to p_in
     KDL::Frame p_in;
-    tf::StampedTransform transform_in;
-    transformed = false;
-
-    do
+    geometry_msgs::TransformStamped transform_in_msg;
+    try
     {
-        try
-        {
-            tf_listener_.lookupTransform(chain_base_link_, goal->target_frame, ros::Time(0), transform_in);
-            transformed = true;
-        }
-        catch (tf::TransformException& ex)
-        {
-            ROS_ERROR("LookatAction: %s", ex.what());
-            ros::Duration(0.1).sleep();
-        }
-    } while (!transformed && ros::ok() && !lookat_as_->isPreemptRequested());
+        transform_in_msg = tf_buffer_->lookupTransform(chain_base_link_, goal->target_frame, ros::Time(0));
+    }
+    catch (tf2::TransformException& ex)
+    {
+        success = false;
+        message = "Failed to lookupTransform target_frame: " + std::string(ex.what());
+        ROS_ERROR_STREAM(lookat_name_ << ": " << message);
+        lookat_res_.success = success;
+        lookat_res_.message = message;
+        lookat_as_->setAborted(lookat_res_);
+        return;
+    }
 
     if (lookat_as_->isPreemptRequested() )
     {
@@ -212,14 +213,10 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
         lookat_as_->setPreempted(lookat_res_);
         return;
     }
-
-    //ToDo: check age of transformation
-    ros::Time now = ros::Time::now();
-    ROS_DEBUG_STREAM("NOW: " << now << ", STAMP: " << transform_in.stamp_ << ", DIFF: " << (now - transform_in.stamp_).toSec());
-
+    //ToDo: check age of transformation - fail when too old
     //ToDo: "upright"-constraint
 
-    tf::transformTFToKDL(transform_in, p_in);
+    tf::transformMsgToKDL(transform_in_msg.transform, p_in);
     KDL::JntArray q_init(chain_full.getNrOfJoints());
     KDL::JntArray q_out(chain_full.getNrOfJoints());
 

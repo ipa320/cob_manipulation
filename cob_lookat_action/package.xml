@@ -22,7 +22,6 @@
   <depend>actionlib_msgs</depend>
   <depend>actionlib</depend>
   <depend>angles</depend>
-  <depend>boost</depend>
   <depend>control_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>kdl_conversions</depend>
@@ -30,6 +29,7 @@
   <depend>orocos_kdl</depend>
   <depend>roscpp</depend>
   <depend>tf</depend>
+  <depend>tf2_ros</depend>
   <depend>tf_conversions</depend>
   <depend>trajectory_msgs</depend>
 
