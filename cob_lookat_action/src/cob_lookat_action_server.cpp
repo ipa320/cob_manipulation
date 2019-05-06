@@ -114,7 +114,7 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     ROS_WARN_STREAM("offset.rot: " << roll << ", " << pitch << ", " << yaw);
 
     /// compose lookat_lin joint
-    KDL::Chain chain_base, chain_lookat, chain_full;
+    KDL::Chain chain_lookat, chain_full;
     KDL::Joint::JointType lookat_lin_joint_type = KDL::Joint::None;
     double mod_neg_factor = 1.0;
     switch (goal->pointing_axis_type)
@@ -168,21 +168,8 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     KDL::Segment lookat_focus_frame("lookat_focus_frame", lookat_rotz_joint);
     chain_lookat.addSegment(lookat_focus_frame);
 
-    //chain_base
-    KDL::Joint base_rotz_joint("base_rotz_joint", KDL::Joint::RotZ);
-    KDL::Segment base_rotz_link("base_rotz_link", base_rotz_joint, KDL::Frame());
-    chain_base.addSegment(base_rotz_link);
-
     //chain composition
-    if ( goal->base_active )
-    {
-        chain_full = chain_base;
-        chain_full.addChain(chain_main_);
-    }
-    else
-    {
-        chain_full = chain_main_;
-    }
+    chain_full = chain_main_;
     chain_full.addChain(chain_lookat);
 
     /// set up solver
@@ -293,12 +280,9 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     /// check FK based on main + offset
     KDL::Frame p_out_main;
     KDL::JntArray q_out_main(chain_main_.getNrOfJoints());
-    unsigned int k;
-    if ( goal->base_active ) { k=1; }
-    else { k=0; }
     for(unsigned int i = 0; i < chain_main_.getNrOfJoints(); i++)
     {
-        q_out_main(i)=angles::normalize_angle(q_out(i+k));
+        q_out_main(i)=angles::normalize_angle(q_out(i));
     }
     int result_fk_main = fk_solver_pos_main_->JntToCart(q_out_main, p_out_main);
     KDL::Frame p_out_main_offset = p_out_main*offset;
@@ -395,11 +379,6 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
         return;
     }
 
-    if ( goal->base_active )
-    {
-        ROS_ERROR_STREAM(lookat_name_ << ": MOVE_BASE_REL: " << angles::normalize_angle(q_out(0)));
-    }
-
     /// execute solution as FJT
     control_msgs::FollowJointTrajectoryGoal fjt_goal;
     fjt_goal.trajectory.header.stamp = ros::Time::now();
@@ -408,7 +387,7 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     trajectory_msgs::JointTrajectoryPoint traj_point;
     for(unsigned int i = 0; i < chain_main_.getNrOfJoints(); i++)
     {
-        traj_point.positions.push_back(angles::normalize_angle(q_out(i+k)));
+        traj_point.positions.push_back(angles::normalize_angle(q_out(i)));
     }
     //ToDo: better time_from_start
     traj_point.time_from_start = ros::Duration(3.0);
