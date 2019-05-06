@@ -110,8 +110,8 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     //tf::transformMsgToKDL(goal->pointing_offset, offset);
 
     offset.M.GetRPY(roll, pitch, yaw);
-    ROS_WARN_STREAM("offset.p: " << offset.p.x() << ", " << offset.p.y() << ", " << offset.p.z());
-    ROS_WARN_STREAM("offset.rot: " << roll << ", " << pitch << ", " << yaw);
+    ROS_DEBUG_STREAM("offset.p: " << offset.p.x() << ", " << offset.p.y() << ", " << offset.p.z());
+    ROS_DEBUG_STREAM("offset.rot: " << roll << ", " << pitch << ", " << yaw);
 
     /// compose lookat_lin joint
     KDL::Chain chain_lookat, chain_full;
@@ -215,7 +215,7 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
 
     //ToDo: check age of transformation
     ros::Time now = ros::Time::now();
-    ROS_INFO_STREAM("NOW: " << now << ", STAMP: " << transform_in.stamp_ << ", DIFF: " << (now - transform_in.stamp_).toSec());
+    ROS_DEBUG_STREAM("NOW: " << now << ", STAMP: " << transform_in.stamp_ << ", DIFF: " << (now - transform_in.stamp_).toSec());
 
     //ToDo: "upright"-constraint
 
@@ -224,20 +224,20 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     KDL::JntArray q_out(chain_full.getNrOfJoints());
 
     p_in.M.GetRPY(roll, pitch, yaw);
-    ROS_WARN_STREAM("p_in.p: " << p_in.p.x() << ", " << p_in.p.y() << ", " << p_in.p.z());
-    ROS_WARN_STREAM("p_in.rot: " << roll << ", " << pitch << ", " << yaw);
+    ROS_DEBUG_STREAM("p_in.p: " << p_in.p.x() << ", " << p_in.p.y() << ", " << p_in.p.z());
+    ROS_DEBUG_STREAM("p_in.rot: " << roll << ", " << pitch << ", " << yaw);
 
     int result_ik = ik_solver_pos_->CartToJnt(q_init, p_in, q_out);
 
-    ROS_WARN_STREAM("IK-Error: "<< ik_solver_pos_->getError() << " - " << ik_solver_pos_->strError(ik_solver_pos_->getError()));
-    ROS_WARN_STREAM("q_init: " << q_init.data);
-    ROS_WARN_STREAM("q_out: " << q_out.data);
+    ROS_DEBUG_STREAM("IK-Error: "<< ik_solver_pos_->getError() << " - " << ik_solver_pos_->strError(ik_solver_pos_->getError()));
+    ROS_DEBUG_STREAM("q_init: " << q_init.data);
+    ROS_DEBUG_STREAM("q_out: " << q_out.data);
 
     /// solution valid?
     if (ik_solver_pos_->getError() != KDL::SolverI::E_NOERROR)
     {
         success = false;
-        message = "Failed to find IK solution";
+        message = "Failed to find IK solution: " + std::string(ik_solver_pos_->strError(ik_solver_pos_->getError()));
         ROS_ERROR_STREAM(lookat_name_ << ": " << message);
         lookat_res_.success = success;
         lookat_res_.message = message;
@@ -251,16 +251,16 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     KDL::Frame p_out;
     int result_fk = fk_solver_pos_->JntToCart(q_out, p_out);
 
-    ROS_WARN_STREAM("FK-Error: "<< fk_solver_pos_->getError() << " - " << fk_solver_pos_->strError(fk_solver_pos_->getError()));
+    ROS_DEBUG_STREAM("FK-Error: "<< fk_solver_pos_->getError() << " - " << fk_solver_pos_->strError(fk_solver_pos_->getError()));
     p_out.M.GetRPY(roll, pitch, yaw);
-    ROS_WARN_STREAM("p_out.p: " << p_out.p.x() << ", " << p_out.p.y() << ", " << p_out.p.z());
-    ROS_WARN_STREAM("p_out.rot: " << roll << ", " << pitch << ", " << yaw);
+    ROS_DEBUG_STREAM("p_out.p: " << p_out.p.x() << ", " << p_out.p.y() << ", " << p_out.p.z());
+    ROS_DEBUG_STREAM("p_out.rot: " << roll << ", " << pitch << ", " << yaw);
 
     /// solution valid?
     if (fk_solver_pos_->getError() != KDL::SolverI::E_NOERROR)
     {
         success = false;
-        message = "Failed to find FK solution";
+        message = "Failed to find FK solution: " + std::string(fk_solver_pos_->strError(fk_solver_pos_->getError()));
         ROS_ERROR_STREAM(lookat_name_ << ": " << message);
         lookat_res_.success = success;
         lookat_res_.message = message;
@@ -269,12 +269,12 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     }
 
     KDL::Vector v_diff = KDL::diff(p_in.p, p_out.p);
-    ROS_WARN_STREAM("p_diff: " << v_diff.x() << ", " << v_diff.y() << ", " << v_diff.z());
-    ROS_WARN_STREAM("NORM v_diff: " << v_diff.Norm());
+    ROS_DEBUG_STREAM("p_diff: " << v_diff.x() << ", " << v_diff.y() << ", " << v_diff.z());
+    ROS_DEBUG_STREAM("NORM v_diff: " << v_diff.Norm());
 
     if (!KDL::Equal(p_in, p_out, 1.0) )
     {
-        ROS_WARN_STREAM("P_IN !Equal P_OUT");
+        ROS_DEBUG_STREAM("P_IN !Equal P_OUT");
     }
 
     /// check FK based on main + offset
@@ -288,27 +288,27 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     KDL::Frame p_out_main_offset = p_out_main*offset;
     KDL::Frame tip2target = p_out_main_offset.Inverse()*p_in;
 
-    ROS_WARN_STREAM("FK-Error MAIN: "<< fk_solver_pos_main_->getError() << " - " << fk_solver_pos_main_->strError(fk_solver_pos_main_->getError()));
+    ROS_DEBUG_STREAM("FK-Error MAIN: "<< fk_solver_pos_main_->getError() << " - " << fk_solver_pos_main_->strError(fk_solver_pos_main_->getError()));
 
-    ROS_WARN_STREAM("q_out_main: " << q_out_main.data);
+    ROS_DEBUG_STREAM("q_out_main: " << q_out_main.data);
     p_out_main.M.GetRPY(roll, pitch, yaw);
-    ROS_WARN_STREAM("p_out_main.p: " << p_out_main.p.x() << ", " << p_out_main.p.y() << ", " << p_out_main.p.z());
-    ROS_WARN_STREAM("p_out_main.rot: " << roll << ", " << pitch << ", " << yaw);
+    ROS_DEBUG_STREAM("p_out_main.p: " << p_out_main.p.x() << ", " << p_out_main.p.y() << ", " << p_out_main.p.z());
+    ROS_DEBUG_STREAM("p_out_main.rot: " << roll << ", " << pitch << ", " << yaw);
     offset.M.GetRPY(roll, pitch, yaw);
-    ROS_WARN_STREAM("offset.p: " << offset.p.x() << ", " << offset.p.y() << ", " << offset.p.z());
-    ROS_WARN_STREAM("offset.rot: " << roll << ", " << pitch << ", " << yaw);
+    ROS_DEBUG_STREAM("offset.p: " << offset.p.x() << ", " << offset.p.y() << ", " << offset.p.z());
+    ROS_DEBUG_STREAM("offset.rot: " << roll << ", " << pitch << ", " << yaw);
     p_out_main_offset.M.GetRPY(roll, pitch, yaw);
-    ROS_WARN_STREAM("p_out_main_offset.p: " << p_out_main_offset.p.x() << ", " << p_out_main_offset.p.y() << ", " << p_out_main_offset.p.z());
-    ROS_WARN_STREAM("p_out_main_offset.rot: " << roll << ", " << pitch << ", " << yaw);
+    ROS_DEBUG_STREAM("p_out_main_offset.p: " << p_out_main_offset.p.x() << ", " << p_out_main_offset.p.y() << ", " << p_out_main_offset.p.z());
+    ROS_DEBUG_STREAM("p_out_main_offset.rot: " << roll << ", " << pitch << ", " << yaw);
     tip2target.M.GetRPY(roll, pitch, yaw);
-    ROS_WARN_STREAM("tip2target.p: " << tip2target.p.x() << ", " << tip2target.p.y() << ", " << tip2target.p.z());
-    ROS_WARN_STREAM("tip2target.rot: " << roll << ", " << pitch << ", " << yaw);
+    ROS_DEBUG_STREAM("tip2target.p: " << tip2target.p.x() << ", " << tip2target.p.y() << ", " << tip2target.p.z());
+    ROS_DEBUG_STREAM("tip2target.rot: " << roll << ", " << pitch << ", " << yaw);
 
     /// solution valid?
     if (fk_solver_pos_main_->getError() != KDL::SolverI::E_NOERROR)
     {
         success = false;
-        message = "Failed to find FK solution MAIN";
+        message = "Failed to find FK solution MAIN: " + std::string(fk_solver_pos_main_->strError(fk_solver_pos_main_->getError()));
         ROS_ERROR_STREAM(lookat_name_ << ": " << message);
         lookat_res_.success = success;
         lookat_res_.message = message;
@@ -353,7 +353,7 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     }
 
     /// check lin_axis value positive
-    ROS_WARN_STREAM("q_lookat_lin: " << q_lookat_lin);
+    ROS_DEBUG_STREAM("q_lookat_lin: " << q_lookat_lin);
     if ( mod_neg_factor*q_lookat_lin < 0.0 )
     {
         success = false;
@@ -366,8 +366,8 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     }
 
     /// check lookat offset from lin_axis
-    ROS_WARN_STREAM("tip2target_test: " << tip2target_test.p.x() << ", " << tip2target_test.p.y() << ", " << tip2target_test.p.z());
-    ROS_WARN_STREAM("tip2target_test.p.Norm: " << tip2target_test.p.Norm());
+    ROS_DEBUG_STREAM("tip2target_test: " << tip2target_test.p.x() << ", " << tip2target_test.p.y() << ", " << tip2target_test.p.z());
+    ROS_DEBUG_STREAM("tip2target_test.p.Norm: " << tip2target_test.p.Norm());
     if ( tip2target_test.p.Norm() > 0.1 )
     {
         success = false;
@@ -410,7 +410,7 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     }
     fjt_goal.goal_time_tolerance = ros::Duration(1.0);
 
-    ROS_WARN_STREAM("FJT-Goal: " << fjt_goal);
+    ROS_DEBUG_STREAM("FJT-Goal: " << fjt_goal);
 
     fjt_ac_->sendGoal(fjt_goal);
 
