@@ -29,6 +29,7 @@
 #include <control_msgs/FollowJointTrajectoryAction.h>
 #include <trajectory_msgs/JointTrajectory.h>
 #include <trajectory_msgs/JointTrajectoryPoint.h>
+#include <move_base_msgs/MoveBaseAction.h>
 
 #include <tf2_ros/transform_listener.h>
 #include <tf/transform_datatypes.h>
@@ -48,8 +49,10 @@ protected:
     ros::NodeHandle nh_;
 
     actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction> *fjt_ac_;
+    actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> *mbl_ac_;
     actionlib::SimpleActionServer<cob_lookat_action::LookAtAction> *lookat_as_;
     std::string fjt_name_;
+    std::string mbl_name_;
     std::string lookat_name_;
     cob_lookat_action::LookAtFeedback lookat_fb_;
     cob_lookat_action::LookAtResult lookat_res_;
@@ -71,6 +74,7 @@ public:
 
     CobLookAtAction(std::string action_name) :
         fjt_name_("joint_trajectory_controller/follow_joint_trajectory"),
+        mbl_name_("/docker_control/move_base_linear"),
         lookat_name_(action_name)
         {}
 

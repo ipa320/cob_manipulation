@@ -64,6 +64,7 @@ bool CobLookAtAction::init()
     tf_listener_.reset(new tf2_ros::TransformListener(*tf_buffer_));
 
     fjt_ac_ = new actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction>(nh_, fjt_name_, true);
+    mbl_ac_ = new actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction>(nh_, mbl_name_, true);
 
     lookat_as_ = new actionlib::SimpleActionServer<cob_lookat_action::LookAtAction>(nh_, lookat_name_, boost::bind(&CobLookAtAction::goalCB, this, _1), false);
     lookat_as_->start();
@@ -96,7 +97,7 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
         return;
     }
 
-    if (lookat_as_->isPreemptRequested() )
+    if (lookat_as_->isPreemptRequested())
     {
         success = false;
         message = "Preempted after lookup 'pointing_frame'";
@@ -117,7 +118,7 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     ROS_DEBUG_STREAM("offset.rot: " << roll << ", " << pitch << ", " << yaw);
 
     /// compose lookat_lin joint
-    KDL::Chain chain_lookat, chain_full;
+    KDL::Chain chain_base, chain_lookat, chain_full;
     KDL::Joint::JointType lookat_lin_joint_type = KDL::Joint::None;
     double mod_neg_factor = 1.0;
     switch (goal->pointing_axis_type)
@@ -149,12 +150,12 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
             break;
     }
 
-    //fixed pointing offset
+    /// fixed pointing offset
     KDL::Joint offset_joint("offset_joint", KDL::Joint::None);
     KDL::Segment offset_link("offset_link", offset_joint, offset);
     chain_lookat.addSegment(offset_link);
 
-    //chain_lookat
+    /// chain_lookat
     KDL::Joint lookat_lin_joint("lookat_lin_joint", lookat_lin_joint_type);
     KDL::Segment lookat_rotx_link("lookat_rotx_link", lookat_lin_joint);
     chain_lookat.addSegment(lookat_rotx_link);
@@ -171,8 +172,21 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     KDL::Segment lookat_focus_frame("lookat_focus_frame", lookat_rotz_joint);
     chain_lookat.addSegment(lookat_focus_frame);
 
-    //chain composition
-    chain_full = chain_main_;
+    /// chain_base
+    KDL::Joint base_rotz_joint("base_rotz_joint", KDL::Joint::RotZ);
+    KDL::Segment base_rotz_link("base_rotz_link", base_rotz_joint, KDL::Frame());
+    chain_base.addSegment(base_rotz_link);
+
+    /// chain composition
+    if (goal->base_active)
+    {
+        chain_full = chain_base;
+        chain_full.addChain(chain_main_);
+    }
+    else
+    {
+        chain_full = chain_main_;
+    }
     chain_full.addChain(chain_lookat);
 
     /// set up solver
@@ -204,7 +218,7 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
         return;
     }
 
-    if (lookat_as_->isPreemptRequested() )
+    if (lookat_as_->isPreemptRequested())
     {
         success = false;
         message = "Preempted after lookup 'target_frame'";
@@ -214,7 +228,7 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
         lookat_as_->setPreempted(lookat_res_);
         return;
     }
-    //ToDo: check age of transformation - fail when too old
+
     //ToDo: "upright"-constraint
 
     tf::transformMsgToKDL(transform_in_msg.transform, p_in);
@@ -270,23 +284,47 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     ROS_DEBUG_STREAM("p_diff: " << v_diff.x() << ", " << v_diff.y() << ", " << v_diff.z());
     ROS_DEBUG_STREAM("NORM v_diff: " << v_diff.Norm());
 
-    if (!KDL::Equal(p_in, p_out, 1.0) )
+    if (!KDL::Equal(p_in, p_out, 1.0))
     {
         ROS_DEBUG_STREAM("P_IN !Equal P_OUT");
     }
 
-    /// check FK based on main + offset
+    /// index correction
+    unsigned int k = (goal->base_active) ? 1 : 0;
+
+    /// check FK based on (base +) main + offset
     KDL::Frame p_out_main;
     KDL::JntArray q_out_main(chain_main_.getNrOfJoints());
     for(unsigned int i = 0; i < chain_main_.getNrOfJoints(); i++)
     {
-        q_out_main(i)=angles::normalize_angle(q_out(i));
+        q_out_main(i)=angles::normalize_angle(q_out(i+k));
     }
     int result_fk_main = fk_solver_pos_main_->JntToCart(q_out_main, p_out_main);
-    KDL::Frame p_out_main_offset = p_out_main*offset;
-    KDL::Frame tip2target = p_out_main_offset.Inverse()*p_in;
-
     ROS_DEBUG_STREAM("FK-Error MAIN: "<< fk_solver_pos_main_->getError() << " - " << fk_solver_pos_main_->strError(fk_solver_pos_main_->getError()));
+
+    /// solution valid?
+    if (fk_solver_pos_main_->getError() != KDL::SolverI::E_NOERROR)
+    {
+        success = false;
+        message = "Failed to find FK solution MAIN: " + std::string(fk_solver_pos_main_->strError(fk_solver_pos_main_->getError()));
+        ROS_ERROR_STREAM(lookat_name_ << ": " << message);
+        lookat_res_.success = success;
+        lookat_res_.message = message;
+        lookat_as_->setAborted(lookat_res_);
+        return;
+    }
+
+
+    KDL::Frame p_out_main_offset;
+    if (goal->base_active)
+    {
+        p_out_main_offset = KDL::Frame(KDL::Rotation::RPY(0.0, 0.0, angles::normalize_angle(q_out(0))))*p_out_main*offset;
+    }
+    else
+    {
+        p_out_main_offset = p_out_main*offset;
+    }
+    KDL::Frame tip2target = p_out_main_offset.Inverse()*p_in;
 
     ROS_DEBUG_STREAM("q_out_main: " << q_out_main.data);
     p_out_main.M.GetRPY(roll, pitch, yaw);
@@ -301,18 +339,6 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     tip2target.M.GetRPY(roll, pitch, yaw);
     ROS_DEBUG_STREAM("tip2target.p: " << tip2target.p.x() << ", " << tip2target.p.y() << ", " << tip2target.p.z());
     ROS_DEBUG_STREAM("tip2target.rot: " << roll << ", " << pitch << ", " << yaw);
-
-    /// solution valid?
-    if (fk_solver_pos_main_->getError() != KDL::SolverI::E_NOERROR)
-    {
-        success = false;
-        message = "Failed to find FK solution MAIN: " + std::string(fk_solver_pos_main_->strError(fk_solver_pos_main_->getError()));
-        ROS_ERROR_STREAM(lookat_name_ << ": " << message);
-        lookat_res_.success = success;
-        lookat_res_.message = message;
-        lookat_as_->setAborted(lookat_res_);
-        return;
-    }
 
     //ToDo: check lookat conformity
     KDL::Frame tip2target_test(tip2target);
@@ -352,7 +378,7 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
 
     /// check lin_axis value positive
     ROS_DEBUG_STREAM("q_lookat_lin: " << q_lookat_lin);
-    if ( mod_neg_factor*q_lookat_lin < 0.0 )
+    if (mod_neg_factor*q_lookat_lin < 0.0)
     {
         success = false;
         message = "q_lookat_lin is negative";
@@ -366,7 +392,7 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     /// check lookat offset from lin_axis
     ROS_DEBUG_STREAM("tip2target_test: " << tip2target_test.p.x() << ", " << tip2target_test.p.y() << ", " << tip2target_test.p.z());
     ROS_DEBUG_STREAM("tip2target_test.p.Norm: " << tip2target_test.p.Norm());
-    if ( tip2target_test.p.Norm() > 0.1 )
+    if (tip2target_test.p.Norm() > 0.1)
     {
         success = false;
         message = "Tip2Target is not lookat-conform";
@@ -383,9 +409,9 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     fjt_goal.trajectory.header.frame_id = chain_base_link_;
     fjt_goal.trajectory.joint_names = joint_names_;
     trajectory_msgs::JointTrajectoryPoint traj_point;
-    for(unsigned int i = 0; i < chain_main_.getNrOfJoints(); i++)
+    for (unsigned int i = 0; i < chain_main_.getNrOfJoints(); i++)
     {
-        traj_point.positions.push_back(angles::normalize_angle(q_out(i)));
+        traj_point.positions.push_back(angles::normalize_angle(q_out(i+k)));
     }
 
     /// compute time_from_start
@@ -427,7 +453,7 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     // *  0 - The tolerance is unspecified and will remain at whatever the default is
     // * -1 - The tolerance is "erased".
     //        If there was a default, the joint will be allowed to move without restriction.
-    for(unsigned int i = 0; i < chain_main_.getNrOfJoints(); i++)
+    for (unsigned int i = 0; i < chain_main_.getNrOfJoints(); i++)
     {
         control_msgs::JointTolerance joint_tolerance;
         joint_tolerance.name = joint_names_[i];
@@ -438,8 +464,60 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
         fjt_goal.goal_tolerance.push_back(joint_tolerance);
     }
     fjt_goal.goal_time_tolerance = ros::Duration(1.0);
-
     ROS_DEBUG_STREAM("FJT-Goal: " << fjt_goal);
+
+    /// compose MBL goal
+    move_base_msgs::MoveBaseGoal mbl_goal;
+    if (goal->base_active)
+    {
+        ROS_DEBUG_STREAM(lookat_name_ << ": MOVE_BASE_REL: " << angles::normalize_angle(q_out(0)));
+
+        KDL::Frame base_target;
+        geometry_msgs::TransformStamped base_transform_msg;
+        try
+        {
+            base_transform_msg = tf_buffer_->lookupTransform("odom_combined", "base_link", ros::Time(0));
+        }
+        catch (tf2::TransformException& ex)
+        {
+            success = false;
+            message = "Failed to lookupTransform base_link: " + std::string(ex.what());
+            ROS_ERROR_STREAM(lookat_name_ << ": " << message);
+            lookat_res_.success = success;
+            lookat_res_.message = message;
+            lookat_as_->setAborted(lookat_res_);
+            return;
+        }
+
+        if (lookat_as_->isPreemptRequested())
+        {
+            success = false;
+            message = "Preempted after lookup 'base_link'";
+            ROS_WARN_STREAM(lookat_name_ << ": " << message);
+            lookat_res_.success = success;
+            lookat_res_.message = message;
+            lookat_as_->setPreempted(lookat_res_);
+            return;
+        }
+
+        tf::transformMsgToKDL(base_transform_msg.transform, base_target);
+        base_target = base_target*KDL::Frame(KDL::Rotation::RPY(0.0, 0.0, angles::normalize_angle(q_out(0))));
+
+        base_target.M.GetRPY(roll, pitch, yaw);
+        ROS_DEBUG_STREAM("base_target.p: " << base_target.p.x() << ", " << base_target.p.y() << ", " << base_target.p.z());
+        ROS_DEBUG_STREAM("base_target.rot: " << roll << ", " << pitch << ", " << yaw);
+
+        mbl_goal.target_pose.header.frame_id = "odom_combined";
+        mbl_goal.target_pose.header.stamp = ros::Time(0);
+        mbl_goal.target_pose.pose.position.x = base_target.p.x();
+        mbl_goal.target_pose.pose.position.y = base_target.p.y();
+        mbl_goal.target_pose.pose.position.z = base_target.p.z();
+        base_target.M.GetQuaternion(mbl_goal.target_pose.pose.orientation.x,
+                                    mbl_goal.target_pose.pose.orientation.y,
+                                    mbl_goal.target_pose.pose.orientation.z,
+                                    mbl_goal.target_pose.pose.orientation.w);
+        ROS_DEBUG_STREAM("MBL-Goal: " << mbl_goal);
+    }
 
     if (!fjt_ac_->isServerConnected())
     {
@@ -451,24 +529,59 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
         lookat_as_->setAborted(lookat_res_);
         return;
     }
-
-    /// execute FJT goal
-    fjt_ac_->sendGoal(fjt_goal);
-
-    while ( !lookat_as_->isPreemptRequested() )
+    if (goal->base_active && !mbl_ac_->isServerConnected())
     {
-        bool finished_before_timeout = fjt_ac_->waitForResult(ros::Duration(0.1));
+        success = false;
+        message = "MBL server not connected";
+        ROS_ERROR_STREAM(lookat_name_ << ": " << message);
+        lookat_res_.success = success;
+        lookat_res_.message = message;
+        lookat_as_->setAborted(lookat_res_);
+        return;
+    }
 
-        actionlib::SimpleClientGoalState fjt_state = fjt_ac_->getState();
-        message = "FJT State: " + fjt_state.toString();
-        ROS_DEBUG_STREAM(lookat_name_ << ": " << message);
+    /// execute FJT (and MBL) goal
+    fjt_ac_->sendGoal(fjt_goal);
+    if (goal->base_active) mbl_ac_->sendGoal(mbl_goal);
 
-        /// fjt action successful?
-        if (finished_before_timeout)
+    /// wait for FJT (and MBL) to finish
+    bool fjt_finished = false;
+    actionlib::SimpleClientGoalState fjt_state(actionlib::SimpleClientGoalState::LOST);
+    bool mbl_finished = false;
+    actionlib::SimpleClientGoalState mbl_state(actionlib::SimpleClientGoalState::LOST);
+    while (!lookat_as_->isPreemptRequested())
+    {
+        if (!fjt_finished)
         {
-            message = "FJT finished - State: " + fjt_state.toString() + ", ErrorCode: " + std::to_string(fjt_ac_->getResult()->error_code);
+            fjt_finished = fjt_ac_->waitForResult(ros::Duration(0.1));
+            fjt_state = fjt_ac_->getState();
+            message = "FJT State: " + fjt_state.toString();
+            ROS_DEBUG_STREAM(lookat_name_ << ": " << message);
+        }
 
-            if(fjt_state == actionlib::SimpleClientGoalState::SUCCEEDED)
+        if (!mbl_finished && goal->base_active)
+        {
+            mbl_finished = mbl_ac_->waitForResult(ros::Duration(0.1));
+            mbl_state = mbl_ac_->getState();
+            message = "MBJ State: " + mbl_state.toString();
+            ROS_DEBUG_STREAM(lookat_name_ << ": " << message);
+        }
+
+        /// actions successful?
+        if (fjt_finished &&
+           ((mbl_finished && goal->base_active) || !goal->base_active))
+        {
+            if (goal->base_active)
+            {
+                message = "Action finished:\n\tFJT-State: " + fjt_state.toString() + ", FJT-ErrorCode: " + std::to_string(fjt_ac_->getResult()->error_code) + "\n\tMBL-State: " + mbl_state.toString();
+            }
+            else
+            {
+                message = "Action finished:\n\tFJT-State: " + fjt_state.toString() + ", FJT-ErrorCode: " + std::to_string(fjt_ac_->getResult()->error_code);
+            }
+
+            if (fjt_state == actionlib::SimpleClientGoalState::SUCCEEDED &&
+               ((mbl_state == actionlib::SimpleClientGoalState::SUCCEEDED && goal->base_active) || !goal->base_active))
             {
                 success = true;
                 ROS_WARN_STREAM(lookat_name_ << ": " << message);
@@ -476,6 +589,9 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
             }
             else
             {
+                fjt_ac_->cancelGoal();
+                if (goal->base_active) mbl_ac_->cancelGoal();
+
                 success = false;
                 ROS_ERROR_STREAM(lookat_name_ << ": " << message);
                 lookat_res_.success = success;
@@ -488,9 +604,10 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     if (lookat_as_->isPreemptRequested() )
     {
         fjt_ac_->cancelGoal();
+        if (goal->base_active) mbl_ac_->cancelGoal();
         
         success = false;
-        message = "Preempted during FJT execution";
+        message = "Preempted during execution";
         ROS_ERROR_STREAM(lookat_name_ << ": " << message);
         lookat_res_.success = success;
         lookat_res_.message = message;
