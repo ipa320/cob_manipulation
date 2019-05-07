@@ -63,9 +63,7 @@ bool CobLookAtAction::init()
     tf_buffer_.reset(new tf2_ros::Buffer(buffer_duration_));
     tf_listener_.reset(new tf2_ros::TransformListener(*tf_buffer_));
 
-    ROS_WARN_STREAM("Waiting for ActionServer: " << fjt_name_);
     fjt_ac_ = new actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction>(nh_, fjt_name_, true);
-    fjt_ac_->waitForServer(ros::Duration(10.0));
 
     lookat_as_ = new actionlib::SimpleActionServer<cob_lookat_action::LookAtAction>(nh_, lookat_name_, boost::bind(&CobLookAtAction::goalCB, this, _1), false);
     lookat_as_->start();
@@ -379,7 +377,7 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
         return;
     }
 
-    /// execute solution as FJT
+    /// compose FJT goal
     control_msgs::FollowJointTrajectoryGoal fjt_goal;
     fjt_goal.trajectory.header.stamp = ros::Time::now();
     fjt_goal.trajectory.header.frame_id = chain_base_link_;
@@ -390,6 +388,7 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
         traj_point.positions.push_back(angles::normalize_angle(q_out(i)));
     }
 
+    /// compute time_from_start
     double t = 3.0;
     std::string component_name = nh_.getNamespace();
     component_name.erase(std::remove(component_name.begin(), component_name.end(), '/'), component_name.end());
@@ -442,6 +441,18 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
 
     ROS_DEBUG_STREAM("FJT-Goal: " << fjt_goal);
 
+    if (!fjt_ac_->isServerConnected())
+    {
+        success = false;
+        message = "FJT server not connected";
+        ROS_ERROR_STREAM(lookat_name_ << ": " << message);
+        lookat_res_.success = success;
+        lookat_res_.message = message;
+        lookat_as_->setAborted(lookat_res_);
+        return;
+    }
+
+    /// execute FJT goal
     fjt_ac_->sendGoal(fjt_goal);
 
     while ( !lookat_as_->isPreemptRequested() )
