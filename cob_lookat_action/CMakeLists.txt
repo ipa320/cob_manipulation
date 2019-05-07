@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   kdl_parser
   message_generation
   roscpp
+  sensor_msgs
   tf
   tf2_ros
   tf_conversions

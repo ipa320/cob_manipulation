@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-#include <string> 
+
+
+#include <string>
+#include <algorithm>
 #include <ros/ros.h>
 #include <angles/angles.h>
 #include <cob_lookat_action/cob_lookat_action_server.h>
+#include <sensor_msgs/JointState.h>
 
 
 bool CobLookAtAction::init()
@@ -386,8 +389,38 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     {
         traj_point.positions.push_back(angles::normalize_angle(q_out(i)));
     }
-    //ToDo: better time_from_start
-    traj_point.time_from_start = ros::Duration(3.0);
+
+    double t = 3.0;
+    std::string component_name = nh_.getNamespace();
+    component_name.erase(std::remove(component_name.begin(), component_name.end(), '/'), component_name.end());
+    float default_vel, default_acc;
+    nh_.param<float>("/script_server/"+component_name+"/default_vel", default_vel, 0.1);
+    nh_.param<float>("/script_server/"+component_name+"/default_acc", default_acc, 1.0);
+
+    sensor_msgs::JointStateConstPtr js = ros::topic::waitForMessage<sensor_msgs::JointState>("/"+component_name+"/joint_states", ros::Duration(1.0));
+    if (js != NULL)
+    {
+        std::vector<double> d_pos;
+        for (unsigned int i=0; i<std::min(js->position.size(), traj_point.positions.size()); i++)
+        {
+            d_pos.push_back(std::fabs(js->position[i]-traj_point.positions[i]));
+        }
+        double d_max = *std::max_element(d_pos.begin(), d_pos.end());
+        double t1 = default_vel / default_acc;
+        double s1 = default_acc / 2*std::pow(t1,2);
+        if (2*s1 < d_max)
+        {
+            double s2 = d_max - 2*s1;
+            double t2 = s2 / default_vel;
+            t = 2*t1 + t2;
+        }
+        else
+        {
+            t = std::sqrt(d_max / default_acc);
+        }
+    }
+    double time_from_start = std::max(t,0.4);
+    traj_point.time_from_start = ros::Duration(time_from_start);
     fjt_goal.trajectory.points.push_back(traj_point);
 
     /// disable FJT constraints
