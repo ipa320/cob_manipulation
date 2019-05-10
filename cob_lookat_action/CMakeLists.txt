@@ -1,16 +1,22 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_lookat_action)
 
+add_compile_options(-std=c++11)
+
 find_package(catkin REQUIRED COMPONENTS
   actionlib_msgs
   actionlib
+  angles
   control_msgs
   geometry_msgs 
   kdl_conversions
   kdl_parser
   message_generation
+  move_base_msgs
   roscpp
+  sensor_msgs
   tf
+  tf2_ros
   tf_conversions
   trajectory_msgs
 )
@@ -56,3 +62,8 @@ install(DIRECTORY include/${PROJECT_NAME}/
 install(PROGRAMS scripts/cob_lookat_action_client.py scripts/cob_lookat_target_publisher.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+
+install(DIRECTORY launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
+
