@@ -2,6 +2,9 @@
 Changelog for package cob_moveit_bringup
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.7.1 (2018-01-07)
 ------------------
 * Merge pull request `#134 <https://github.com/ipa320/cob_manipulation/issues/134>`_ from ipa320/kinetic_release_candidate

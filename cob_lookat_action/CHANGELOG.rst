@@ -2,6 +2,28 @@
 Changelog for package cob_lookat_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#137 <https://github.com/ipa320/cob_manipulation/issues/137>`_ from fmessmer/improve_lookat
+  improve cob_lookat_action
+* implement base_active using docker_control/move_base_linear
+* check fjt server connected
+* improve time_from_start computation
+* fail when target_frame is too old
+* less debug output
+* revert execute flag
+* revert base_active
+* fix negative axes
+* use IkSolverPos_LMA
+* fix lookat_chain pointing offset, simplify lookat joints, normalize angles, add fjt path tolerances, fix fjt preemption
+* Revert "use JL solver"
+  This reverts commit 1f71da01ee09ea134d6c2b587f02f34bd0b24f18.
+* use JL solver
+* experimental: base_active
+* add launch file
+* improve preemption, improve timing lookupTransform, improve validity checks, wip debugging
+* Contributors: Felix Messmer, fmessmer
+
 0.7.1 (2018-01-07)
 ------------------
 * Merge pull request `#134 <https://github.com/ipa320/cob_manipulation/issues/134>`_ from ipa320/kinetic_release_candidate
