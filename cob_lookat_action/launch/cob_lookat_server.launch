@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+	<arg name="component_name"/>
+
+	<node ns="$(arg component_name)" name="lookat_server" pkg="cob_lookat_action" type="cob_lookat_action_server_node" respawn="false" output="screen"/>
+</launch>

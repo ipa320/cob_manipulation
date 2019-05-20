@@ -15,6 +15,8 @@ uint8 Z_NEGATIVE = 5
 
 uint8 pointing_axis_type
 
+bool base_active
+
 ---
 #result definition
 bool success

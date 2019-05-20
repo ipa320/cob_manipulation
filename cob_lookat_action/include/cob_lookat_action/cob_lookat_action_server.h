@@ -29,15 +29,17 @@
 #include <control_msgs/FollowJointTrajectoryAction.h>
 #include <trajectory_msgs/JointTrajectory.h>
 #include <trajectory_msgs/JointTrajectoryPoint.h>
+#include <move_base_msgs/MoveBaseAction.h>
 
-#include <tf/transform_listener.h>
+#include <tf2_ros/transform_listener.h>
 #include <tf/transform_datatypes.h>
 #include <tf_conversions/tf_kdl.h>
 #include <kdl_conversions/kdl_msg.h>
 #include <kdl_parser/kdl_parser.hpp>
+
 #include <kdl/chainfksolverpos_recursive.hpp>
-#include <kdl/chainiksolvervel_pinv.hpp>
-#include <kdl/chainiksolverpos_nr.hpp>
+#include <kdl/chainiksolverpos_lma.hpp>
+
 
 
 class CobLookAtAction
@@ -47,8 +49,10 @@ protected:
     ros::NodeHandle nh_;
 
     actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction> *fjt_ac_;
+    actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> *mbl_ac_;
     actionlib::SimpleActionServer<cob_lookat_action::LookAtAction> *lookat_as_;
     std::string fjt_name_;
+    std::string mbl_name_;
     std::string lookat_name_;
     cob_lookat_action::LookAtFeedback lookat_fb_;
     cob_lookat_action::LookAtResult lookat_res_;
@@ -58,16 +62,19 @@ protected:
     std::string chain_tip_link_;
 
     KDL::Chain chain_main_;
-    boost::shared_ptr<KDL::ChainFkSolverPos_recursive> fk_solver_pos_;
-    boost::shared_ptr<KDL::ChainIkSolverVel_pinv> ik_solver_vel_;
-    boost::shared_ptr<KDL::ChainIkSolverPos_NR> ik_solver_pos_;
+    std::shared_ptr<KDL::ChainFkSolverPos_recursive> fk_solver_pos_main_;
+    std::shared_ptr<KDL::ChainFkSolverPos_recursive> fk_solver_pos_;
+    std::shared_ptr<KDL::ChainIkSolverPos_LMA> ik_solver_pos_;
 
-    tf::TransformListener tf_listener_;
+    std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
+    std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+    ros::Duration buffer_duration_;
 
 public:
 
     CobLookAtAction(std::string action_name) :
         fjt_name_("joint_trajectory_controller/follow_joint_trajectory"),
+        mbl_name_("/docker_control/move_base_linear"),
         lookat_name_(action_name)
         {}
 
