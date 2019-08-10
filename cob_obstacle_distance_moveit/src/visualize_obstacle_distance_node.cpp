@@ -87,7 +87,9 @@ public:
             marker_distance.ns = "distances";
             marker_distance.id = 2*i+1;
             marker_distance.header.frame_id = info.header.frame_id;
-            marker_distance.text = boost::lexical_cast<std::string>(boost::format("%.3f") % info.distance);
+            std::stringstream sstream;
+            sstream << std::setprecision(3) << info.distance;
+            marker_distance.text = sstream.str();
 
             marker_distance.scale.x = 0.1;
             marker_distance.scale.y = 0.1;
