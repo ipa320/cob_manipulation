@@ -40,7 +40,7 @@ def setup_environment():
 
 	### Add table
 	pose = PoseStamped()
-	pose.header.frame_id = "/base_footprint"
+	pose.header.frame_id = "base_footprint"
 	pose.header.stamp = rospy.Time.now()
 	pose.pose.position.x = -0.9
 	pose.pose.position.y = 0

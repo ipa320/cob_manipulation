@@ -3,7 +3,7 @@ project(cob_pick_place_action)
 
 add_definitions(-std=c++11)
 
-find_package(catkin REQUIRED COMPONENTS actionlib_msgs actionlib cob_grasp_generation cob_moveit_interface geometric_shapes geometry_msgs message_generation moveit_msgs moveit_ros_move_group moveit_ros_planning_interface roscpp std_msgs tf)
+find_package(catkin REQUIRED COMPONENTS actionlib_msgs actionlib cob_grasp_generation cob_moveit_interface geometric_shapes geometry_msgs message_generation moveit_msgs moveit_ros_move_group moveit_ros_planning_interface roscpp std_msgs tf2_ros tf2_geometry_msgs)
 
 ### Message Generation ###
 add_action_files(
@@ -17,7 +17,7 @@ generate_messages(
 )
 
 catkin_package(
-  CATKIN_DEPENDS actionlib_msgs actionlib cob_grasp_generation cob_moveit_interface geometric_shapes geometry_msgs message_runtime moveit_msgs moveit_ros_move_group moveit_ros_planning_interface roscpp std_msgs tf
+  CATKIN_DEPENDS actionlib_msgs actionlib cob_grasp_generation cob_moveit_interface geometric_shapes geometry_msgs message_runtime moveit_msgs moveit_ros_move_group moveit_ros_planning_interface roscpp std_msgs tf2_ros tf2_geometry_msgs
   INCLUDE_DIRS ros/include common/include
 )
 

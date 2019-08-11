@@ -28,7 +28,7 @@ import simple_moveit_interface as smi_
 import cob_pick_place_action.msg  # pylint: disable=import-error
 
 ### Helper function
-def gen_pose(frame_id="/base_link", pos=[0,0,0], euler=[0,0,0]):
+def gen_pose(frame_id="base_link", pos=[0,0,0], euler=[0,0,0]):
 	pose = PoseStamped()
 	pose.header.frame_id = frame_id
 	pose.header.stamp = rospy.Time.now()
@@ -51,7 +51,7 @@ def setup_environment():
 
 	### Add table
 	pose = PoseStamped()
-	pose.header.frame_id = "/base_footprint"
+	pose.header.frame_id = "base_footprint"
 	pose.header.stamp = rospy.Time.now()
 	pose.pose.position.x = -0.9
 	pose.pose.position.y = 0
