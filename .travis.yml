@@ -1,6 +1,7 @@
-sudo: required
-dist: trusty
 language: generic
+services:
+  - docker
+
 notifications:
   email:
     on_success: change
@@ -19,4 +20,4 @@ install:
   - git clone https://github.com/ros-industrial/industrial_ci.git .ci_config
 script:
   - .ci_config/travis.sh
-#  - ./travis.sh  # Enable this when you have a package-local script 
+#  - ./travis.sh  # Enable this when you have a package-local script
