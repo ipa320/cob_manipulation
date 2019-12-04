@@ -2,6 +2,13 @@
 Changelog for package cob_obstacle_distance_moveit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.3 (2019-12-04)
+------------------
+* Merge pull request `#138 <https://github.com/ipa320/cob_manipulation/issues/138>`_ from fmessmer/melodic_checks
+  [Melodic] add melodic checks
+* dual-distro compatibility
+* Contributors: Felix Messmer, fmessmer
+
 0.7.2 (2019-05-20)
 ------------------
 

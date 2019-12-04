@@ -2,6 +2,9 @@
 Changelog for package cob_lookat_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.3 (2019-12-04)
+------------------
+
 0.7.2 (2019-05-20)
 ------------------
 * Merge pull request `#137 <https://github.com/ipa320/cob_manipulation/issues/137>`_ from fmessmer/improve_lookat

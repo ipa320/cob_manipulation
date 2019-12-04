@@ -13,7 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
+#include <ros/ros.h>
+
+#if ROS_VERSION_MINIMUM(1,14,0) // melodic
+#include <tf2_ros/transform_listener.h>
+#else
+#include <tf/transform_listener.h>
+#endif
 
 #include <cob_obstacle_distance_moveit/obstacle_distance_moveit.h>
 
@@ -370,8 +377,13 @@ ObstacleDistanceMoveit::ObstacleDistanceMoveit()
     acm_ = pss.getAllowedCollisionMatrix();
 
     //Initialize planning scene monitor
+#if ROS_VERSION_MINIMUM(1,14,0) // melodic
+    std::shared_ptr<tf2_ros::Buffer> tf(new tf2_ros::Buffer(ros::Duration(2.0)));
+    planning_scene_monitor::PlanningSceneMonitorPtr psm(new planning_scene_monitor::PlanningSceneMonitor(robot_description, tf, ""));
+#else
     boost::shared_ptr<tf::TransformListener> tf_listener_(new tf::TransformListener(ros::Duration(2.0)));
     planning_scene_monitor_ = std::make_shared<planning_scene_monitor::PlanningSceneMonitor>(robot_description, tf_listener_);
+#endif
 
     planning_scene_monitor_->setStateUpdateFrequency(update_frequency);
     planning_scene_monitor_->startSceneMonitor(planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_TOPIC);

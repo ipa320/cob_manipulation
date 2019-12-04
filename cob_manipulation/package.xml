@@ -1,6 +1,6 @@
 <package format="2">
   <name>cob_manipulation</name>
-  <version>0.7.2</version>
+  <version>0.7.3</version>
   <description>The cob_manipulation stack includes packages that provide manipulation capabilities for Care-O-bot.</description>
 
   <maintainer email="fxm@ipa.fhg.de">Felix Messmer</maintainer>
@@ -19,7 +19,7 @@
   <exec_depend>cob_moveit_bringup</exec_depend>
   <exec_depend>cob_moveit_interface</exec_depend>
   <exec_depend>cob_obstacle_distance_moveit</exec_depend>
-  <exec_depend>cob_pick_place_action</exec_depend>
+  <!--exec_depend>cob_pick_place_action</exec_depend-->
 
  <export>
   <metapackage/>
