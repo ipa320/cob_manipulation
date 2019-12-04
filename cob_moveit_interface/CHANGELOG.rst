@@ -2,6 +2,9 @@
 Changelog for package cob_moveit_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.7.2 (2019-05-20)
 ------------------
 
