@@ -27,6 +27,7 @@
     <depend>roscpp</depend>
     <depend>tf</depend>
     <depend>tf_conversions</depend>
+    <depend>tf2_ros</depend>
 
     <exec_depend>rospy</exec_depend>
 

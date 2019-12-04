@@ -14,6 +14,13 @@
  * limitations under the License.
  */
  
+#include <ros/ros.h>
+
+#if ROS_VERSION_MINIMUM(1,14,0) // melodic
+#include <tf2_ros/transform_listener.h>
+#else
+#include <tf/transform_listener.h>
+#endif
 
 #include "valid_state_publisher.h"
 
@@ -24,8 +31,13 @@ int main(int argc, char **argv)
 
     ros::NodeHandle nh("~");
 
+#if ROS_VERSION_MINIMUM(1,14,0) // melodic
+    std::shared_ptr<tf2_ros::Buffer> tf(new tf2_ros::Buffer(ros::Duration(nh.param("max_cache_time", 2.0))));
+    planning_scene_monitor::PlanningSceneMonitorPtr psm(new planning_scene_monitor::PlanningSceneMonitor("robot_description", tf, ""));
+#else
     boost::shared_ptr<tf::TransformListener> tf(new tf::TransformListener(ros::Duration(nh.param("max_cache_time", 2.0))));
     planning_scene_monitor::PlanningSceneMonitorPtr psm(new planning_scene_monitor::PlanningSceneMonitor("robot_description", tf));
+#endif
 
     double state_update_frequency;
     if(nh.getParam("state_update_frequency", state_update_frequency))
