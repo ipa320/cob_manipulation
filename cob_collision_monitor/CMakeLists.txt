@@ -10,30 +10,33 @@ find_package(catkin REQUIRED COMPONENTS
   pluginlib
   std_msgs
   tf
+  tf2_ros
 )
-catkin_package()
+catkin_package(
+  CATKIN_DEPENDS std_msgs
+)
 
 include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_library(cob_collision_monitor_capability
+add_library(${PROJECT_NAME}_capability
   src/collision_monitor_capability.cpp
 )
 
-add_executable(cob_collision_monitor_node src/collision_monitor_node.cpp)
+add_executable(${PROJECT_NAME}_node src/collision_monitor_node.cpp)
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(cob_collision_monitor_node
+target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
 )
-target_link_libraries(cob_collision_monitor_capability
+target_link_libraries(${PROJECT_NAME}_capability
   ${catkin_LIBRARIES}
 )
 
 
 ## Mark executables and/or libraries for installation
-install(TARGETS cob_collision_monitor_capability cob_collision_monitor_node
+install(TARGETS ${PROJECT_NAME}_capability ${PROJECT_NAME}_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
