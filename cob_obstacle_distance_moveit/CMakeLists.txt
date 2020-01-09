@@ -11,10 +11,12 @@ find_package(catkin REQUIRED
         geometric_shapes
         geometry_msgs
         moveit_core
+        moveit_msgs
         moveit_ros_perception
         moveit_ros_planning_interface
         roscpp
         tf
+        tf2_ros
         tf_conversions
 )
 
@@ -25,7 +27,9 @@ pkg_check_modules(LIBFCL REQUIRED fcl)
 find_library(LIBFCL_LIBRARIES_FULL ${LIBFCL_LIBRARIES} ${LIBFCL_LIBRARY_DIRS})
 set(fcl_LIBRARIES "${LIBFCL_LIBRARIES_FULL}")
 
-catkin_package()
+catkin_package(
+  CATKIN_DEPENDS cob_control_msgs geometry_msgs moveit_msgs
+)
 
 
 ### Build ###
@@ -52,7 +56,7 @@ target_link_libraries(test_obstacle_publisher_node ${catkin_LIBRARIES})
 
 
 ### INSTALL ###
-install(TARGETS obstacle_distance_moveit obstacle_distance_node visualize_obstacle_distance_node test_obstacle_publisher_node
+install(TARGETS obstacle_distance_moveit obstacle_distance_node test_obstacle_publisher_node visualize_obstacle_distance_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
