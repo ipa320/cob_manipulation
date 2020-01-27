@@ -53,6 +53,6 @@ def show_grasps_client():
 if __name__ == '__main__':
     try:
         rospy.init_node('show_grasp_client')
-        result = show_grasps_client()
+        show_grasps_client()
     except rospy.ROSInterruptException:
         print("program interrupted before completion")

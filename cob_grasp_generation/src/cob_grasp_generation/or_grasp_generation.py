@@ -21,7 +21,8 @@
 from itertools import groupby
 import numpy, time, scipy
 import roslib
-from openravepy import *
+from openravepy import Environment  # pylint: disable=import-error
+from openravepy import databases, options, matrixFromPose  # pylint: disable=import-error
 from cob_grasp_generation import analyzegrasp3d, grasp_query_utils
 
 

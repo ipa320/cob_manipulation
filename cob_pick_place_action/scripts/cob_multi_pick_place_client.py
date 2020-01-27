@@ -20,9 +20,10 @@ import numpy
 from math import pi
 
 import rospy
+import roslib
 import actionlib
 from geometry_msgs.msg import PoseStamped
-from tf.transformations import *
+from tf.transformations import quaternion_from_euler
 import simple_moveit_interface as smi_
 import cob_pick_place_action.msg
 
@@ -39,8 +40,11 @@ def setup_environment():
 	psi = smi_.get_planning_scene_interface()
 	rospy.sleep(1.0)
 
-	#smi_.clear_objects("arm_7_link")
-	smi_.clear_objects("arm_left_7_link")
+
+	#smi_.clear_attached_object("arm_7_link")
+	smi_.clear_attached_object("arm_left_7_link")
+	#smi_.clear_objects()
+	smi_.clear_objects()
 
 	### Add a floor
 	smi_.add_ground()

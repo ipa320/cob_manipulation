@@ -39,7 +39,6 @@ _psi_creation_lock = threading.Lock()
 def get_transform_listener():
     '''
     Gets the transform listener for this process.
-
     This is needed because tf only allows one transform listener per process. Threadsafe, so
     that two threads could call this at the same time, at it will do the right thing.
     '''
@@ -54,7 +53,6 @@ def get_transform_listener():
 def get_move_group_commander(group):
     '''
     Gets the move_group_commander for this process.
-
     '''
     global _mgc_dict
     with _mgc_dict_creation_lock:
@@ -62,15 +60,15 @@ def get_move_group_commander(group):
             _mgc_group = MoveGroupCommander(group)
             _mgc_group.set_planner_id('RRTConnectkConfigDefault')
             _mgc_dict[group] = _mgc_group
-	    add_ground()
-        return _mgc_dict[group]
+
+    add_ground()
+    return _mgc_dict[group]
 
 
 
 def get_planning_scene_interface():
     '''
     Gets the planning_scene_interface for this process.
-
     '''
     global _psi
     with _psi_creation_lock:
@@ -94,12 +92,12 @@ def add_ground():
     pose.header.frame_id = "base_link"
     psi.attach_box("base_link", "ground", pose, (3, 3, 0.1))
 
-def clear_objects(attach_link):
+#ToDo: attached objects are not removed
+def clear_objects():
     psi = get_planning_scene_interface()
-    psi.remove_attached_object(attach_link)
     psi.remove_world_object("")
 
-def clear_attached_object(attach_link, object_name):
+def clear_attached_object(attach_link, object_name=None):
     psi = get_planning_scene_interface()
     psi.remove_attached_object(link = attach_link, name = object_name)
     psi.remove_world_object(object_name)
@@ -152,11 +150,11 @@ def moveit_cart_goals(group, ref_frame, goal_list, avoid_collisions=True):
 
     if frac == 1.0:
         if mgc.execute(traj):
-		print("Done moving")
-        	return 'succeeded'
-	else:
-		print("Something happened during execution")
-		print('failed')
+            print("Done moving")
+            return 'succeeded'
+        else:
+            print("Something happened during execution")
+            return 'failed'
     else:
         print("Failed to plan full path!")
         return 'failed'
@@ -180,7 +178,6 @@ def moveit_get_current_pose(group):
 ####################################
 
 def get_goal_from_server(group, parameter_name):
-
         ns_global_prefix = "/script_server"
 
         # get joint_names from parameter server
@@ -218,7 +215,6 @@ def get_goal_from_server(group, parameter_name):
                 rospy.logerr("no valid parameter for %s: not a list, aborting...",group)
                 print("parameter is:",param)
                 return None
-
 
         #no need for trajectories anymore, since planning (will) guarantee collision-free motion!
         point = param[len(param)-1]

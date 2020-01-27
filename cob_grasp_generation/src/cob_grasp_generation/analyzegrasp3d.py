@@ -17,7 +17,8 @@
 
 """Analyze Grasp 3D - own module: a collection of several function for analyzing the grasps
 """
-from openravepy import *
+
+from openravepy import poseFromMatrix  # pylint: disable=import-error
 import numpy, time, scipy, csv, os
 import roslib.packages
 
