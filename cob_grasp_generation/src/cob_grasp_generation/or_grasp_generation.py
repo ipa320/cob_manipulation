@@ -39,21 +39,21 @@ class ORGraspGeneration:
 			if self.env.GetViewer() == None:
 				self.env.SetViewer('qtcoin')
 			else:
-				print "Viewer already loaded"
+				print("Viewer already loaded")
 		else:
-			print "Not using a viewer for OpenRAVE"
+			print("Not using a viewer for OpenRAVE")
 
 		if self.target == None:
 			self.target = self.env.ReadKinBodyURI(roslib.packages.get_pkg_dir('cob_grasp_generation')+'/files/meshes/'+str(object_name)+'.stl')
 			self.env.Add(self.target,True)
 
 		if self.target.GetName() != object_name:
-			print "Changing the target object"
+			print("Changing the target object")
 			self.env.Remove(self.target)
 			self.target = self.env.ReadKinBodyURI(roslib.packages.get_pkg_dir('cob_grasp_generation')+'/files/meshes/'+str(object_name)+'.stl')
 			self.env.Add(self.target,True)
 
-		print "Environment set up!"
+		print("Environment set up!")
 
 	def generate_grasps(self, object_name, gripper_type, replan=False):
 		#robot
@@ -89,18 +89,18 @@ class ORGraspGeneration:
 		### Do actual GraspGeneration
 		if gmodel.load():
 			if replan == True:
-				print "Replanning database"
+				print("Replanning database")
 				gmodel.autogenerate(options)
-			print "Successfully loaded a database"
+			print("Successfully loaded a database")
 		else:
-			print "No database available"
-			print "Generating a database"
+			print("No database available")
+			print("Generating a database")
 			gmodel.autogenerate(options)
 
 		#time diff
 		end_plan = time.time()
 		time_difference = int(end_plan - now_plan)
-		print "GraspGeneration took: ", time_difference
+		print("GraspGeneration took: ", time_difference)
 
 		### GetValidGrasps now
 		#Return all validgrasps
@@ -111,7 +111,7 @@ class ORGraspGeneration:
 		validgrasps, validindicees = gmodel.computeValidGrasps(checkcollision=True, checkik=False)
 		#validgrasps, validindicees = gmodel.computeValidGrasps(backupdist=0.025, checkcollision=True, checkik=False)	#opt1
 		#validgrasps, validindicees = gmodel.computeValidGrasps(backupdist=0.0, checkcollision=True, checkik=False)		#opt2
-		print "TotalNumValidGrasps: ",len(validgrasps)
+		print("TotalNumValidGrasps: ",len(validgrasps))
 
 		#prevent from saving an empty file
 		if len(validgrasps) == 0:
@@ -161,10 +161,10 @@ class ORGraspGeneration:
 
 			#calculate metric and final joint configuration
 			try:
-				print "Grasp: ",graspnmb
+				print("Grasp: ",graspnmb)
 				contacts,finalconfig,mindist,volume = gmodel.runGrasp(grasp=validgrasps[grasp_num], forceclosure=True)
 			except:
-				print "something went wrong"
+				print("something went wrong")
 				mindist = 0.0
 				volume = 0.0
 
@@ -313,9 +313,9 @@ class ORGraspGeneration:
 		#Show the grasps
 		#SetDOFValues
 		grasp = grasp_list[int(grasp_id)]
-		print 'Grasp ID: '+str(grasp['id'])
-		print 'Grasp Quality epsilon: '+str(grasp['eps_l1'])
-		print 'Grasp Quality volume: '+str(grasp['vol_l1'])
+		print('Grasp ID: '+str(grasp['id']))
+		print('Grasp Quality epsilon: '+str(grasp['eps_l1']))
+		print('Grasp Quality volume: '+str(grasp['vol_l1']))
 		#print grasp
 
 		with gmodel.GripperVisibility(manip):

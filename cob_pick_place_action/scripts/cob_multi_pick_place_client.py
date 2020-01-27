@@ -90,7 +90,7 @@ def cob_pick_action_client(object_class, object_name, object_pose):
 
 	if finished_before_timeout:
 		state=pick_action_client.get_state()
-		print "Action finished: %s"%state
+		print("Action finished: %s"%state)
 	# Prints out the result of executing the action
 	return state  # State after waiting for PickupAction
 
@@ -120,7 +120,7 @@ def cob_place_action_client(object_class, object_name, destinations):
 
 	if finished_before_timeout:
 		state=place_action_client.get_state()
-		print "Action finished: %s"%state
+		print("Action finished: %s"%state)
 	# Prints out the result of executing the action
 	return state  # State after waiting for CobPlaceAction
 
@@ -170,4 +170,4 @@ if __name__ == '__main__':
 
 
 	except rospy.ROSInterruptException:
-		print "program interrupted before completion"
+		print("program interrupted before completion")

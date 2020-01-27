@@ -105,9 +105,9 @@ def cob_pick_action_client():
 
 	if finished_before_timeout:
 		state=pick_action_client.get_state()
-		print "Action finished: %s"%state
+		print("Action finished: %s"%state)
 	else:
-		print "Action did not finish within timeout"
+		print("Action did not finish within timeout")
 	return
 
 if __name__ == '__main__':
@@ -117,4 +117,4 @@ if __name__ == '__main__':
 		rospy.init_node('CobPickAction_client_py')
 		cob_pick_action_client()
 	except rospy.ROSInterruptException:
-		print "program interrupted before completion"
+		print("program interrupted before completion")

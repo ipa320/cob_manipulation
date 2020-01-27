@@ -1,1 +1,1 @@
-from simple_moveit_interface import *
+from .simple_moveit_interface import *

@@ -63,7 +63,7 @@ def cob_place_action_client():
 
 	if finished_before_timeout:
 		state=place_action_client.get_state()
-		print "Action finished: %s"%state
+		print("Action finished: %s"%state)
 	# Prints out the result of executing the action
 	return state  # State after waiting for CobPlaceAction
 
@@ -74,4 +74,4 @@ if __name__ == '__main__':
 		rospy.init_node('CobPlaceAction_client_py')
 		result = cob_place_action_client()
 	except rospy.ROSInterruptException:
-		print "program interrupted before completion"
+		print("program interrupted before completion")

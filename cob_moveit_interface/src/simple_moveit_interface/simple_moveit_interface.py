@@ -117,10 +117,10 @@ def moveit_joint_goal(group, goal, replanning=False):
     mgc = get_move_group_commander(group)
     mgc.allow_replanning(replanning)
     if mgc.go(goal):
-        print "Done moving"
+        print("Done moving")
         return 'succeeded'
     else:
-        print "Failed to plan path"
+        print("Failed to plan path")
         return 'failed'
 
 def moveit_pose_goal(group, ref_frame, goal, replan=False):
@@ -130,10 +130,10 @@ def moveit_pose_goal(group, ref_frame, goal, replan=False):
     ret = mgc.go(goal)
     mgc.allow_replanning(False)
     if ret:
-        print "Done moving"
+        print("Done moving")
         return 'succeeded'
     else:
-        print "Failed to plan path"
+        print("Failed to plan path")
         return 'failed'
 
 
@@ -144,7 +144,7 @@ def moveit_cart_goals(group, ref_frame, goal_list, avoid_collisions=True):
 
     mgc.set_pose_reference_frame(ref_frame)
     (traj,frac)  = mgc.compute_cartesian_path(goal_list, 0.01, 4, avoid_collisions)
-    print traj,frac
+    print(traj,frac)
 
     #mgc.execute(traj)
     #print "Done moving"
@@ -152,13 +152,13 @@ def moveit_cart_goals(group, ref_frame, goal_list, avoid_collisions=True):
 
     if frac == 1.0:
         if mgc.execute(traj):
-		print "Done moving"
+		print("Done moving")
         	return 'succeeded'
 	else:
-		print "Something happened during execution"
-		print 'failed'
+		print("Something happened during execution")
+		print('failed')
     else:
-        print "Failed to plan full path!"
+        print("Failed to plan full path!")
         return 'failed'
 
 
@@ -193,13 +193,13 @@ def get_goal_from_server(group, parameter_name):
         # check joint_names parameter
         if not type(joint_names) is list: # check list
                 rospy.logerr("no valid joint_names for %s: not a list, aborting...",group)
-                print "joint_names are:",joint_names
+                print("joint_names are:",joint_names)
                 return None
         else:
             for i in joint_names:
                 if not type(i) is str: # check string
                     rospy.logerr("no valid joint_names for %s: not a list of strings, aborting...",group)
-                    print "joint_names are:",joint_names
+                    print("joint_names are:",joint_names)
                     return None
                 else:
                     rospy.logdebug("accepted joint_names for group %s",group)
@@ -216,7 +216,7 @@ def get_goal_from_server(group, parameter_name):
         # check trajectory parameters
         if not type(param) is list: # check outer list
                 rospy.logerr("no valid parameter for %s: not a list, aborting...",group)
-                print "parameter is:",param
+                print("parameter is:",param)
                 return None
 
 
@@ -235,14 +235,14 @@ def get_goal_from_server(group, parameter_name):
             rospy.logdebug("point is a list")
         else:
             rospy.logerr("no valid parameter for %s: not a list of lists or strings, aborting...",group)
-            print "parameter is:",param
+            print("parameter is:",param)
             return None
 
         # here: point should be list of floats/ints
         #print point
         if not len(point) == len(joint_names): # check dimension
             rospy.logerr("no valid parameter for %s: dimension should be %d and is %d, aborting...",group,len(joint_names),len(point))
-            print "parameter is:",param
+            print("parameter is:",param)
             return None
 
         for value in point:
@@ -250,7 +250,7 @@ def get_goal_from_server(group, parameter_name):
             if not ((type(value) is float) or (type(value) is int)): # check type
                 #print type(value)
                 rospy.logerr("no valid parameter for %s: not a list of float or int, aborting...",group)
-                print "parameter is:",param
+                print("parameter is:",param)
                 return None
             rospy.logdebug("accepted value %f for %s",value,group)
 

@@ -90,4 +90,4 @@ def or_to_csv(validgrasps):
 			wr.writerow(row)
 
 	f_out.close()
-	print "Finished."
+	print("Finished.")

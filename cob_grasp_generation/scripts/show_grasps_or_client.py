@@ -33,7 +33,7 @@ def show_grasps_client():
     gripper_type = "sdh"
 
     while not rospy.is_shutdown():
-        print grasp_id
+        print(grasp_id)
 
         # Set the goal here: object_name, grasp_id, sort-by-quality
         goal = cob_grasp_generation.msg.ShowGraspsGoal(object_name, gripper_type, grasp_id, True)
@@ -44,10 +44,10 @@ def show_grasps_client():
         if not success:
             break
 
-        raw_input("Enter for next grasp...")
+        input("Enter for next grasp...")
         grasp_id = grasp_id + 1
     
-    print "no more grasps"
+    print("no more grasps")
 
 
 if __name__ == '__main__':
@@ -55,4 +55,4 @@ if __name__ == '__main__':
         rospy.init_node('show_grasp_client')
         result = show_grasps_client()
     except rospy.ROSInterruptException:
-        print "program interrupted before completion"
+        print("program interrupted before completion")

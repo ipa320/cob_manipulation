@@ -46,7 +46,7 @@ if __name__ == '__main__':
     try:
         rospy.init_node('generate_grasps_client')
         result = generate_grasps_client()
-        print "Result:"
-        print result
+        print("Result:")
+        print(result)
     except rospy.ROSInterruptException:
-        print "program interrupted before completion"
+        print("program interrupted before completion")
