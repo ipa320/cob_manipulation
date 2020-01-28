@@ -27,6 +27,7 @@
   <exec_depend>cob_description</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>python-scipy</exec_depend>
+  <exec_depend>python-six</exec_depend>
   <exec_depend>robot_state_publisher</exec_depend>
   <exec_depend>roslib</exec_depend>
   <exec_depend>rospy</exec_depend>

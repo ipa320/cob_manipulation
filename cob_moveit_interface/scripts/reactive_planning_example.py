@@ -17,6 +17,7 @@
 
 import rospy
 import simple_moveit_interface as smi
+import six
 
 #Requirements:
 #- latest cob_bringup layer with lookat_component
@@ -36,7 +37,7 @@ if __name__ == '__main__':
 
 	#while rospy.get_time() == 0.0: pass
 	rospy.logerr('Are you using cob3-3? Did you make sure all requirements are met? Read the code file!')
-	ans = input('[y/n] ')
+	ans = six.moves.input('[y/n] ')
 	if ans == 'y':
 		while not rospy.is_shutdown():
 			print("Going Left")

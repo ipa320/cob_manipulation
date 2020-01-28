@@ -20,6 +20,7 @@ import rospy
 import actionlib
 import moveit_msgs.msg
 import cob_grasp_generation.msg
+import six
 
 def show_grasps_client():
     client = actionlib.SimpleActionClient('show_grasps_or', cob_grasp_generation.msg.ShowGraspsAction)
@@ -44,7 +45,7 @@ def show_grasps_client():
         if not success:
             break
 
-        input("Enter for next grasp...")
+        six.moves.input("Enter for next grasp...")
         grasp_id = grasp_id + 1
     
     print("no more grasps")

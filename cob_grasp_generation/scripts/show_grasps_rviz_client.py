@@ -19,13 +19,14 @@ import rospy
 
 import actionlib
 import cob_grasp_generation.msg
+import six
 
 def show_grasps_client():
     client = actionlib.SimpleActionClient('show_grasps_rviz', cob_grasp_generation.msg.ShowGraspsAction)
     client.wait_for_server()
 
-    object_name = input("Insert object name: ")
-    gripper_type = input("Insert gripper_type: ")
+    object_name = six.moves.input("Insert object name: ")
+    gripper_type = six.moves.input("Insert gripper_type: ")
     gripper_side = ""
     grasp_id = 0
 
@@ -41,7 +42,7 @@ def show_grasps_client():
         if not success:
             break
 
-        input("Enter for next grasp...")
+        six.moves.input("Enter for next grasp...")
         grasp_id = grasp_id + 1
     
     print("no more grasps")
