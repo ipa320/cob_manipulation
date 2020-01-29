@@ -25,7 +25,7 @@ import actionlib
 from geometry_msgs.msg import PoseStamped
 from tf.transformations import quaternion_from_euler
 import simple_moveit_interface as smi_
-import cob_pick_place_action.msg
+import cob_pick_place_action.msg  # pylint: disable=import-error
 
 ### Helper function
 def gen_pose(frame_id="/base_link", pos=[0,0,0], euler=[0,0,0]):

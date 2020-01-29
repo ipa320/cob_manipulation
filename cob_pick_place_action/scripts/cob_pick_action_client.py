@@ -21,9 +21,9 @@ from math import pi
 import rospy
 import actionlib
 from geometry_msgs.msg import PoseStamped
-from tf.transformations import *
+from tf.transformations import quaternion_from_euler
 import simple_moveit_interface as smi_
-import cob_pick_place_action.msg
+import cob_pick_place_action.msg  # pylint: disable=import-error
 
 
 def setup_environment():
