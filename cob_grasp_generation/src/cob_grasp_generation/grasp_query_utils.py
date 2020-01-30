@@ -67,7 +67,7 @@ def get_grasps(object_name, gripper_type, gripper_side="", grasp_id=0, num_grasp
 			#print _fill_grasp_msg(gripper_type, gripper_side, grasp_list[grasp_id])
 			return [_fill_grasp_msg(gripper_type, gripper_side, grasp_list[grasp_id])]
 		else:
-			print "Grasp not available"
+			print("Grasp not available")
 			return []
 
 	#sorting for threshold

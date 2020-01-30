@@ -20,11 +20,12 @@ import numpy
 from math import pi
 
 import rospy
+import roslib
 import actionlib
 from geometry_msgs.msg import PoseStamped
-from tf.transformations import *
+from tf.transformations import quaternion_from_euler
 import simple_moveit_interface as smi_
-import cob_pick_place_action.msg
+import cob_pick_place_action.msg  # pylint: disable=import-error
 
 ### Helper function
 def gen_pose(frame_id="/base_link", pos=[0,0,0], euler=[0,0,0]):
@@ -39,8 +40,11 @@ def setup_environment():
 	psi = smi_.get_planning_scene_interface()
 	rospy.sleep(1.0)
 
-	#smi_.clear_objects("arm_7_link")
-	smi_.clear_objects("arm_left_7_link")
+
+	#smi_.clear_attached_object("arm_7_link")
+	smi_.clear_attached_object("arm_left_7_link")
+	#smi_.clear_objects()
+	smi_.clear_objects()
 
 	### Add a floor
 	smi_.add_ground()
@@ -90,7 +94,7 @@ def cob_pick_action_client(object_class, object_name, object_pose):
 
 	if finished_before_timeout:
 		state=pick_action_client.get_state()
-		print "Action finished: %s"%state
+		print("Action finished: %s"%state)
 	# Prints out the result of executing the action
 	return state  # State after waiting for PickupAction
 
@@ -120,7 +124,7 @@ def cob_place_action_client(object_class, object_name, destinations):
 
 	if finished_before_timeout:
 		state=place_action_client.get_state()
-		print "Action finished: %s"%state
+		print("Action finished: %s"%state)
 	# Prints out the result of executing the action
 	return state  # State after waiting for CobPlaceAction
 
@@ -170,4 +174,4 @@ if __name__ == '__main__':
 
 
 	except rospy.ROSInterruptException:
-		print "program interrupted before completion"
+		print("program interrupted before completion")

@@ -16,8 +16,9 @@
 
 
 import rospy
-from tf.transformations import *
-from simple_moveit_interface import *
+from geometry_msgs.msg import PoseStamped
+from tf.transformations import quaternion_from_euler
+from simple_moveit_interface import get_planning_scene_interface, add_ground, clear_objects
 
 
 def gen_pose(frame_id="/odom_combined", pos=[0,0,0], euler=[0,0,0]):
@@ -81,6 +82,5 @@ if __name__ == '__main__':
 	psi.remove_world_object("sphere")
 
 	### CLEAR ALL OBJECTS
-	#ToDo: attached objects are not removed
 	clear_objects()
 
