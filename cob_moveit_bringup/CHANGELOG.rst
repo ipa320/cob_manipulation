@@ -2,6 +2,13 @@
 Changelog for package cob_moveit_bringup
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#144 <https://github.com/ipa320/cob_manipulation/issues/144>`_ from fmessmer/conditional_inorder
+  add ROS_DISTRO condition for --inorder
+* add ROS_DISTRO condition for --inorder
+* Contributors: Felix Messmer, fmessmer
+
 0.7.3 (2019-12-04)
 ------------------
 * Merge pull request `#138 <https://github.com/ipa320/cob_manipulation/issues/138>`_ from fmessmer/melodic_checks

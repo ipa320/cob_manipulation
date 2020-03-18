@@ -2,6 +2,13 @@
 Changelog for package cob_collision_monitor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#143 <https://github.com/ipa320/cob_manipulation/issues/143>`_ from fmessmer/ci_updates
+  [travis] ci updates
+* catkin_lint fixes
+* Contributors: Felix Messmer, fmessmer
+
 0.7.3 (2019-12-04)
 ------------------
 * Merge pull request `#138 <https://github.com/ipa320/cob_manipulation/issues/138>`_ from fmessmer/melodic_checks
