@@ -2,6 +2,16 @@
 Changelog for package cob_obstacle_distance_moveit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.4 (2020-03-18)
+------------------
+* Merge pull request `#145 <https://github.com/ipa320/cob_manipulation/issues/145>`_ from fmessmer/feature/python3_compatibility
+  [ci_updates] pylint + Python3 compatibility
+* python3 compatibility via 2to3
+* Merge pull request `#143 <https://github.com/ipa320/cob_manipulation/issues/143>`_ from fmessmer/ci_updates
+  [travis] ci updates
+* catkin_lint fixes
+* Contributors: Felix Messmer, fmessmer
+
 0.7.3 (2019-12-04)
 ------------------
 * Merge pull request `#138 <https://github.com/ipa320/cob_manipulation/issues/138>`_ from fmessmer/melodic_checks

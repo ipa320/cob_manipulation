@@ -17,7 +17,8 @@
 
 """Analyze Grasp 3D - own module: a collection of several function for analyzing the grasps
 """
-from openravepy import *
+
+from openravepy import poseFromMatrix  # pylint: disable=import-error
 import numpy, time, scipy, csv, os
 import roslib.packages
 
@@ -90,4 +91,4 @@ def or_to_csv(validgrasps):
 			wr.writerow(row)
 
 	f_out.close()
-	print "Finished."
+	print("Finished.")

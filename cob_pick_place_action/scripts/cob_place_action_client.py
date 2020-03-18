@@ -21,8 +21,8 @@ from math import pi
 import rospy
 import actionlib
 from geometry_msgs.msg import PoseStamped
-from tf.transformations import *
-import cob_pick_place_action.msg
+from tf.transformations import quaternion_from_euler
+import cob_pick_place_action.msg  # pylint: disable=import-error
 
 def cob_place_action_client():
 	# Creates the SimpleActionClient, passing the type of the action
@@ -63,7 +63,7 @@ def cob_place_action_client():
 
 	if finished_before_timeout:
 		state=place_action_client.get_state()
-		print "Action finished: %s"%state
+		print("Action finished: %s"%state)
 	# Prints out the result of executing the action
 	return state  # State after waiting for CobPlaceAction
 
@@ -74,4 +74,4 @@ if __name__ == '__main__':
 		rospy.init_node('CobPlaceAction_client_py')
 		result = cob_place_action_client()
 	except rospy.ROSInterruptException:
-		print "program interrupted before completion"
+		print("program interrupted before completion")

@@ -4,8 +4,8 @@ project(cob_lookat_action)
 add_compile_options(-std=c++11)
 
 find_package(catkin REQUIRED COMPONENTS
-  actionlib_msgs
   actionlib
+  actionlib_msgs
   angles
   control_msgs
   geometry_msgs 
@@ -32,24 +32,24 @@ generate_messages(
 )
 
 catkin_package(
-  CATKIN_DEPENDS actionlib_msgs geometry_msgs message_runtime
-  LIBRARIES cob_lookat_action_server
+  CATKIN_DEPENDS actionlib_msgs control_msgs geometry_msgs message_runtime move_base_msgs sensor_msgs trajectory_msgs
+  LIBRARIES ${PROJECT_NAME}_server
   INCLUDE_DIRS include
 )
 
 ### BUILD ###
 include_directories(include ${catkin_INCLUDE_DIRS})
 
-add_library(cob_lookat_action_server src/cob_lookat_action_server.cpp)
-add_dependencies(cob_lookat_action_server ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(cob_lookat_action_server ${catkin_LIBRARIES})
+add_library(${PROJECT_NAME}_server src/${PROJECT_NAME}_server.cpp)
+add_dependencies(${PROJECT_NAME}_server ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(${PROJECT_NAME}_server ${catkin_LIBRARIES})
 
-add_executable(cob_lookat_action_server_node src/cob_lookat_action_server_node.cpp)
-add_dependencies(cob_lookat_action_server_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(cob_lookat_action_server_node cob_lookat_action_server ${catkin_LIBRARIES})
+add_executable(${PROJECT_NAME}_server_node src/${PROJECT_NAME}_server_node.cpp)
+add_dependencies(${PROJECT_NAME}_server_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(${PROJECT_NAME}_server_node ${PROJECT_NAME}_server ${catkin_LIBRARIES})
 
 ### INSTALL ###
-install(TARGETS cob_lookat_action_server cob_lookat_action_server_node
+install(TARGETS ${PROJECT_NAME}_server ${PROJECT_NAME}_server_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -59,7 +59,7 @@ install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )
 
-install(PROGRAMS scripts/cob_lookat_action_client.py scripts/cob_lookat_target_publisher.py
+install(PROGRAMS scripts/${PROJECT_NAME}_client.py scripts/cob_lookat_target_publisher.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

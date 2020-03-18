@@ -20,6 +20,7 @@ import rospy
 import actionlib
 import moveit_msgs.msg
 import cob_grasp_generation.msg
+import six
 
 def show_grasps_client():
     client = actionlib.SimpleActionClient('show_grasps_or', cob_grasp_generation.msg.ShowGraspsAction)
@@ -33,7 +34,7 @@ def show_grasps_client():
     gripper_type = "sdh"
 
     while not rospy.is_shutdown():
-        print grasp_id
+        print(grasp_id)
 
         # Set the goal here: object_name, grasp_id, sort-by-quality
         goal = cob_grasp_generation.msg.ShowGraspsGoal(object_name, gripper_type, grasp_id, True)
@@ -44,15 +45,15 @@ def show_grasps_client():
         if not success:
             break
 
-        raw_input("Enter for next grasp...")
+        six.moves.input("Enter for next grasp...")
         grasp_id = grasp_id + 1
     
-    print "no more grasps"
+    print("no more grasps")
 
 
 if __name__ == '__main__':
     try:
         rospy.init_node('show_grasp_client')
-        result = show_grasps_client()
+        show_grasps_client()
     except rospy.ROSInterruptException:
-        print "program interrupted before completion"
+        print("program interrupted before completion")

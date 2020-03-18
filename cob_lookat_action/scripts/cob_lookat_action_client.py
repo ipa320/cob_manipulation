@@ -24,9 +24,9 @@ import cob_lookat_action.msg
 
 def cob_lookat_action_client():
     client = actionlib.SimpleActionClient('lookat_action', cob_lookat_action.msg.LookAtAction)
-    print "Waiting for Server..."
+    print("Waiting for Server...")
     client.wait_for_server()
-    print "...done!"
+    print("...done!")
 
     # Creates a goal to send to the action server.
     goal = cob_lookat_action.msg.LookAtGoal()
@@ -42,7 +42,7 @@ def cob_lookat_action_client():
     client.wait_for_result()
 
     result = client.get_result()
-    print result
+    print(result)
 
     return result.success
 
@@ -51,4 +51,4 @@ if __name__ == '__main__':
         rospy.init_node('cob_lookat_action_client')
         result = cob_lookat_action_client()
     except rospy.ROSInterruptException:
-        print "program interrupted before completion"
+        print("program interrupted before completion")

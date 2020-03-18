@@ -1,6 +1,6 @@
 <package format="2">
   <name>cob_lookat_action</name>
-  <version>0.7.3</version>
+  <version>0.7.4</version>
   <description>
      cob_lookat_action
   </description>
@@ -19,8 +19,8 @@
   <build_depend>message_generation</build_depend>
   <exec_depend>message_runtime</exec_depend>
 
-  <depend>actionlib_msgs</depend>
   <depend>actionlib</depend>
+  <depend>actionlib_msgs</depend>
   <depend>angles</depend>
   <depend>control_msgs</depend>
   <depend>geometry_msgs</depend>

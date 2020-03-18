@@ -25,6 +25,6 @@ if __name__ == "__main__":
         req = GetObstacleDistanceRequest()
         req.links.append("arm_left_7_link")
         res = client(req)
-        print res
-    except rospy.ServiceException, e:
-        print "Service call failed: %s"%e
+        print(res)
+    except rospy.ServiceException as e:
+        print("Service call failed: %s"%e)

@@ -42,8 +42,8 @@ if __name__ == '__main__':
     try:
         rospy.init_node('query_grasps_client')
         result = query_grasps_client()
-        print "Result:"
-        print result
+        print("Result:")
+        print(result)
         #print len(result.grasp_list)
     except rospy.ROSInterruptException:
-        print "program interrupted before completion"
+        print("program interrupted before completion")

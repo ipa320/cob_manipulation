@@ -2,6 +2,15 @@
 Changelog for package cob_moveit_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.4 (2020-03-18)
+------------------
+* Merge pull request `#145 <https://github.com/ipa320/cob_manipulation/issues/145>`_ from fmessmer/feature/python3_compatibility
+  [ci_updates] pylint + Python3 compatibility
+* Use six.moves.input for all uses of raw_input/input
+* fix pylint errors
+* python3 compatibility via 2to3
+* Contributors: Felix Messmer, Loy van Beek, fmessmer
+
 0.7.3 (2019-12-04)
 ------------------
 

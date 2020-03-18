@@ -21,17 +21,19 @@ from math import pi
 import rospy
 import actionlib
 from geometry_msgs.msg import PoseStamped
-from tf.transformations import *
+from tf.transformations import quaternion_from_euler
 import simple_moveit_interface as smi_
-import cob_pick_place_action.msg
+import cob_pick_place_action.msg  # pylint: disable=import-error
 
 
 def setup_environment():
 	psi = smi_.get_planning_scene_interface()
 	rospy.sleep(1.0)
 
-	#smi_.clear_objects("arm_7_link")
-	smi_.clear_objects("arm_left_7_link")
+	#smi_.clear_attached_object("arm_7_link")
+	smi_.clear_attached_object("arm_left_7_link")
+	#smi_.clear_objects()
+	smi_.clear_objects()
 
 	### Add a floor
 	smi_.add_ground()
@@ -105,9 +107,9 @@ def cob_pick_action_client():
 
 	if finished_before_timeout:
 		state=pick_action_client.get_state()
-		print "Action finished: %s"%state
+		print("Action finished: %s"%state)
 	else:
-		print "Action did not finish within timeout"
+		print("Action did not finish within timeout")
 	return
 
 if __name__ == '__main__':
@@ -117,4 +119,4 @@ if __name__ == '__main__':
 		rospy.init_node('CobPickAction_client_py')
 		cob_pick_action_client()
 	except rospy.ROSInterruptException:
-		print "program interrupted before completion"
+		print("program interrupted before completion")
