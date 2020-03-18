@@ -2,8 +2,8 @@
 Changelog for package cob_collision_monitor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.4 (2020-03-18)
+------------------
 * Merge pull request `#143 <https://github.com/ipa320/cob_manipulation/issues/143>`_ from fmessmer/ci_updates
   [travis] ci updates
 * catkin_lint fixes

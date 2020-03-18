@@ -2,8 +2,8 @@
 Changelog for package cob_moveit_bringup
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.4 (2020-03-18)
+------------------
 * Merge pull request `#144 <https://github.com/ipa320/cob_manipulation/issues/144>`_ from fmessmer/conditional_inorder
   add ROS_DISTRO condition for --inorder
 * add ROS_DISTRO condition for --inorder
