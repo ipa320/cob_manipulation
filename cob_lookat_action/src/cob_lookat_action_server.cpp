@@ -412,6 +412,8 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     for (unsigned int i = 0; i < chain_main_.getNrOfJoints(); i++)
     {
         traj_point.positions.push_back(angles::normalize_angle(q_out(i+k)));
+        traj_point.velocities.push_back(0.0);
+        traj_point.accelerations.push_back(0.0);
     }
 
     /// compute time_from_start
