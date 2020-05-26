@@ -412,6 +412,8 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     for (unsigned int i = 0; i < chain_main_.getNrOfJoints(); i++)
     {
         traj_point.positions.push_back(angles::normalize_angle(q_out(i+k)));
+        traj_point.velocities.push_back(0.0);
+        traj_point.accelerations.push_back(0.0);
     }
 
     /// compute time_from_start
@@ -453,6 +455,9 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
     // *  0 - The tolerance is unspecified and will remain at whatever the default is
     // * -1 - The tolerance is "erased".
     //        If there was a default, the joint will be allowed to move without restriction.
+
+    //DO NOT SET TOLERANCES
+    /*
     for (unsigned int i = 0; i < chain_main_.getNrOfJoints(); i++)
     {
         control_msgs::JointTolerance joint_tolerance;
@@ -464,6 +469,7 @@ void CobLookAtAction::goalCB(const cob_lookat_action::LookAtGoalConstPtr &goal)
         fjt_goal.goal_tolerance.push_back(joint_tolerance);
     }
     fjt_goal.goal_time_tolerance = ros::Duration(1.0);
+    */
     ROS_DEBUG_STREAM("FJT-Goal: " << fjt_goal);
 
     /// compose MBL goal
