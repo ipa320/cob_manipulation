@@ -116,7 +116,7 @@ bool ObstacleDistanceMoveit::unregisterCallback(cob_srvs::SetString::Request &re
 {
     boost::mutex::scoped_lock lock(registered_links_mutex_);
     std::set<std::string>::iterator it = registered_links_.find(req.data);
-    
+
     if (it != registered_links_.end())
     {
         registered_links_.erase(it);
@@ -140,7 +140,7 @@ void ObstacleDistanceMoveit::calculateDistanceTimerCallback(const ros::TimerEven
 
     boost::mutex::scoped_lock lock(registered_links_mutex_);
     cob_control_msgs::ObstacleDistances distance_infos;
-    
+
     planning_scene_monitor::LockedPlanningSceneRO ps(planning_scene_monitor_);
     planning_scene::PlanningScenePtr planning_scene_ptr = ps->diff();
 
@@ -226,7 +226,7 @@ bool ObstacleDistanceMoveit::calculateDistanceServiceCallback(cob_control_msgs::
 {
     std::map<std::string, std::shared_ptr<fcl::CollisionObject> > robot_links = this->robot_links_;
     std::map<std::string, std::shared_ptr<fcl::CollisionObject> > collision_objects = this->collision_objects_;
-    
+
     // Links
     for (unsigned int i=0; i< req.links.size(); ++i)
     {
@@ -351,7 +351,7 @@ cob_control_msgs::ObstacleDistance ObstacleDistanceMoveit::getDistanceInfo(const
     info.distance = dist;
 
     tf::vectorEigenToMsg(np_object_a, info.nearest_point_frame_vector);
-    tf::vectorEigenToMsg(np_object_b, info.nearest_point_obstacle_vector);    
+    tf::vectorEigenToMsg(np_object_b, info.nearest_point_obstacle_vector);
     ROS_DEBUG_STREAM("NearestPointTransformed OBJ_A: \n" << info.nearest_point_frame_vector);
     ROS_DEBUG_STREAM("NearestPointTransformed OBJ_B: \n" << info.nearest_point_obstacle_vector);
 
@@ -379,7 +379,8 @@ ObstacleDistanceMoveit::ObstacleDistanceMoveit()
     //Initialize planning scene monitor
 #if ROS_VERSION_MINIMUM(1,14,0) // melodic
     std::shared_ptr<tf2_ros::Buffer> tf(new tf2_ros::Buffer(ros::Duration(2.0)));
-    planning_scene_monitor::PlanningSceneMonitorPtr psm(new planning_scene_monitor::PlanningSceneMonitor(robot_description, tf, ""));
+    //planning_scene_monitor::PlanningSceneMonitorPtr psm(new planning_scene_monitor::PlanningSceneMonitor(robot_description, tf, ""));
+    planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(robot_description, tf, ""));
 #else
     boost::shared_ptr<tf::TransformListener> tf_listener_(new tf::TransformListener(ros::Duration(2.0)));
     planning_scene_monitor_ = std::make_shared<planning_scene_monitor::PlanningSceneMonitor>(robot_description, tf_listener_);
