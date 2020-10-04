@@ -26,9 +26,10 @@
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/client/terminal_state.h>
 
-#include <tf/tf.h>
-#include <tf/transform_broadcaster.h>
-#include <tf/transform_datatypes.h>
+#include <tf2_ros/transform_broadcaster.h>
+#include <tf2_ros/transform_listener.h>
+#include <tf2/transform_datatypes.h>
+#include <tf2/LinearMath/Transform.h>
 
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/move_group_interface/move_group_interface.h>
@@ -62,13 +63,14 @@ private:
 
 	bool last_grasp_valid;
 	std::string last_object_name;
-	tf::TransformListener tf_listener_;
-	tf::TransformBroadcaster tf_broadcaster_;
+	tf2_ros::Buffer tf_buffer_;
+	tf2_ros::TransformListener tf_listener_;
+	tf2_ros::TransformBroadcaster tf_broadcaster_;
 
 	std::map<unsigned int,std::string> map_classid_to_classname;
 
 public:
-	CobPickPlaceActionServer(std::string group_name) : group(group_name) {}
+	CobPickPlaceActionServer(std::string group_name) : group(group_name), tf_buffer_(), tf_listener_(tf_buffer_) {};
 	~CobPickPlaceActionServer();
 
 	void initialize();
@@ -86,7 +88,7 @@ public:
 	void fillGraspsOR(unsigned int objectClassId, std::string gripper_type, std::string gripper_side, unsigned int grasp_id, geometry_msgs::PoseStamped object_pose, std::vector<moveit_msgs::Grasp> &grasps);
 
 	trajectory_msgs::JointTrajectory MapHandConfiguration(sensor_msgs::JointState table_config);
-	tf::Transform transformPose(tf::Transform transform_O_from_SDH, tf::Transform transform_HEADER_from_OBJECT, std::string object_frame_id);
+	tf2::Transform transformPose(tf2::Transform transform_O_from_SDH, tf2::Transform transform_HEADER_from_OBJECT, std::string object_frame_id);
 	moveit_msgs::GripperTranslation calculateApproachDirection(geometry_msgs::Pose msg_pose_grasp_FOOTPRINT_from_ARM7, geometry_msgs::Pose msg_pose_pre_FOOTPRINT_from_ARM7);
 
 };
