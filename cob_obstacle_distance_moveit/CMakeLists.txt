@@ -28,7 +28,7 @@ find_library(LIBFCL_LIBRARIES_FULL ${LIBFCL_LIBRARIES} ${LIBFCL_LIBRARY_DIRS})
 set(fcl_LIBRARIES "${LIBFCL_LIBRARIES_FULL}")
 
 catkin_package(
-  CATKIN_DEPENDS cob_control_msgs geometry_msgs moveit_msgs
+  CATKIN_DEPENDS cob_control_msgs cob_srvs geometry_msgs moveit_msgs roscpp tf
 )
 
 

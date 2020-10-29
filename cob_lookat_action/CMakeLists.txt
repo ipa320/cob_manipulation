@@ -32,7 +32,7 @@ generate_messages(
 )
 
 catkin_package(
-  CATKIN_DEPENDS actionlib_msgs control_msgs geometry_msgs message_runtime move_base_msgs sensor_msgs trajectory_msgs
+  CATKIN_DEPENDS actionlib actionlib_msgs control_msgs geometry_msgs message_runtime move_base_msgs roscpp sensor_msgs tf trajectory_msgs
   LIBRARIES ${PROJECT_NAME}_server
   INCLUDE_DIRS include
 )
