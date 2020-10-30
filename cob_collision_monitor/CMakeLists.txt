@@ -13,7 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_ros
 )
 catkin_package(
-  CATKIN_DEPENDS std_msgs
+  CATKIN_DEPENDS std_msgs tf
 )
 
 include_directories(
