@@ -2,6 +2,13 @@
 Changelog for package cob_manipulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.5 (2020-12-03)
+------------------
+* Merge pull request `#148 <https://github.com/ipa320/cob_manipulation/issues/148>`_ from fmessmer/test_noetic
+  test noetic
+* Bump CMake version to avoid CMP0048 warning
+* Contributors: Felix Messmer, fmessmer
+
 0.7.4 (2020-03-18)
 ------------------
 

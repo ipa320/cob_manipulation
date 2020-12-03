@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.0.2)
 project(cob_obstacle_distance_moveit)
 
 add_definitions(-std=c++11)
@@ -28,7 +28,7 @@ find_library(LIBFCL_LIBRARIES_FULL ${LIBFCL_LIBRARIES} ${LIBFCL_LIBRARY_DIRS})
 set(fcl_LIBRARIES "${LIBFCL_LIBRARIES_FULL}")
 
 catkin_package(
-  CATKIN_DEPENDS cob_control_msgs geometry_msgs moveit_msgs
+  CATKIN_DEPENDS cob_control_msgs cob_srvs geometry_msgs moveit_msgs roscpp tf
 )
 
 

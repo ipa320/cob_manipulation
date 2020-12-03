@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.0.2)
 project(cob_collision_monitor)
 
 add_definitions(-std=c++11)
@@ -13,7 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_ros
 )
 catkin_package(
-  CATKIN_DEPENDS std_msgs
+  CATKIN_DEPENDS std_msgs tf
 )
 
 include_directories(

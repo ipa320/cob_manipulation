@@ -2,6 +2,16 @@
 Changelog for package cob_collision_monitor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.5 (2020-12-03)
+------------------
+* Merge pull request `#148 <https://github.com/ipa320/cob_manipulation/issues/148>`_ from fmessmer/test_noetic
+  test noetic
+* Bump CMake version to avoid CMP0048 warning
+* Merge pull request `#149 <https://github.com/ipa320/cob_manipulation/issues/149>`_ from fmessmer/fix_catkin_lint
+  fix catkin_lint
+* fix catkin_lint
+* Contributors: Felix Messmer, fmessmer
+
 0.7.4 (2020-03-18)
 ------------------
 * Merge pull request `#143 <https://github.com/ipa320/cob_manipulation/issues/143>`_ from fmessmer/ci_updates
