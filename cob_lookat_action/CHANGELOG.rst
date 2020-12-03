@@ -2,6 +2,21 @@
 Changelog for package cob_lookat_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#148 <https://github.com/ipa320/cob_manipulation/issues/148>`_ from fmessmer/test_noetic
+  test noetic
+* conditional depend for orocos-kdl
+* Bump CMake version to avoid CMP0048 warning
+* Merge pull request `#149 <https://github.com/ipa320/cob_manipulation/issues/149>`_ from fmessmer/fix_catkin_lint
+  fix catkin_lint
+* fix catkin_lint
+* Merge pull request `#146 <https://github.com/ipa320/cob_manipulation/issues/146>`_ from fmessmer/lookat_improve_fjt_goal
+  [cob_lookat] improve fjt goal
+* do not set tolerances
+* set velocities and accelerations to 0.0 for traj_point
+* Contributors: Felix Messmer, fmessmer
+
 0.7.4 (2020-03-18)
 ------------------
 * Merge pull request `#145 <https://github.com/ipa320/cob_manipulation/issues/145>`_ from fmessmer/feature/python3_compatibility

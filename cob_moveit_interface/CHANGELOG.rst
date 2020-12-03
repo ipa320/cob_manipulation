@@ -2,6 +2,15 @@
 Changelog for package cob_moveit_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#148 <https://github.com/ipa320/cob_manipulation/issues/148>`_ from fmessmer/test_noetic
+  test noetic
+* ROS_PYTHON_VERSION conditional dependency
+* use setuptools instead of distutils
+* Bump CMake version to avoid CMP0048 warning
+* Contributors: Felix Messmer, fmessmer
+
 0.7.4 (2020-03-18)
 ------------------
 * Merge pull request `#145 <https://github.com/ipa320/cob_manipulation/issues/145>`_ from fmessmer/feature/python3_compatibility

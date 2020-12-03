@@ -2,6 +2,19 @@
 Changelog for package cob_obstacle_distance_moveit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#148 <https://github.com/ipa320/cob_manipulation/issues/148>`_ from fmessmer/test_noetic
+  test noetic
+* Bump CMake version to avoid CMP0048 warning
+* Merge pull request `#149 <https://github.com/ipa320/cob_manipulation/issues/149>`_ from fmessmer/fix_catkin_lint
+  fix catkin_lint
+* fix catkin_lint
+* Merge pull request `#147 <https://github.com/ipa320/cob_manipulation/issues/147>`_ from ipa-mjp/collision_detection
+  correct planning scene monitor object load
+* correct planning scene monitor object load
+* Contributors: Felix Messmer, fmessmer, ipa-mjp
+
 0.7.4 (2020-03-18)
 ------------------
 * Merge pull request `#145 <https://github.com/ipa320/cob_manipulation/issues/145>`_ from fmessmer/feature/python3_compatibility
