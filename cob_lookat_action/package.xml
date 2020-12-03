@@ -1,4 +1,8 @@
-<package format="2">
+<?xml version="1.0"?>
+<?xml-model
+  href="http://download.ros.org/schema/package_format3.xsd"
+  schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
   <name>cob_lookat_action</name>
   <version>0.7.4</version>
   <description>
@@ -27,7 +31,10 @@
   <depend>kdl_conversions</depend>
   <depend>kdl_parser</depend>
   <depend>move_base_msgs</depend>
-  <depend>orocos_kdl</depend>
+  <depend condition="$ROS_DISTRO == kinetic">orocos_kdl</depend>
+  <depend condition="$ROS_DISTRO == melodic">orocos_kdl</depend>
+  <depend condition="$ROS_DISTRO == noetic">liborocos-kdl-dev</depend>
+  <depend condition="$ROS_DISTRO == noetic">liborocos-kdl</depend>
   <depend>roscpp</depend>
   <depend>sensor_msgs</depend>
   <depend>tf</depend>
