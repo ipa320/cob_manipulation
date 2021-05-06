@@ -19,7 +19,7 @@ import rospy
 
 import actionlib
 import moveit_msgs.msg
-import cob_grasp_generation.msg
+from cob_manipulation_msgs.msg import GenerateGraspsAction, GenerateGraspsResult
 from cob_grasp_generation import or_grasp_generation, grasp_query_utils
 
 class GenerateGraspsServer(object):
@@ -27,7 +27,7 @@ class GenerateGraspsServer(object):
   def __init__(self):
     self.orgg = or_grasp_generation.ORGraspGeneration()
 
-    self._as_generate = actionlib.SimpleActionServer('generate_grasps', cob_grasp_generation.msg.GenerateGraspsAction, execute_cb=self.generate_cb, auto_start = False)
+    self._as_generate = actionlib.SimpleActionServer('generate_grasps', GenerateGraspsAction, execute_cb=self.generate_cb, auto_start = False)
     self._as_generate.start()
 
     print("GenerateGraspsServer: action started...")
@@ -48,7 +48,7 @@ class GenerateGraspsServer(object):
         if (num_grasps > 0):
             success = True
 
-    result   = cob_grasp_generation.msg.GenerateGraspsResult()
+    result = GenerateGraspsResult()
     result.success = success
     result.num_grasps = num_grasps
 

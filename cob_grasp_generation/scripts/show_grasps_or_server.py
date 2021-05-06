@@ -18,7 +18,7 @@
 import rospy
 
 import actionlib
-import cob_grasp_generation.msg
+from cob_manipulation_msgs.msg import ShowGraspsAction, ShowGraspsResult
 from cob_grasp_generation import or_grasp_generation, grasp_query_utils
 
 class ShowGraspsOrServer(object):
@@ -26,7 +26,7 @@ class ShowGraspsOrServer(object):
   def __init__(self):
     self.orgg = or_grasp_generation.ORGraspGeneration()
 
-    self._as_show = actionlib.SimpleActionServer('show_grasps_or', cob_grasp_generation.msg.ShowGraspsAction, execute_cb=self.show_cb, auto_start = False)
+    self._as_show = actionlib.SimpleActionServer('show_grasps_or', ShowGraspsAction, execute_cb=self.show_cb, auto_start = False)
     self._as_show.start()
 
     print("ShowGraspsOrServer: action started...")
@@ -45,7 +45,7 @@ class ShowGraspsOrServer(object):
     else:
       rospy.logerr('GraspTable for Object %s does not exist!' % (goal.object_name))
 
-    result   = cob_grasp_generation.msg.ShowGraspsResult()
+    result = ShowGraspsResult()
     result.success = success
 
     if success:

@@ -19,13 +19,13 @@ import rospy
 
 import actionlib
 import moveit_msgs.msg
-import cob_grasp_generation.msg
+from cob_manipulation_msgs.msg import QueryGraspsAction, QueryGraspsGoal
 
 def query_grasps_client():
-    client = actionlib.SimpleActionClient('query_grasps', cob_grasp_generation.msg.QueryGraspsAction)
+    client = actionlib.SimpleActionClient('query_grasps', QueryGraspsAction)
     client.wait_for_server()
 
-    goal = cob_grasp_generation.msg.QueryGraspsGoal()
+    goal = QueryGraspsGoal()
     #goal.object_name="peanuts"
     #goal.gripper_type = "sdh"
     goal.object_name="pringles"

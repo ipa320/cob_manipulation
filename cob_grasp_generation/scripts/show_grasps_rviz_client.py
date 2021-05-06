@@ -15,14 +15,15 @@
 # limitations under the License.
 
 
+import six
 import rospy
 
 import actionlib
-import cob_grasp_generation.msg
-import six
+from cob_manipulation_msgs.msg import ShowGraspsAction, ShowGraspsGoal
+
 
 def show_grasps_client():
-    client = actionlib.SimpleActionClient('show_grasps_rviz', cob_grasp_generation.msg.ShowGraspsAction)
+    client = actionlib.SimpleActionClient('show_grasps_rviz', ShowGraspsAction)
     client.wait_for_server()
 
     object_name = six.moves.input("Insert object name: ")
@@ -34,7 +35,7 @@ def show_grasps_client():
         print(grasp_id)
 
         # Set the goal here: object_name, grasp_id, sort-by-quality
-        goal = cob_grasp_generation.msg.ShowGraspsGoal(object_name, gripper_type, gripper_side, grasp_id, True)
+        goal = ShowGraspsGoal(object_name, gripper_type, gripper_side, grasp_id, True)
 
         client.send_goal(goal)
         client.wait_for_result()
