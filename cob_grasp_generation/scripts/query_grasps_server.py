@@ -19,14 +19,14 @@ import rospy
 
 import actionlib
 import moveit_msgs.msg
-import cob_grasp_generation.msg
+from cob_manipulation_msgs.msg import QueryGraspsAction, QueryGraspsResult
 from cob_grasp_generation import grasp_query_utils
 
 class QueryGraspsServer(object):
 
   def __init__(self):
 
-    self._as_query = actionlib.SimpleActionServer('query_grasps', cob_grasp_generation.msg.QueryGraspsAction, execute_cb=self.query_cb, auto_start = False)
+    self._as_query = actionlib.SimpleActionServer('query_grasps', QueryGraspsAction, execute_cb=self.query_cb, auto_start = False)
     self._as_query.start()
 
     print("QueryGraspsServer: action started...")
@@ -47,7 +47,7 @@ class QueryGraspsServer(object):
     if not (grasp_list == []):
         success = True
 
-    result   = cob_grasp_generation.msg.QueryGraspsResult()
+    result   = QueryGraspsResult()
     result.success = success
     result.grasp_list = grasp_list
 

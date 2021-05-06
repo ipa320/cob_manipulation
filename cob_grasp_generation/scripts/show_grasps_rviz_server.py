@@ -22,7 +22,7 @@ import std_msgs.msg
 import geometry_msgs.msg
 import sensor_msgs.msg
 import visualization_msgs.msg
-import cob_grasp_generation.msg
+from cob_manipulation_msgs.msg import ShowGraspsAction, ShowGraspsResult
 from cob_grasp_generation import grasp_query_utils
 
 import tf
@@ -73,7 +73,7 @@ class ShowGraspsRvizServer(object):
     self._marker_pub = rospy.Publisher('/object_marker', visualization_msgs.msg.Marker, queue_size=1)
     self._timer = rospy.Timer(rospy.Duration(0.1), self.timer_cb)
 
-    self._as_show = actionlib.SimpleActionServer('show_grasps_rviz', cob_grasp_generation.msg.ShowGraspsAction, execute_cb=self.show_cb, auto_start = False)
+    self._as_show = actionlib.SimpleActionServer('show_grasps_rviz', ShowGraspsAction, execute_cb=self.show_cb, auto_start = False)
     self._as_show.start()
 
     print("ShowGraspsRvizServer: action started...")
@@ -102,7 +102,7 @@ class ShowGraspsRvizServer(object):
     else:
       rospy.logerr('GraspTable for Object %s does not exist!' % (goal.object_name))
 
-    result   = cob_grasp_generation.msg.ShowGraspsResult()
+    result = ShowGraspsResult()
     result.success = success
 
     if success:
