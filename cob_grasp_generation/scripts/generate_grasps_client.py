@@ -19,13 +19,13 @@ import rospy
 
 import actionlib
 import moveit_msgs.msg
-import cob_grasp_generation.msg
+from cob_manipulation_msgs.msg import GenerateGraspsAction, GenerateGraspsGoal
 
 def generate_grasps_client():
-    client = actionlib.SimpleActionClient('generate_grasps', cob_grasp_generation.msg.GenerateGraspsAction)
+    client = actionlib.SimpleActionClient('generate_grasps', GenerateGraspsAction)
     client.wait_for_server()
 
-    goal = cob_grasp_generation.msg.GenerateGraspsGoal()
+    goal = GenerateGraspsGoal()
     #goal.object_name="yellowsaltcube"
     #goal.object_name="hotpot"
     #goal.object_name="hotpot2"
