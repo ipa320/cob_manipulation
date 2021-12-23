@@ -4,7 +4,7 @@
   schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>cob_lookat_action</name>
-  <version>0.7.5</version>
+  <version>0.7.6</version>
   <description>
      cob_lookat_action
   </description>

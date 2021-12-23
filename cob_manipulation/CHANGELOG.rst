@@ -2,8 +2,8 @@
 Changelog for package cob_manipulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.6 (2021-12-23)
+------------------
 * Merge pull request `#150 <https://github.com/ipa320/cob_manipulation/issues/150>`_ from fmessmer/fix_pylint
   fix ci
 * move messages to dedicated package
