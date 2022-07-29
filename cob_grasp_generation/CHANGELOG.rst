@@ -2,6 +2,9 @@
 Changelog for package cob_grasp_generation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.7 (2022-07-29)
+------------------
+
 0.7.6 (2021-12-23)
 ------------------
 * Merge pull request `#150 <https://github.com/ipa320/cob_manipulation/issues/150>`_ from fmessmer/fix_pylint
