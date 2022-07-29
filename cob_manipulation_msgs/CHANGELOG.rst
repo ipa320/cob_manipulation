@@ -2,6 +2,9 @@
 Changelog for package cob_manipulation_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.7.6 (2021-12-23)
 ------------------
 * update changelogs
