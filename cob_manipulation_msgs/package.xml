@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>cob_manipulation_msgs</name>
-  <version>0.7.6</version>
+  <version>0.7.7</version>
   <description>Messages for cob_manipulation</description>
 
   <license>BSD</license>
