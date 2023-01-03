@@ -18,7 +18,7 @@ env:
     - UPSTREAM_WORKSPACE=file
   matrix:
     - ROS_DISTRO=melodic
-    - ROS_DISTRO=noetic TARGET_WORKSPACE='. -cob_manipulation/cob_obstacle_distance_moveit -cob_manipulation/cob_manipulation' UPSTREAM_WORKSPACE='.travis.rosinstall.noetic -cob_robots/cob_bringup -cob_robots/cob_robots'
+    - ROS_DISTRO=noetic TARGET_WORKSPACE='. -cob_manipulation/cob_obstacle_distance_moveit -cob_manipulation/cob_manipulation'
 install:
   - git clone --quiet --depth 1 https://github.com/ros-industrial/industrial_ci.git .industrial_ci -b master
 script:
