@@ -25,7 +25,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - { ROS_DISTRO: noetic }
+          - { ROS_DISTRO: noetic, TARGET_WORKSPACE: '. -cob_manipulation/cob_obstacle_distance_moveit -cob_manipulation/cob_manipulation' }
 
     steps:
       - uses: actions/checkout@v4
